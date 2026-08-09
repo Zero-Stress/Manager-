@@ -33,6 +33,55 @@
             background-attachment: fixed;
         }
 
+        /* Loading Screen Overlay */
+        #appLoadingScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            z-index: 999999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+
+        #appLoadingScreen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-title {
+            color: var(--accent-color);
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .loading-subtitle {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
         .container {
             max-width: 900px;
             margin: 0 auto;
@@ -199,6 +248,42 @@
             outline: none;
         }
 
+        /* Password Input Group with Toggle View Eye Icon */
+        .password-input-group {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: #0f172a;
+            overflow: hidden;
+        }
+
+        .password-input-group input {
+            border: none;
+            background: transparent;
+            flex: 1;
+            padding: 10px;
+            color: var(--text-color);
+            outline: none;
+        }
+
+        .password-toggle-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            padding: 0 12px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        .password-toggle-btn:hover {
+            color: var(--accent-color);
+        }
+
         .ocr-box {
             grid-column: 1 / -1;
             background: #0f172a;
@@ -362,11 +447,18 @@
 </head>
 <body>
 
+<!-- OPTIMIZED LOADING SCREEN -->
+<div id="appLoadingScreen">
+    <div class="spinner"></div>
+    <div class="loading-title">ZERO STRESS MANAGER</div>
+    <div class="loading-subtitle">Optimizing & Loading Session...</div>
+</div>
+
 <div class="container">
     <h1>ZERO STRESS Performance & Leaderboard Manager</h1>
 
     <!-- LOGIN / REGISTER SCREEN (For Players & Admin) -->
-    <div id="authScreen">
+    <div id="authScreen" class="hidden">
         <div class="auth-card">
             <div class="auth-tabs">
                 <button type="button" class="auth-tab active" id="tabLoginBtn" onclick="switchAuthMode('login')">Login</button>
@@ -385,7 +477,10 @@
                     </div>
                     <div class="form-group">
                         <label>Password</label>
-                        <input type="password" id="loginPassword" required placeholder="********">
+                        <div class="password-input-group">
+                            <input type="password" id="loginPassword" required placeholder="********">
+                            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('loginPassword', this)" title="Show/Hide Password">👁️</button>
+                        </div>
                     </div>
                     <button type="submit" class="submit-btn">Login to Leaderboards</button>
                 </form>
@@ -408,7 +503,10 @@
                     </div>
                     <div class="form-group">
                         <label>Password</label>
-                        <input type="password" id="regPassword" required placeholder="********">
+                        <div class="password-input-group">
+                            <input type="password" id="regPassword" required placeholder="********">
+                            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('regPassword', this)" title="Show/Hide Password">👁️</button>
+                        </div>
                     </div>
                     <button type="submit" class="submit-btn">Send WhatsApp OTP</button>
                 </form>
@@ -651,25 +749,57 @@
         name: "Admin Master"
     };
 
-    let userAccounts = JSON.parse(localStorage.getItem('squad_user_accounts')) || [];
-    let dailyLog = JSON.parse(localStorage.getItem('squad_daily_log')) || [];
-    let weeklyData = JSON.parse(localStorage.getItem('squad_weekly_accumulated')) || {};
-    
-    let currentUser = JSON.parse(localStorage.getItem('squad_current_session')) || null;
+    let userAccounts = [];
+    let dailyLog = [];
+    let weeklyData = {};
+    let currentUser = null;
     let cropper = null;
 
-    // Temporary storage for ongoing registration OTP process
     let pendingRegData = null;
     let generatedOtpCode = null;
 
-    window.onload = function() {
-        if (currentUser) {
-            bootAppSession();
+    // Toggle Password Visibility Function
+    function togglePasswordVisibility(inputId, btnElement) {
+        const inputField = document.getElementById(inputId);
+        if (inputField.type === "password") {
+            inputField.type = "text";
+            btnElement.textContent = "👁️‍🗨️"; // Changed eye icon state indicating visible
+            btnElement.title = "Hide Password";
         } else {
-            document.getElementById('authScreen').classList.remove('hidden');
-            document.getElementById('appDashboard').classList.add('hidden');
-            // Explicitly force login mode view on start
-            switchAuthMode('login');
+            inputField.type = "password";
+            btnElement.textContent = "👁️"; // Standard eye icon indicating hidden
+            btnElement.title = "Show/Hide Password";
+        }
+    }
+
+    // Optimized Asynchronous App Boot Sequence with Smooth Loading Screen
+    window.onload = async function() {
+        try {
+            // Preload local storage data smoothly in async chunks
+            await new Promise(resolve => {
+                userAccounts = JSON.parse(localStorage.getItem('squad_user_accounts')) || [];
+                dailyLog = JSON.parse(localStorage.getItem('squad_daily_log')) || [];
+                weeklyData = JSON.parse(localStorage.getItem('squad_weekly_accumulated')) || {};
+                currentUser = JSON.parse(localStorage.getItem('squad_current_session')) || null;
+                setTimeout(resolve, 350); // Ensures smooth transition animation
+            });
+
+            if (currentUser) {
+                bootAppSession();
+            } else {
+                document.getElementById('authScreen').classList.remove('hidden');
+                document.getElementById('appDashboard').classList.add('hidden');
+                switchAuthMode('login');
+            }
+        } catch (e) {
+            console.error("Initialization error:", e);
+        } finally {
+            // Smoothly fade out loading screen
+            const loader = document.getElementById('appLoadingScreen');
+            loader.classList.add('fade-out');
+            setTimeout(() => {
+                loader.style.display = 'none';
+            }, 400);
         }
     };
 
@@ -692,7 +822,6 @@
             registerTabBtn.classList.add('active');
             loginTabBtn.classList.remove('active');
 
-            // If they were in the middle of OTP verification, keep OTP view, else show initial register form
             if (generatedOtpCode && pendingRegData) {
                 regAuthForm.classList.add('hidden');
                 regOtpForm.classList.remove('hidden');
@@ -729,18 +858,15 @@
             return;
         }
 
-        // Generate random 4-digit OTP code
         generatedOtpCode = Math.floor(1000 + Math.random() * 9000).toString();
         pendingRegData = { name, phone, password };
 
-        // Open WhatsApp Web/App with pre-filled message containing the verification code
         let fullPhone = "880" + phone;
         let message = encodeURIComponent(`Your ZERO STRESS Verification Code is: *${generatedOtpCode}*. Enter this code to complete your registration.`);
         let whatsappUrl = `https://api.whatsapp.com/send?phone=${fullPhone}&text=${message}`;
         
         window.open(whatsappUrl, '_blank');
 
-        // Switch form view to OTP confirmation input safely
         document.getElementById('registerAuthForm').classList.add('hidden');
         document.getElementById('registerOtpForm').classList.remove('hidden');
     }
@@ -762,7 +888,6 @@
             return;
         }
 
-        // Register user successfully after OTP validation
         const newUser = { 
             name: pendingRegData.name, 
             phone: pendingRegData.phone, 
@@ -776,7 +901,6 @@
 
         alert("Phone verified via WhatsApp and registration successful! Waiting for Admin confirmation to appear on leaderboards.");
         
-        // Reset states and return cleanly to login screen
         document.getElementById('registerOtpForm').reset();
         document.getElementById('registerAuthForm').reset();
         pendingRegData = null;
@@ -869,7 +993,6 @@
         }
     }
 
-    // Admin Controls for Accounts
     function toggleConfirmUser(index) {
         if(currentUser.role !== 'admin') return;
         userAccounts[index].status = userAccounts[index].status === 'confirmed' ? 'pending' : 'confirmed';
