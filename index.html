@@ -369,56 +369,61 @@
     <div id="authScreen">
         <div class="auth-card">
             <div class="auth-tabs">
-                <button class="auth-tab active" onclick="switchAuthMode('login')">Login</button>
-                <button class="auth-tab" onclick="switchAuthMode('register')">Register</button>
+                <button type="button" class="auth-tab active" id="tabLoginBtn" onclick="switchAuthMode('login')">Login</button>
+                <button type="button" class="auth-tab" id="tabRegisterBtn" onclick="switchAuthMode('register')">Register</button>
             </div>
 
-            <!-- LOGIN FORM -->
-            <form id="loginForm" class="auth-form" onsubmit="handleLogin(event)">
-                <div class="form-group">
-                    <label>Phone Number (Bangladesh)</label>
-                    <div class="phone-input-group">
-                        <span class="phone-prefix">+880</span>
-                        <input type="tel" id="loginPhone" required maxlength="10" placeholder="1700000000" pattern="^1[3-9]\d{8}$" title="Enter valid 10 digit BD mobile number starting with 13-19">
+            <!-- LOGIN FORM CONTAINER -->
+            <div id="loginFormContainer">
+                <form id="loginForm" class="auth-form" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label>Phone Number (Bangladesh)</label>
+                        <div class="phone-input-group">
+                            <span class="phone-prefix">+880</span>
+                            <input type="tel" id="loginPhone" required maxlength="10" placeholder="1700000000" pattern="^1[3-9]\d{8}$" title="Enter valid 10 digit BD mobile number starting with 13-19">
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="loginPassword" required placeholder="********">
-                </div>
-                <button type="submit" class="submit-btn">Login to Leaderboards</button>
-            </form>
-
-            <!-- REGISTER FORM (STEP 1: Details & Request WhatsApp OTP) -->
-            <form id="registerAuthForm" class="auth-form" onsubmit="handleRequestOTP(event)">
-                <div class="form-group">
-                    <label>Player Name</label>
-                    <input type="text" id="regPlayerName" required placeholder="e.g. ShadowWarrior">
-                </div>
-                <div class="form-group">
-                    <label>Phone Number (Bangladesh)</label>
-                    <div class="phone-input-group">
-                        <span class="phone-prefix">+880</span>
-                        <input type="tel" id="regPhone" required maxlength="10" placeholder="1700000000" pattern="^1[3-9]\d{8}$" title="Enter valid 10 digit BD mobile number starting with 13-19">
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" required placeholder="********">
                     </div>
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="regPassword" required placeholder="********">
-                </div>
-                <button type="submit" class="submit-btn">Send WhatsApp OTP</button>
-            </form>
+                    <button type="submit" class="submit-btn">Login to Leaderboards</button>
+                </form>
+            </div>
 
-            <!-- REGISTER FORM (STEP 2: Enter WhatsApp OTP & Complete) -->
-            <form id="registerOtpForm" class="auth-form hidden" onsubmit="handleVerifyAndRegister(event)">
-                <p style="font-size: 13px; color: #38bdf8; text-align: center; margin: 0;">WhatsApp opened in a new tab with your verification code! Enter the 4-digit code below to finish registration.</p>
-                <div class="form-group">
-                    <label>Enter 4-Digit OTP Code</label>
-                    <input type="text" id="regOtpInput" required maxlength="4" placeholder="1234" style="text-align: center; font-size: 20px; letter-spacing: 5px;">
-                </div>
-                <button type="submit" class="submit-btn">Verify & Create Account</button>
-                <button type="button" class="btn-secondary" onclick="backToRegisterForm()" style="margin-top: 5px;">Back / Resend OTP</button>
-            </form>
+            <!-- REGISTER FORMS CONTAINER -->
+            <div id="registerFormContainer" class="hidden">
+                <!-- REGISTER FORM (STEP 1: Details & Request WhatsApp OTP) -->
+                <form id="registerAuthForm" class="auth-form" onsubmit="handleRequestOTP(event)">
+                    <div class="form-group">
+                        <label>Player Name</label>
+                        <input type="text" id="regPlayerName" required placeholder="e.g. ShadowWarrior">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number (Bangladesh)</label>
+                        <div class="phone-input-group">
+                            <span class="phone-prefix">+880</span>
+                            <input type="tel" id="regPhone" required maxlength="10" placeholder="1700000000" pattern="^1[3-9]\d{8}$" title="Enter valid 10 digit BD mobile number starting with 13-19">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="regPassword" required placeholder="********">
+                    </div>
+                    <button type="submit" class="submit-btn">Send WhatsApp OTP</button>
+                </form>
+
+                <!-- REGISTER FORM (STEP 2: Enter WhatsApp OTP & Complete) -->
+                <form id="registerOtpForm" class="auth-form hidden" onsubmit="handleVerifyAndRegister(event)">
+                    <p style="font-size: 13px; color: #38bdf8; text-align: center; margin: 0;">WhatsApp opened in a new tab with your verification code! Enter the 4-digit code below to finish registration.</p>
+                    <div class="form-group">
+                        <label>Enter 4-Digit OTP Code</label>
+                        <input type="text" id="regOtpInput" required maxlength="4" placeholder="1234" style="text-align: center; font-size: 20px; letter-spacing: 5px;">
+                    </div>
+                    <button type="submit" class="submit-btn">Verify & Create Account</button>
+                    <button type="button" class="btn-secondary" onclick="backToRegisterForm()" style="margin-top: 5px;">Back / Resend OTP</button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -663,32 +668,42 @@
         } else {
             document.getElementById('authScreen').classList.remove('hidden');
             document.getElementById('appDashboard').classList.add('hidden');
+            // Explicitly force login mode view on start
+            switchAuthMode('login');
         }
     };
 
     function switchAuthMode(mode) {
-        const loginForm = document.getElementById('loginForm');
+        const loginContainer = document.getElementById('loginFormContainer');
+        const registerContainer = document.getElementById('registerFormContainer');
         const regAuthForm = document.getElementById('registerAuthForm');
         const regOtpForm = document.getElementById('registerOtpForm');
-        const tabs = document.querySelectorAll('.auth-tab');
-
-        tabs.forEach(t => t.classList.remove('active'));
+        const loginTabBtn = document.getElementById('tabLoginBtn');
+        const registerTabBtn = document.getElementById('tabRegisterBtn');
 
         if(mode === 'login') {
-            loginForm.classList.remove('hidden');
-            regAuthForm.classList.add('hidden');
-            regOtpForm.classList.add('hidden');
-            tabs[0].classList.add('active');
+            loginContainer.classList.remove('hidden');
+            registerContainer.classList.add('hidden');
+            loginTabBtn.classList.add('active');
+            registerTabBtn.classList.remove('active');
         } else {
-            loginForm.classList.add('hidden');
-            regAuthForm.classList.remove('hidden');
-            regOtpForm.classList.add('hidden');
-            tabs[1].classList.add('active');
+            loginContainer.classList.add('hidden');
+            registerContainer.classList.remove('hidden');
+            registerTabBtn.classList.add('active');
+            loginTabBtn.classList.remove('active');
+
+            // If they were in the middle of OTP verification, keep OTP view, else show initial register form
+            if (generatedOtpCode && pendingRegData) {
+                regAuthForm.classList.add('hidden');
+                regOtpForm.classList.remove('hidden');
+            } else {
+                regAuthForm.classList.remove('hidden');
+                regOtpForm.classList.add('hidden');
+            }
         }
     }
 
     function validateBDPhone(phone) {
-        // Bangladeshi mobile regex: starts with 1 followed by 3-9, and 8 more digits (total 10 digits after +880)
         const bdPhoneRegex = /^1[3-9]\d{8}$/;
         return bdPhoneRegex.test(phone);
     }
@@ -725,12 +740,15 @@
         
         window.open(whatsappUrl, '_blank');
 
-        // Switch form view to OTP confirmation input
+        // Switch form view to OTP confirmation input safely
         document.getElementById('registerAuthForm').classList.add('hidden');
         document.getElementById('registerOtpForm').classList.remove('hidden');
     }
 
     function backToRegisterForm() {
+        generatedOtpCode = null;
+        pendingRegData = null;
+        document.getElementById('registerOtpForm').reset();
         document.getElementById('registerOtpForm').classList.add('hidden');
         document.getElementById('registerAuthForm').classList.remove('hidden');
     }
@@ -739,8 +757,8 @@
         event.preventDefault();
         const enteredOtp = document.getElementById('regOtpInput').value.trim();
 
-        if(!enteredOtp || enteredOtp !== generatedOtpCode) {
-            alert("Incorrect OTP code! Please check your WhatsApp message and enter the correct 4-digit code.");
+        if(!enteredOtp || !generatedOtpCode || enteredOtp !== generatedOtpCode) {
+            alert("Incorrect or expired OTP code! Please check your WhatsApp message and enter the correct 4-digit code, or request a new one.");
             return;
         }
 
@@ -758,11 +776,13 @@
 
         alert("Phone verified via WhatsApp and registration successful! Waiting for Admin confirmation to appear on leaderboards.");
         
-        // Reset forms and return to login screen
+        // Reset states and return cleanly to login screen
         document.getElementById('registerOtpForm').reset();
         document.getElementById('registerAuthForm').reset();
         pendingRegData = null;
         generatedOtpCode = null;
+        document.getElementById('registerOtpForm').classList.add('hidden');
+        document.getElementById('registerAuthForm').classList.add('hidden');
         switchAuthMode('login');
     }
 
@@ -783,7 +803,7 @@
             if(foundUser) {
                 currentUser = { name: foundUser.name, phone: foundUser.phone, role: 'player' };
             } else {
-                alert("Invalid phone number or password!");
+                alert("Invalid phone number or password! Please check your credentials or register an account if you haven't yet.");
                 return;
             }
         }
@@ -798,6 +818,7 @@
         document.getElementById('authScreen').classList.remove('hidden');
         document.getElementById('appDashboard').classList.add('hidden');
         document.getElementById('loginForm').reset();
+        switchAuthMode('login');
     }
 
     function bootAppSession() {
@@ -862,7 +883,6 @@
         let newName = prompt("Edit Player Name:", currentName);
         if(newName && newName.trim() !== "") {
             newName = newName.trim();
-            // Check if name is taken
             if(userAccounts.some((u, i) => i !== index && u.name.toLowerCase() === newName.toLowerCase())) {
                 alert("Another user already has this name!");
                 return;
@@ -910,7 +930,6 @@
     function updatePlayerDropdown() {
         let select = document.getElementById('dailyPlayerSelect');
         let optionsHtml = '<option value="" disabled selected>-- Choose Confirmed Player --</option>';
-        // Only list confirmed players for daily score inputs
         userAccounts.forEach(acc => {
             if(acc.status === 'confirmed') {
                 optionsHtml += `<option value="${acc.name}">${acc.name}</option>`;
