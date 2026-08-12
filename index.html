@@ -487,7 +487,7 @@
 
             <!-- REGISTER FORM -->
             <div id="registerFormContainer" class="hidden">
-                <form id="registerAuthForm" class="auth-form" onsubmit="handleRegister(event)">
+                <div id="registerAuthForm" class="auth-form">
                     <div class="form-group">
                         <label>Player Name</label>
                         <input type="text" id="regPlayerName" required placeholder="e.g. ShadowWarrior">
@@ -506,8 +506,8 @@
                             <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('regPassword', this)">👁️</button>
                         </div>
                     </div>
-                    <button type="submit" class="submit-btn">Register Account</button>
-                </form>
+                    <button type="button" class="submit-btn" onclick="handleRegisterClick()">Register Account</button>
+                </div>
             </div>
         </div>
     </div>
@@ -830,28 +830,38 @@
         return /^1[3-9]\d{8}$/.test(phone);
     }
 
-    window.handleRegister = async function(event) {
-        event.preventDefault();
-        const name = document.getElementById('regPlayerName').value.trim();
-        const phone = document.getElementById('regPhone').value.trim();
-        const password = document.getElementById('regPassword').value.trim();
+    window.handleRegisterClick = async function() {
+        try {
+            const name = document.getElementById('regPlayerName').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            const password = document.getElementById('regPassword').value.trim();
 
-        if(!validateBDPhone(phone)) {
-            alert("Please enter a valid Bangladeshi phone number (e.g., 1700000000).");
-            return;
+            if(!name || !phone || !password) {
+                alert("Please fill in all registration fields!");
+                return;
+            }
+
+            if(!validateBDPhone(phone)) {
+                alert("Please enter a valid Bangladeshi phone number (e.g., 1700000000).");
+                return;
+            }
+
+            if(phone === ADMIN_CREDENTIALS.phone || userAccounts[phone]) {
+                alert("An account with this phone number already exists!");
+                return;
+            }
+
+            const newUser = { name, phone, password, role: 'player', status: 'pending' };
+            await set(ref(db, 'users/' + phone), newUser);
+
+            alert("Account successfully created! Waiting for Admin confirmation.");
+            document.getElementById('regPlayerName').value = '';
+            document.getElementById('regPhone').value = '';
+            document.getElementById('regPassword').value = '';
+            switchAuthMode('login');
+        } catch (err) {
+            alert("Registration failed: " + err.message);
         }
-
-        if(phone === ADMIN_CREDENTIALS.phone || userAccounts[phone]) {
-            alert("An account with this phone number already exists!");
-            return;
-        }
-
-        const newUser = { name, phone, password, role: 'player', status: 'pending' };
-        await set(ref(db, 'users/' + phone), newUser);
-
-        alert("Account successfully created! Waiting for Admin confirmation.");
-        document.getElementById('registerAuthForm').reset();
-        switchAuthMode('login');
     };
 
     window.handleLogin = async function(event) {
