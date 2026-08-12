@@ -248,7 +248,6 @@
             outline: none;
         }
 
-        /* Password Input Group with Toggle View Eye Icon */
         .password-input-group {
             display: flex;
             align-items: center;
@@ -451,13 +450,13 @@
 <div id="appLoadingScreen">
     <div class="spinner"></div>
     <div class="loading-title">ZERO STRESS MANAGER</div>
-    <div class="loading-subtitle">Optimizing & Loading Session...</div>
+    <div class="loading-subtitle">Connecting to Cloud Database...</div>
 </div>
 
 <div class="container">
     <h1>ZERO STRESS Performance & Leaderboard Manager</h1>
 
-    <!-- LOGIN / REGISTER SCREEN (For Players & Admin) -->
+    <!-- LOGIN / REGISTER SCREEN -->
     <div id="authScreen" class="hidden">
         <div class="auth-card">
             <div class="auth-tabs">
@@ -465,31 +464,30 @@
                 <button type="button" class="auth-tab" id="tabRegisterBtn" onclick="switchAuthMode('register')">Register</button>
             </div>
 
-            <!-- LOGIN FORM CONTAINER -->
+            <!-- LOGIN FORM -->
             <div id="loginFormContainer">
                 <form id="loginForm" class="auth-form" onsubmit="handleLogin(event)">
                     <div class="form-group">
                         <label>Phone Number (Bangladesh)</label>
                         <div class="phone-input-group">
                             <span class="phone-prefix">+880</span>
-                            <input type="tel" id="loginPhone" required maxlength="10" placeholder="1700000000" pattern="^1[3-9]\d{8}$" title="Enter valid 10 digit BD mobile number starting with 13-19">
+                            <input type="tel" id="loginPhone" required maxlength="10" placeholder="1700000000" pattern="^1[3-9]\d{8}$">
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Password</label>
                         <div class="password-input-group">
                             <input type="password" id="loginPassword" required placeholder="********">
-                            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('loginPassword', this)" title="Show/Hide Password">👁️</button>
+                            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('loginPassword', this)">👁️</button>
                         </div>
                     </div>
                     <button type="submit" class="submit-btn">Login to Leaderboards</button>
                 </form>
             </div>
 
-            <!-- REGISTER FORMS CONTAINER -->
+            <!-- REGISTER FORM -->
             <div id="registerFormContainer" class="hidden">
-                <!-- REGISTER FORM (STEP 1: Details & Request WhatsApp OTP) -->
-                <form id="registerAuthForm" class="auth-form" onsubmit="handleRequestOTP(event)">
+                <form id="registerAuthForm" class="auth-form" onsubmit="handleRegister(event)">
                     <div class="form-group">
                         <label>Player Name</label>
                         <input type="text" id="regPlayerName" required placeholder="e.g. ShadowWarrior">
@@ -498,37 +496,25 @@
                         <label>Phone Number (Bangladesh)</label>
                         <div class="phone-input-group">
                             <span class="phone-prefix">+880</span>
-                            <input type="tel" id="regPhone" required maxlength="10" placeholder="1700000000" pattern="^1[3-9]\d{8}$" title="Enter valid 10 digit BD mobile number starting with 13-19">
+                            <input type="tel" id="regPhone" required maxlength="10" placeholder="1700000000" pattern="^1[3-9]\d{8}$">
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Password</label>
                         <div class="password-input-group">
                             <input type="password" id="regPassword" required placeholder="********">
-                            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('regPassword', this)" title="Show/Hide Password">👁️</button>
+                            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('regPassword', this)">👁️</button>
                         </div>
                     </div>
-                    <button type="submit" class="submit-btn">Send WhatsApp OTP</button>
-                </form>
-
-                <!-- REGISTER FORM (STEP 2: Enter WhatsApp OTP & Complete) -->
-                <form id="registerOtpForm" class="auth-form hidden" onsubmit="handleVerifyAndRegister(event)">
-                    <p style="font-size: 13px; color: #38bdf8; text-align: center; margin: 0;">WhatsApp opened in a new tab with your verification code! Enter the 4-digit code below to finish registration.</p>
-                    <div class="form-group">
-                        <label>Enter 4-Digit OTP Code</label>
-                        <input type="text" id="regOtpInput" required maxlength="4" placeholder="1234" style="text-align: center; font-size: 20px; letter-spacing: 5px;">
-                    </div>
-                    <button type="submit" class="submit-btn">Verify & Create Account</button>
-                    <button type="button" class="btn-secondary" onclick="backToRegisterForm()" style="margin-top: 5px;">Back / Resend OTP</button>
+                    <button type="submit" class="submit-btn">Register Account</button>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- MAIN APP DASHBOARD (Hidden Until Login) -->
+    <!-- MAIN APP DASHBOARD -->
     <div id="appDashboard" class="hidden">
         
-        <!-- USER / ADMIN INFO BAR -->
         <div class="user-header-bar">
             <div>
                 Logged in as: <b id="displayUsername" style="color: var(--accent-color);"></b> 
@@ -537,7 +523,6 @@
             <button class="btn-danger" onclick="handleLogout()">Logout</button>
         </div>
 
-        <!-- NAVIGATION TABS -->
         <div class="tabs" id="navTabsContainer">
             <button class="tab-btn admin-only" onclick="switchTab('register')">Manage Registrations</button>
             <button class="tab-btn admin-only" onclick="switchTab('daily')">Daily Input</button>
@@ -546,18 +531,16 @@
             <button class="tab-btn player-nav-btn" onclick="switchTab('leaderboard')">Weekly Leaderboard</button>
         </div>
 
-        <!-- REGISTRATION APPROVAL & EDIT SECTION (ADMIN ONLY) -->
+        <!-- REGISTRATION APPROVAL & EDIT SECTION -->
         <div id="register" class="section admin-only">
             <h2>Player Registration Requests & Approvals</h2>
-            <p style="font-size: 13px; color: #94a3b8; text-align: center; margin-bottom: 20px;">Review player registrations, edit their names, view phone numbers, and confirm them to activate squad tracking.</p>
-
             <div style="overflow-x:auto;">
                 <table>
                     <thead>
                         <tr>
                             <th>#</th>
                             <th>Player Name</th>
-                            <th>Phone Number</th>
+                            <th>Phone</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -567,15 +550,13 @@
             </div>
         </div>
 
-        <!-- DAILY REPORT SECTION (ADMIN ONLY) -->
+        <!-- DAILY REPORT SECTION -->
         <div id="daily" class="section admin-only">
             <div class="action-container">
                 <h2>Add Today's Player Match Data</h2>
                 <button class="btn-secondary" onclick="resetDailyOnly()">Reset Daily Log</button>
             </div>
             <form id="dailyForm" class="admin-form" onsubmit="addDailyRecord(event)">
-                
-                <!-- IMAGE CROPPER & OCR SECTION -->
                 <div class="ocr-box">
                     <label style="color: var(--accent-color); font-weight: bold; display: block; margin-bottom: 8px;">Auto-Fill from Match Screenshot</label>
                     <input type="file" id="screenshotInput" accept="image/*" onchange="initCropper(event)" style="font-size: 12px; color: #94a3b8;">
@@ -639,7 +620,7 @@
             </div>
         </div>
 
-        <!-- DAILY LEADERBOARD SECTION (PUBLIC) -->
+        <!-- DAILY LEADERBOARD -->
         <div id="dailyLb" class="section">
             <div class="action-container">
                 <h2>Today's Top Player Leaderboard (Excludes Assists)</h2>
@@ -670,7 +651,7 @@
             </div>
         </div>
 
-        <!-- WEEKLY REPORT SECTION (ADMIN ONLY) -->
+        <!-- WEEKLY REPORT SECTION -->
         <div id="weekly" class="section admin-only">
             <h2>Automated Weekly Performance Summary</h2>
             <div class="action-container">
@@ -699,7 +680,7 @@
             </div>
         </div>
 
-        <!-- WEEKLY LEADERBOARD SECTION (PUBLIC) -->
+        <!-- WEEKLY LEADERBOARD -->
         <div id="leaderboard" class="section">
             <div class="action-container">
                 <h2>Top 10 Weekly Player Leaderboard (Excludes Assists)</h2>
@@ -728,10 +709,9 @@
     </div>
 </div>
 
-<!-- CROPPER MODAL POPUP -->
+<!-- CROPPER MODAL -->
 <div id="cropperModal">
     <div style="color: var(--accent-color); font-weight: bold; margin-bottom: 5px; text-align: center;">Crop Kills, Assists, Damage, Revival & Survival Time</div>
-    <div style="font-size: 11px; color: #94a3b8; margin-bottom: 10px; text-align: center;">Crop across the exact row values.</div>
     <div class="cropper-container-box">
         <img id="imageToCrop" src="" alt="Source Image">
     </div>
@@ -741,48 +721,77 @@
     </div>
 </div>
 
-<script>
-    // HARDCODED ADMIN CREDENTIALS (BD format: 1757261781 -> +8801757261781)
+<!-- FIREBASE SDK SETUP & CONFIGURATION (ES MODULES) -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
+    import { getDatabase, ref, onValue, set, push, remove } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA1xcPsq3TM9J0h_YSqB7Z42cssSsyWeZw",
+        authDomain: "zero-stress-app.firebaseapp.com",
+        databaseURL: "https://zero-stress-app-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "zero-stress-app",
+        storageBucket: "zero-stress-app.firebasestorage.app",
+        messagingSenderId: "1054722058127",
+        appId: "1:1054722058127:web:31667bb03875308d978dfa",
+        measurementId: "G-T5B5H031PD"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getDatabase(app);
+
     const ADMIN_CREDENTIALS = {
         phone: "1757261781",
         password: "adminpassword123",
         name: "Admin Master"
     };
 
-    let userAccounts = [];
+    let userAccounts = {};
     let dailyLog = [];
     let weeklyData = {};
     let currentUser = null;
     let cropper = null;
 
-    let pendingRegData = null;
-    let generatedOtpCode = null;
-
-    // Toggle Password Visibility Function
-    function togglePasswordVisibility(inputId, btnElement) {
+    window.togglePasswordVisibility = function(inputId, btnElement) {
         const inputField = document.getElementById(inputId);
         if (inputField.type === "password") {
             inputField.type = "text";
-            btnElement.textContent = "👁️‍🗨️"; // Changed eye icon state indicating visible
-            btnElement.title = "Hide Password";
+            btnElement.textContent = "👁️‍🗨️"; 
         } else {
             inputField.type = "password";
-            btnElement.textContent = "👁️"; // Standard eye icon indicating hidden
-            btnElement.title = "Show/Hide Password";
+            btnElement.textContent = "👁️"; 
         }
-    }
+    };
 
-    // Optimized Asynchronous App Boot Sequence with Smooth Loading Screen
     window.onload = async function() {
         try {
-            // Preload local storage data smoothly in async chunks
-            await new Promise(resolve => {
-                userAccounts = JSON.parse(localStorage.getItem('squad_user_accounts')) || [];
-                dailyLog = JSON.parse(localStorage.getItem('squad_daily_log')) || [];
-                weeklyData = JSON.parse(localStorage.getItem('squad_weekly_accumulated')) || {};
-                currentUser = JSON.parse(localStorage.getItem('squad_current_session')) || null;
-                setTimeout(resolve, 350); // Ensures smooth transition animation
+            currentUser = JSON.parse(localStorage.getItem('squad_current_session')) || null;
+            
+            onValue(ref(db, 'users'), (snapshot) => {
+                userAccounts = snapshot.val() || {};
+                if (currentUser) {
+                    renderRegisterTable();
+                    if(currentUser.role === 'admin') updatePlayerDropdown();
+                }
             });
+
+            onValue(ref(db, 'dailyLog'), (snapshot) => {
+                let val = snapshot.val();
+                dailyLog = val ? Object.values(val) : [];
+                rebuildWeeklyFromLog();
+                renderDailyTable();
+                if (document.getElementById('dailyLb').classList.contains('active')) updateDailyLeaderboard();
+                if (document.getElementById('leaderboard').classList.contains('active')) updateWeeklyLeaderboard();
+                if (currentUser && currentUser.role === 'admin' && document.getElementById('weekly').classList.contains('active')) renderWeeklyTable();
+            });
+
+            setTimeout(() => {
+                const loader = document.getElementById('appLoadingScreen');
+                loader.classList.add('fade-out');
+                setTimeout(() => { loader.style.display = 'none'; }, 400);
+            }, 500);
 
             if (currentUser) {
                 bootAppSession();
@@ -793,21 +802,14 @@
             }
         } catch (e) {
             console.error("Initialization error:", e);
-        } finally {
-            // Smoothly fade out loading screen
             const loader = document.getElementById('appLoadingScreen');
-            loader.classList.add('fade-out');
-            setTimeout(() => {
-                loader.style.display = 'none';
-            }, 400);
+            loader.style.display = 'none';
         }
     };
 
-    function switchAuthMode(mode) {
+    window.switchAuthMode = function(mode) {
         const loginContainer = document.getElementById('loginFormContainer');
         const registerContainer = document.getElementById('registerFormContainer');
-        const regAuthForm = document.getElementById('registerAuthForm');
-        const regOtpForm = document.getElementById('registerOtpForm');
         const loginTabBtn = document.getElementById('tabLoginBtn');
         const registerTabBtn = document.getElementById('tabRegisterBtn');
 
@@ -821,129 +823,66 @@
             registerContainer.classList.remove('hidden');
             registerTabBtn.classList.add('active');
             loginTabBtn.classList.remove('active');
-
-            if (generatedOtpCode && pendingRegData) {
-                regAuthForm.classList.add('hidden');
-                regOtpForm.classList.remove('hidden');
-            } else {
-                regAuthForm.classList.remove('hidden');
-                regOtpForm.classList.add('hidden');
-            }
         }
-    }
+    };
 
     function validateBDPhone(phone) {
-        const bdPhoneRegex = /^1[3-9]\d{8}$/;
-        return bdPhoneRegex.test(phone);
+        return /^1[3-9]\d{8}$/.test(phone);
     }
 
-    function handleRequestOTP(event) {
+    window.handleRegister = async function(event) {
         event.preventDefault();
         const name = document.getElementById('regPlayerName').value.trim();
         const phone = document.getElementById('regPhone').value.trim();
         const password = document.getElementById('regPassword').value.trim();
 
-        if(!phone || !password || !name) {
-            alert("Please fill all fields!");
-            return;
-        }
-
         if(!validateBDPhone(phone)) {
-            alert("Please enter a valid Bangladeshi phone number (e.g. 1700000000, starting with 13 to 19).");
+            alert("Please enter a valid Bangladeshi phone number (e.g., 1700000000).");
             return;
         }
 
-        if(phone === ADMIN_CREDENTIALS.phone || userAccounts.some(u => u.phone === phone)) {
+        if(phone === ADMIN_CREDENTIALS.phone || userAccounts[phone]) {
             alert("An account with this phone number already exists!");
             return;
         }
 
-        generatedOtpCode = Math.floor(1000 + Math.random() * 9000).toString();
-        pendingRegData = { name, phone, password };
+        const newUser = { name, phone, password, role: 'player', status: 'pending' };
+        await set(ref(db, 'users/' + phone), newUser);
 
-        let fullPhone = "880" + phone;
-        let message = encodeURIComponent(`Your ZERO STRESS Verification Code is: *${generatedOtpCode}*. Enter this code to complete your registration.`);
-        let whatsappUrl = `https://api.whatsapp.com/send?phone=${fullPhone}&text=${message}`;
-        
-        window.open(whatsappUrl, '_blank');
-
-        document.getElementById('registerAuthForm').classList.add('hidden');
-        document.getElementById('registerOtpForm').classList.remove('hidden');
-    }
-
-    function backToRegisterForm() {
-        generatedOtpCode = null;
-        pendingRegData = null;
-        document.getElementById('registerOtpForm').reset();
-        document.getElementById('registerOtpForm').classList.add('hidden');
-        document.getElementById('registerAuthForm').classList.remove('hidden');
-    }
-
-    function handleVerifyAndRegister(event) {
-        event.preventDefault();
-        const enteredOtp = document.getElementById('regOtpInput').value.trim();
-
-        if(!enteredOtp || !generatedOtpCode || enteredOtp !== generatedOtpCode) {
-            alert("Incorrect or expired OTP code! Please check your WhatsApp message and enter the correct 4-digit code, or request a new one.");
-            return;
-        }
-
-        const newUser = { 
-            name: pendingRegData.name, 
-            phone: pendingRegData.phone, 
-            password: pendingRegData.password, 
-            role: 'player', 
-            status: 'pending' 
-        };
-        
-        userAccounts.push(newUser);
-        localStorage.setItem('squad_user_accounts', JSON.stringify(userAccounts));
-
-        alert("Phone verified via WhatsApp and registration successful! Waiting for Admin confirmation to appear on leaderboards.");
-        
-        document.getElementById('registerOtpForm').reset();
+        alert("Account successfully created! Waiting for Admin confirmation.");
         document.getElementById('registerAuthForm').reset();
-        pendingRegData = null;
-        generatedOtpCode = null;
-        document.getElementById('registerOtpForm').classList.add('hidden');
-        document.getElementById('registerAuthForm').classList.add('hidden');
         switchAuthMode('login');
-    }
+    };
 
-    function handleLogin(event) {
+    window.handleLogin = async function(event) {
         event.preventDefault();
         const phone = document.getElementById('loginPhone').value.trim();
         const password = document.getElementById('loginPassword').value.trim();
 
-        if(!validateBDPhone(phone)) {
-            alert("Please enter a valid Bangladeshi phone number.");
-            return;
-        }
-
         if(phone === ADMIN_CREDENTIALS.phone && password === ADMIN_CREDENTIALS.password) {
             currentUser = { name: ADMIN_CREDENTIALS.name, phone: ADMIN_CREDENTIALS.phone, role: 'admin' };
         } else {
-            const foundUser = userAccounts.find(u => u.phone === phone && u.password === password);
-            if(foundUser) {
+            const foundUser = userAccounts[phone];
+            if(foundUser && foundUser.password === password) {
                 currentUser = { name: foundUser.name, phone: foundUser.phone, role: 'player' };
             } else {
-                alert("Invalid phone number or password! Please check your credentials or register an account if you haven't yet.");
+                alert("Invalid phone number or password, or account does not exist!");
                 return;
             }
         }
 
         localStorage.setItem('squad_current_session', JSON.stringify(currentUser));
         bootAppSession();
-    }
+    };
 
-    function handleLogout() {
+    window.handleLogout = function() {
         localStorage.removeItem('squad_current_session');
         currentUser = null;
         document.getElementById('authScreen').classList.remove('hidden');
         document.getElementById('appDashboard').classList.add('hidden');
         document.getElementById('loginForm').reset();
         switchAuthMode('login');
-    }
+    };
 
     function bootAppSession() {
         document.getElementById('authScreen').classList.add('hidden');
@@ -965,7 +904,7 @@
         renderDailyTable();
     }
 
-    function switchTab(tabId) {
+    window.switchTab = function(tabId) {
         if(currentUser.role !== 'admin' && (tabId === 'register' || tabId === 'daily' || tabId === 'weekly')) {
             return;
         }
@@ -975,12 +914,8 @@
         
         document.getElementById(tabId).classList.add('active');
         
-        if (event && event.currentTarget) {
-            event.currentTarget.classList.add('active');
-        } else {
-            const matchingBtn = document.querySelector(`.tab-btn[onclick*="${tabId}"]`);
-            if(matchingBtn) matchingBtn.classList.add('active');
-        }
+        const matchingBtn = document.querySelector(`.tab-btn[onclick*="${tabId}"]`);
+        if(matchingBtn) matchingBtn.classList.add('active');
 
         if(tabId === 'daily') {
             updatePlayerDropdown();
@@ -991,44 +926,36 @@
         } else if(tabId === 'leaderboard') {
             updateWeeklyLeaderboard();
         }
-    }
+    };
 
-    function toggleConfirmUser(index) {
+    window.toggleConfirmUser = async function(phone) {
         if(currentUser.role !== 'admin') return;
-        userAccounts[index].status = userAccounts[index].status === 'confirmed' ? 'pending' : 'confirmed';
-        localStorage.setItem('squad_user_accounts', JSON.stringify(userAccounts));
-        renderRegisterTable();
-    }
+        let currentStatus = userAccounts[phone].status;
+        let newStatus = currentStatus === 'confirmed' ? 'pending' : 'confirmed';
+        await set(ref(db, 'users/' + phone + '/status'), newStatus);
+    };
 
-    function editPlayerName(index) {
+    window.editPlayerName = async function(phone) {
         if(currentUser.role !== 'admin') return;
-        let currentName = userAccounts[index].name;
+        let currentName = userAccounts[phone].name;
         let newName = prompt("Edit Player Name:", currentName);
         if(newName && newName.trim() !== "") {
-            newName = newName.trim();
-            if(userAccounts.some((u, i) => i !== index && u.name.toLowerCase() === newName.toLowerCase())) {
-                alert("Another user already has this name!");
-                return;
-            }
-            userAccounts[index].name = newName;
-            localStorage.setItem('squad_user_accounts', JSON.stringify(userAccounts));
-            renderRegisterTable();
+            await set(ref(db, 'users/' + phone + '/name'), newName.trim());
         }
-    }
+    };
 
-    function deleteUserAccount(index) {
+    window.deleteUserAccount = async function(phone) {
         if(currentUser.role !== 'admin') return;
-        let account = userAccounts[index];
-        if(confirm(`Are you sure you want to delete account for ${account.name} (+880 ${account.phone})?`)) {
-            userAccounts.splice(index, 1);
-            localStorage.setItem('squad_user_accounts', JSON.stringify(userAccounts));
-            renderRegisterTable();
+        if(confirm(`Are you sure you want to delete this account?`)) {
+            await remove(ref(db, 'users/' + phone));
         }
-    }
+    };
 
     function renderRegisterTable() {
         let html = '';
-        userAccounts.forEach((acc, index) => {
+        let keys = Object.keys(userAccounts);
+        keys.forEach((phone, index) => {
+            let acc = userAccounts[phone];
             let statusBadge = acc.status === 'confirmed' 
                 ? '<span style="color: #10b981; font-weight: bold;">Confirmed</span>' 
                 : '<span style="color: #f59e0b; font-weight: bold;">Pending</span>';
@@ -1038,12 +965,12 @@
 
             html += `<tr>
                 <td>${index + 1}</td>
-                <td><b>${acc.name}</b> <button class="btn-secondary" style="padding: 2px 6px; font-size: 11px; margin-left: 5px;" onclick="editPlayerName(${index})">Edit Name</button></td>
-                <td>+880 ${acc.phone}</td>
+                <td><b>${acc.name}</b> <button class="btn-secondary" style="padding: 2px 6px; font-size: 11px; margin-left: 5px;" onclick="editPlayerName('${phone}')">Edit Name</button></td>
+                <td>+880 ${phone}</td>
                 <td>${statusBadge}</td>
                 <td>
-                    <button class="${confirmBtnClass}" onclick="toggleConfirmUser(${index})">${confirmBtnText}</button>
-                    <button class="btn-danger" onclick="deleteUserAccount(${index})" style="margin-left: 5px;">Delete</button>
+                    <button class="${confirmBtnClass}" onclick="toggleConfirmUser('${phone}')">${confirmBtnText}</button>
+                    <button class="btn-danger" onclick="deleteUserAccount('${phone}')" style="margin-left: 5px;">Delete</button>
                 </td>
             </tr>`;
         });
@@ -1053,7 +980,8 @@
     function updatePlayerDropdown() {
         let select = document.getElementById('dailyPlayerSelect');
         let optionsHtml = '<option value="" disabled selected>-- Choose Confirmed Player --</option>';
-        userAccounts.forEach(acc => {
+        Object.keys(userAccounts).forEach(phone => {
+            let acc = userAccounts[phone];
             if(acc.status === 'confirmed') {
                 optionsHtml += `<option value="${acc.name}">${acc.name}</option>`;
             }
@@ -1067,7 +995,7 @@
         return `${m}'${s < 10 ? '0' : ''}${s}"`;
     }
 
-    function addDailyRecord(event) {
+    window.addDailyRecord = async function(event) {
         event.preventDefault();
         if(currentUser.role !== 'admin') return;
         const player = document.getElementById('dailyPlayerSelect').value;
@@ -1081,33 +1009,17 @@
         const totalSeconds = (mins * 60) + secs;
         const survivalTimeStr = formatSecondsToTimeStr(totalSeconds);
 
-        const logEntry = { player, matches, wins, kills, assists, damage, survivalTimeStr, totalSeconds };
-        dailyLog.unshift(logEntry);
+        const logEntry = { player, matches, wins, kills, assists, damage, survivalTimeStr, totalSeconds, timestamp: Date.now() };
+        await push(ref(db, 'dailyLog'), logEntry);
 
-        if (!weeklyData[player]) {
-            weeklyData[player] = { matches: 0, wins: 0, kills: 0, assists: 0, damage: 0, totalSeconds: 0 };
-        }
-        weeklyData[player].matches += matches;
-        weeklyData[player].wins += wins;
-        weeklyData[player].kills += kills;
-        weeklyData[player].assists += assists;
-        weeklyData[player].damage += damage;
-        weeklyData[player].totalSeconds += totalSeconds;
-
-        saveAndRender();
         document.getElementById('dailyForm').reset();
-        document.getElementById('dailyMinutes').value = "0";
-        document.getElementById('dailySeconds').value = "0";
         document.getElementById('ocrStatus').innerText = "Crop across Kills, Assists, Damage, Revival, and Survival Time!";
-        document.getElementById('ocrStatus').style.color = "#94a3b8";
-    }
+    };
 
-    function deleteDailyLog(index) {
+    window.deleteDailyLog = async function(firebaseKey) {
         if(currentUser.role !== 'admin') return;
-        dailyLog.splice(index, 1);
-        rebuildWeeklyFromLog();
-        saveAndRender();
-    }
+        await remove(ref(db, 'dailyLog/' + firebaseKey));
+    };
 
     function rebuildWeeklyFromLog() {
         weeklyData = {};
@@ -1124,54 +1036,43 @@
         });
     }
 
-    function resetDailyOnly() {
+    window.resetDailyOnly = async function() {
         if(currentUser.role !== 'admin') return;
         if(confirm("Are you sure you want to clear today's logged data entries?")) {
-            dailyLog = [];
-            localStorage.setItem('squad_daily_log', JSON.stringify(dailyLog));
-            renderDailyTable();
-            updateDailyLeaderboard();
+            await remove(ref(db, 'dailyLog'));
         }
-    }
+    };
 
-    function resetWeeklyData() {
+    window.resetWeeklyData = async function() {
         if(currentUser.role !== 'admin') return;
         if(confirm("Are you sure you want to clear all data to start a fresh week?")) {
-            dailyLog = [];
-            weeklyData = {};
-            saveAndRender();
+            await remove(ref(db, 'dailyLog'));
         }
-    }
-
-    function saveAndRender() {
-        localStorage.setItem('squad_daily_log', JSON.stringify(dailyLog));
-        localStorage.setItem('squad_weekly_accumulated', JSON.stringify(weeklyData));
-        renderDailyTable();
-    }
+    };
 
     function renderDailyTable() {
-        let html = '';
-        dailyLog.forEach((item, index) => {
-            const avgDamage = item.matches > 0 ? (item.damage / item.matches).toFixed(1) : 0;
-            let actionCol = currentUser.role === 'admin' ? `<td><button class="btn-danger" onclick="deleteDailyLog(${index})">Delete</button></td>` : '';
-            html += `<tr>
-                <td><b>${item.player}</b></td>
-                <td>${item.matches}</td>
-                <td>${item.wins}</td>
-                <td>${item.kills}</td>
-                <td>${item.assists || 0}</td>
-                <td>${item.damage || 0}</td>
-                <td>${avgDamage}</td>
-                <td>${item.survivalTimeStr || formatSecondsToTimeStr(item.totalSeconds)}</td>
-                ${actionCol}
-            </tr>`;
-        });
-        
-        let headerEl = document.querySelector('#dailyTableBody').previousElementSibling.querySelector('tr');
-        if(currentUser.role !== 'admin') {
-            if(headerEl.cells.length > 8) headerEl.deleteCell(8);
-        }
-        document.getElementById('dailyTableBody').innerHTML = html || '<tr><td colspan="9" style="color:#94a3b8;">No daily entries added yet.</td></tr>';
+        onValue(ref(db, 'dailyLog'), (snapshot) => {
+            let rawVal = snapshot.val() || {};
+            let entries = Object.entries(rawVal);
+            
+            let tableHtml = '';
+            entries.reverse().forEach(([key, item]) => {
+                const avgDamage = item.matches > 0 ? (item.damage / item.matches).toFixed(1) : 0;
+                let actionCol = currentUser.role === 'admin' ? `<td><button class="btn-danger" onclick="deleteDailyLog('${key}')">Delete</button></td>` : '';
+                tableHtml += `<tr>
+                    <td><b>${item.player}</b></td>
+                    <td>${item.matches}</td>
+                    <td>${item.wins}</td>
+                    <td>${item.kills}</td>
+                    <td>${item.assists || 0}</td>
+                    <td>${item.damage || 0}</td>
+                    <td>${avgDamage}</td>
+                    <td>${item.survivalTimeStr || formatSecondsToTimeStr(item.totalSeconds)}</td>
+                    ${actionCol}
+                </tr>`;
+            });
+            document.getElementById('dailyTableBody').innerHTML = tableHtml || '<tr><td colspan="9" style="color:#94a3b8;">No daily entries added yet.</td></tr>';
+        }, { onlyOnce: true });
     }
 
     function updateDailyLeaderboard() {
@@ -1193,12 +1094,12 @@
             let data = dailyTotals[player];
             let winRate = data.matches > 0 ? (data.wins / data.matches) * 100 : 0;
             let avgKills = data.matches > 0 ? (data.kills / data.matches).toFixed(1) : 0;
-            let avgDamage = data.matches > 0 ? (data.damage / data.matches).toFixed(1) : 0;
             let score = (data.wins * 50) + (data.kills * 10) + ((data.damage || 0) * 0.1) + (winRate * 2);
 
             rankedArray.push({
                 player, matches: data.matches, wins: data.wins, kills: data.kills,
-                assists: data.assists || 0, damage: data.damage || 0, avgDamage, 
+                assists: data.assists || 0, damage: data.damage || 0, 
+                avgDamage: data.matches > 0 ? (data.damage / data.matches).toFixed(1) : 0, 
                 winRate: winRate.toFixed(1), avgKills, score: Math.round(score)
             });
         }
@@ -1257,14 +1158,15 @@
         for (let player in weeklyData) {
             let data = weeklyData[player];
             let winRate = data.matches > 0 ? (data.wins / data.matches) * 100 : 0;
-            let avgKills = data.matches > 0 ? (data.kills / data.matches).toFixed(1) : 0;
-            let avgDamage = data.matches > 0 ? ((data.damage || 0) / data.matches).toFixed(1) : 0;
             let score = (data.wins * 50) + (data.kills * 10) + ((data.damage || 0) * 0.1) + (winRate * 2);
 
             rankedArray.push({
                 player, matches: data.matches, wins: data.wins, kills: data.kills,
-                assists: data.assists || 0, damage: data.damage || 0, avgDamage, 
-                winRate: winRate.toFixed(1), avgKills, score: Math.round(score)
+                assists: data.assists || 0, damage: data.damage || 0, 
+                avgDamage: data.matches > 0 ? ((data.damage || 0) / data.matches).toFixed(1) : 0, 
+                winRate: winRate.toFixed(1), 
+                avgKills: data.matches > 0 ? (data.kills / data.matches).toFixed(1) : 0, 
+                score: Math.round(score)
             });
         }
 
@@ -1290,7 +1192,7 @@
         document.getElementById('leaderboardTableBody').innerHTML = fixedLbHTML || '<tr><td colspan="10" style="color:#94a3b8;">No leaderboard data available yet.</td></tr>';
     }
 
-    function initCropper(event) {
+    window.initCropper = function(event) {
         if(currentUser.role !== 'admin') return;
         const file = event.target.files[0];
         if (!file) return;
@@ -1299,135 +1201,78 @@
         reader.onload = function(e) {
             const imgElement = document.getElementById('imageToCrop');
             imgElement.src = e.target.result;
-            
             document.getElementById('cropperModal').style.display = 'flex';
 
-            if (cropper) {
-                cropper.destroy();
-                cropper = null;
-            }
+            if (cropper) { cropper.destroy(); cropper = null; }
 
             setTimeout(() => {
                 cropper = new Cropper(imgElement, {
-                    aspectRatio: NaN,
-                    viewMode: 1,
-                    dragMode: 'crop',
-                    autoCropArea: 0.8,
-                    responsive: true,
-                    restore: true,
-                    checkCrossOrigin: false,
+                    aspectRatio: NaN, viewMode: 1, dragMode: 'crop', autoCropArea: 0.8, responsive: true
                 });
             }, 100);
         };
         reader.readAsDataURL(file);
-    }
+    };
 
-    function closeCropperModal() {
+    window.closeCropperModal = function() {
         document.getElementById('cropperModal').style.display = 'none';
-        if (cropper) {
-            cropper.destroy();
-            cropper = null;
-        }
+        if (cropper) { cropper.destroy(); cropper = null; }
         document.getElementById('screenshotInput').value = '';
-    }
+    };
 
-    async function cropAndProcessImage() {
+    window.cropAndProcessImage = async function() {
         if (!cropper) return;
-
-        const canvas = cropper.getCroppedCanvas({
-            maxWidth: 4096,
-            maxHeight: 4096,
-            fillColor: '#fff',
-        });
-
-        if (!canvas) {
-            alert("Could not generate cropped canvas. Please try again.");
-            return;
-        }
+        const canvas = cropper.getCroppedCanvas({ maxWidth: 4096, maxHeight: 4096, fillColor: '#fff' });
+        if (!canvas) return;
 
         closeCropperModal();
         const statusEl = document.getElementById('ocrStatus');
         statusEl.innerText = "Scanning stats row... Please wait";
-        statusEl.style.color = "var(--accent-color)";
 
         canvas.toBlob(async (blob) => {
             try {
-                const result = await Tesseract.recognize(blob, 'eng', {
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            statusEl.innerText = `Reading text: ${Math.round(m.progress * 100)}%`;
-                        }
-                    }
-                });
-
+                const result = await Tesseract.recognize(blob, 'eng');
                 const text = result.data.text;
                 let lines = text.split('\n').filter(l => l.trim().length > 0);
                 let allTokens = [];
                 
                 lines.forEach(line => {
                     let matches = line.match(/\d+['":\.]?\d*/g);
-                    if (matches) {
-                        matches.forEach(m => allTokens.push(m));
-                    }
+                    if (matches) matches.forEach(m => allTokens.push(m));
                 });
 
                 if (allTokens.length >= 4) {
-                    let killsVal = allTokens[0].replace(/[^\d]/g, '') || 0;
-                    let assistsVal = allTokens[1].replace(/[^\d]/g, '') || 0;
-                    let dmgVal = allTokens[2].replace(/[^\d]/g, '') || 0;
-                    let timeTokenIndex = allTokens.length >= 5 ? 4 : 3;
-                    let rawTime = allTokens[timeTokenIndex] || "";
+                    document.getElementById('dailyKills').value = parseInt(allTokens[0].replace(/[^\d]/g, '')) || 0;
+                    document.getElementById('dailyAssists').value = parseInt(allTokens[1].replace(/[^\d]/g, '')) || 0;
+                    document.getElementById('dailyDamage').value = parseInt(allTokens[2].replace(/[^\d]/g, '')) || 0;
                     
-                    document.getElementById('dailyKills').value = parseInt(killsVal) || 0;
-                    document.getElementById('dailyAssists').value = parseInt(assistsVal) || 0;
-                    document.getElementById('dailyDamage').value = parseInt(dmgVal) || 0;
-                    
+                    let rawTime = allTokens[4] || allTokens[3] || "";
                     if (rawTime) {
                         let parts = rawTime.split(/['":\.]/);
                         document.getElementById('dailyMinutes').value = parseInt(parts[0]) || 0;
-                        if (parts[1]) {
-                            document.getElementById('dailySeconds').value = parseInt(parts[1]) || 0;
-                        }
+                        if (parts[1]) document.getElementById('dailySeconds').value = parseInt(parts[1]) || 0;
                     }
-
-                    statusEl.innerText = "Successfully mapped Kills, Assists, Damage, and Survival Time!";
+                    statusEl.innerText = "Successfully mapped stats!";
                     statusEl.style.color = "#10b981";
                 } else {
-                    statusEl.innerText = "Could not map clearly. Make sure you crop tight horizontally across the row.";
-                    statusEl.style.color = "#f59e0b";
+                    statusEl.innerText = "Could not map clearly. Try cropping tighter.";
                 }
-
             } catch (error) {
-                console.error(error);
-                statusEl.innerText = "Error scanning image. Please input manually.";
-                statusEl.style.color = "#ef4444";
+                statusEl.innerText = "Error scanning image. Input manually.";
             }
         }, 'image/png');
-    }
+    };
 
-    function downloadPDF(sectionId) {
+    window.downloadPDF = function(sectionId) {
         const sections = document.querySelectorAll('.section');
-        sections.forEach(sec => {
-            if(sec.id !== sectionId) sec.style.display = 'none';
-        });
-
+        sections.forEach(sec => { if(sec.id !== sectionId) sec.style.display = 'none'; });
         window.print();
-
-        sections.forEach(sec => {
-            sec.style.display = '';
-        });
-        
+        sections.forEach(sec => { sec.style.display = ''; });
         if(currentUser.role !== 'admin') {
             document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
             switchTab('dailyLb');
-        } else {
-            const activeTabBtn = document.querySelector('.tab-btn.active');
-            if(activeTabBtn) {
-                let match = activeTabBtn.getAttribute('onclick').match(/'([^']+)'/);
-                if(match) switchTab(match[1]);
-            }
         }
-    }
+    };
 </script>
 
 </body>
