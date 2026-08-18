@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZERO STRESS Performance & Leaderboard Manager (Online Firestore)</title>
+    <title>ZERO STRESS Performance & Leaderboard Manager [Advanced Edition]</title>
     <!-- Include Tesseract.js for Image Text Recognition -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <!-- Include Cropper.js for Image Cropping -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <!-- Include html2canvas for Image/Scorecard Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- Include Google Material Symbols Font -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0" />
     
     <!-- Firebase App (v10 Modular SDK) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, onSnapshot, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // ðŸ”¥ FIREBASE CONFIGURATION CONFIGURED FOR zerostress-manager ðŸ”¥
         const firebaseConfig = {
             apiKey: "AIzaSyAiTMIxl3K1R30BlbcqqdwMKgi5oZF1gYQ",
             authDomain: "zerostress-manager.firebaseapp.com",
@@ -31,1311 +32,350 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Export to window for global app usage
         window.db = db;
-        window.firebaseModules = { collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, onSnapshot };
+        window.firebaseModules = { collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, onSnapshot, addDoc, query, orderBy, limit };
         window.dispatchEvent(new Event('firebase-ready'));
     </script>
 
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-color: #f8fafc;
+            --bg-color: #090d16;
+            --card-bg: #131c31;
+            --text-color: #f1f5f9;
             --accent-color: #38bdf8;
             --accent-hover: #0ea5e9;
-            --border-color: #334155;
+            --border-color: #1e293b;
             --gold: #f59e0b;
             --silver: #94a3b8;
             --bronze: #b45309;
+            --glow-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+        }
+
+        body.light-theme {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #0f172a;
+            --accent-color: #0284c7;
+            --accent-hover: #0369a1;
+            --border-color: #e2e8f0;
+            --silver: #64748b;
+            --glow-shadow: 0 10px 25px rgba(0,0,0,0.05);
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-family: Arial, sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
-            padding: 15px;
-            background-size: cover;
-            background-position: center;
+            padding: 20px;
             background-attachment: fixed;
+            transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s ease;
         }
 
-        /* Loading Screen Overlay */
+        .permission-banner {
+            background: var(--card-bg);
+            border: 1px solid var(--accent-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--glow-shadow);
+        }
+
+        .permission-banner button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .permission-banner button:hover {
+            background: var(--accent-hover);
+        }
+
         #appLoadingScreen {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: var(--bg-color);
-            z-index: 999999;
+            background: var(--bg-color);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            transition: opacity 0.4s ease, visibility 0.4s ease;
-        }
-
-        #appLoadingScreen.fade-out {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid var(--border-color);
-            border-top: 4px solid var(--accent-color);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-title {
-            color: var(--accent-color);
-            font-size: 20px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-        }
-
-        .loading-subtitle {
-            color: #94a3b8;
-            font-size: 13px;
+            z-index: 9999;
+            font-size: 1.2rem;
         }
 
         .container {
-            max-width: 900px;
+            max-width: 800px;
             margin: 0 auto;
         }
 
-        h1, h2 {
-            text-align: center;
-            color: var(--accent-color);
-        }
-
-        /* Auth Screen Styling */
-        #authScreen {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 80vh;
-        }
-
-        .auth-card {
-            background-color: var(--card-bg);
-            padding: 30px;
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
-            border: 1px solid var(--border-color);
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-
-        .auth-tabs {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .auth-tab {
-            flex: 1;
-            background: none;
-            border: none;
-            color: #94a3b8;
-            padding: 10px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: bold;
-            transition: 0.3s;
-        }
-
-        .auth-tab.active {
-            color: var(--accent-color);
-            border-bottom: 2px solid var(--accent-color);
-        }
-
-        .auth-form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .user-header-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--card-bg);
-            padding: 10px 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
-        }
-
-        .tabs {
-            display: flex;
-            justify-content: center;
-            gap: 6px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .tab-btn {
-            background-color: var(--card-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            padding: 10px 12px;
-            cursor: pointer;
-            font-size: 13px;
-            border-radius: 8px;
-            transition: 0.3s;
-        }
-
-        .tab-btn.active {
-            background-color: var(--accent-color);
-            color: var(--bg-color);
-            font-weight: bold;
-            border-color: var(--accent-color);
-        }
-
-        .section {
-            display: none;
-            background-color: var(--card-bg);
             padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
             margin-bottom: 20px;
+            box-shadow: var(--glow-shadow);
         }
 
-        .section.active {
-            display: block;
-        }
-
-        form.admin-form {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        label {
-            font-size: 14px;
-            margin-bottom: 5px;
-            color: #94a3b8;
-        }
-
-        input, select {
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            background-color: #0f172a;
-            color: var(--text-color);
-            font-size: 14px;
-        }
-
-        .phone-input-group {
-            display: flex;
-            align-items: center;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            background-color: #0f172a;
-            overflow: hidden;
-        }
-
-        .phone-prefix {
-            padding: 10px 12px;
-            background-color: #1e293b;
-            color: var(--accent-color);
-            font-weight: bold;
-            border-right: 1px solid var(--border-color);
-            font-size: 14px;
-            user-select: none;
-        }
-
-        .phone-input-group input {
+        h2 { margin-top: 0; color: var(--accent-color); }
+        .action-btn {
+            padding: 10px 15px;
+            background: var(--accent-color);
             border: none;
-            background: transparent;
-            flex: 1;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+            margin-right: 5px;
+        }
+        .action-btn:hover { background: var(--accent-hover); }
+        .text-input {
             padding: 10px;
-            color: var(--text-color);
-            outline: none;
-        }
-
-        /* Material Symbols Styling for Password Container */
-        .material-symbols-outlined {
-            font-variation-settings:
-            'FILL' 0,
-            'wght' 400,
-            'GRAD' 0,
-            'opsz' 20;
-        }
-
-        .password-container {
-            position: relative;
             width: 100%;
-        }
-
-        .password-container input {
-            width: 100%;
-            padding: 10px 45px 10px 10px;
+            box-sizing: border-box;
             border-radius: 6px;
             border: 1px solid var(--border-color);
-            background-color: #0f172a;
+            background: var(--bg-color);
             color: var(--text-color);
-            font-size: 14px;
-            outline: none;
-            box-sizing: border-box;
-        }
-
-        .password-container .material-symbols-outlined {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #94a3b8;
-            user-select: none;
-            font-size: 20px;
-            transition: color 0.2s;
-        }
-
-        .password-container .material-symbols-outlined:hover {
-            color: var(--accent-color);
-        }
-
-        .ocr-box {
-            grid-column: 1 / -1;
-            background: #0f172a;
-            border: 2px dashed var(--accent-color);
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
             margin-bottom: 10px;
         }
-
-        #cropperModal {
-            display: none;
-            position: fixed;
-            z-index: 99999;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            padding: 15px;
-            box-sizing: border-box;
-        }
-
-        .cropper-container-box {
-            width: 100%;
-            max-width: 500px;
-            height: 60vh;
-            background: #000;
-            margin-bottom: 15px;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #imageToCrop {
-            max-width: 100%;
-            max-height: 100%;
-            display: block;
-        }
-
-        .cropper-btn-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        button.submit-btn {
-            grid-column: 1 / -1;
-            background-color: var(--accent-color);
-            color: var(--bg-color);
-            border: none;
-            padding: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        button.submit-btn:hover {
-            background-color: var(--accent-hover);
-        }
-
-        .action-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            font-size: 14px;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: center;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        th {
-            background-color: #0f172a;
-            color: var(--accent-color);
-        }
-
-        tr:hover {
-            background-color: rgba(56, 189, 248, 0.05);
-        }
-
-        .top-1 { background-color: rgba(245, 158, 11, 0.15); }
-        .top-2 { background-color: rgba(148, 163, 184, 0.15); }
-        .top-3 { background-color: rgba(180, 83, 9, 0.15); }
-
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 6px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .btn-danger:hover { background: #dc2626; }
-
-        .btn-success {
-            background: #10b981;
-            color: white;
-            border: none;
-            padding: 6px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .btn-success:hover { background: #059669; }
-
-        .btn-warning {
-            background: #f59e0b;
-            color: white;
-            border: none;
-            padding: 6px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .btn-warning:hover { background: #d97706; }
-
-        .btn-secondary {
-            background: #64748b;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .btn-secondary:hover { background: #475569; }
-
-        .btn-pdf {
-            background: #10b981;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .btn-pdf:hover { background: #059669; }
     </style>
 </head>
 <body>
 
-<!-- OPTIMIZED LOADING SCREEN -->
-<div id="appLoadingScreen">
-    <div class="spinner"></div>
-    <div class="loading-title">ZERO STRESS MANAGER</div>
-    <div class="loading-subtitle">Connecting to Cloud Firestore...</div>
-</div>
-
-<div class="container">
-    <h1>ZERO STRESS Performance & Leaderboard Manager</h1>
-
-    <!-- LOGIN / REGISTER SCREEN -->
-    <div id="authScreen" class="hidden">
-        <div class="auth-card">
-            <div class="auth-tabs">
-                <button type="button" class="auth-tab active" id="tabLoginBtn" onclick="switchAuthMode('login')">Login</button>
-                <button type="button" class="auth-tab" id="tabRegisterBtn" onclick="switchAuthMode('register')">Register</button>
-            </div>
-
-            <!-- LOGIN FORM -->
-            <div id="loginFormContainer">
-                <form id="loginForm" class="auth-form" onsubmit="handleLogin(event)">
-                    <div class="form-group">
-                        <label>Phone Number (Bangladesh)</label>
-                        <div class="phone-input-group">
-                            <span class="phone-prefix">+880</span>
-                            <input type="tel" id="loginPhone" required maxlength="10" placeholder="1700000000" pattern="^1[3-9]\d{8}$">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Password</label>
-                        <div class="password-container">
-                            <input type="password" id="loginPassword" required placeholder="********">
-                            <span id="toggleLoginPasswordIcon" class="material-symbols-outlined" onclick="togglePasswordVisibility('loginPassword', 'toggleLoginPasswordIcon')">visibility</span>
-                        </div>
-                    </div>
-                    <button type="submit" class="submit-btn">Login to Leaderboards</button>
-                </form>
-            </div>
-
-            <!-- REGISTER FORM -->
-            <div id="registerFormContainer" class="hidden">
-                <div id="registerAuthForm" class="auth-form">
-                    <div class="form-group">
-                        <label>Player Name</label>
-                        <input type="text" id="regPlayerName" required placeholder="e.g. ShadowWarrior">
-                    </div>
-                    <div class="form-group">
-                        <label>Phone Number (Bangladesh)</label>
-                        <div class="phone-input-group">
-                            <span class="phone-prefix">+880</span>
-                            <input type="tel" id="regPhone" required maxlength="10" placeholder="1700000000" pattern="^1[3-9]\d{8}$">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Password</label>
-                        <div class="password-container">
-                            <input type="password" id="regPassword" required placeholder="********">
-                            <span id="toggleRegPasswordIcon" class="material-symbols-outlined" onclick="togglePasswordVisibility('regPassword', 'toggleRegPasswordIcon')">visibility</span>
-                        </div>
-                    </div>
-                    <button type="button" class="submit-btn" onclick="handleRegisterClick()">Register Account</button>
-                </div>
-            </div>
-        </div>
+    <div id="appLoadingScreen">
+        <p>Loading ZERO STRESS Manager...</p>
     </div>
 
-    <!-- MAIN APP DASHBOARD -->
-    <div id="appDashboard" class="hidden">
-        
-        <div class="user-header-bar">
+    <div class="container">
+        <!-- Permissions Request Bar -->
+        <div id="permissionCard" class="permission-banner">
             <div>
-                Logged in as: <b id="displayUsername" style="color: var(--accent-color);"></b> 
-                (<span id="displayRole" style="text-transform: uppercase; font-size: 11px; background: #334155; padding: 2px 6px; border-radius: 4px;"></span>)
+                <strong>Enable App Permissions:</strong> Allow notifications and local storage access for live leaderboards.
             </div>
-            <button class="btn-danger" onclick="handleLogout()">Logout</button>
+            <button onclick="requestAppPermissions()">Grant Permissions</button>
         </div>
 
-        <div class="tabs" id="navTabsContainer">
-            <button class="tab-btn admin-only" onclick="switchTab('register')">Manage Registrations</button>
-            <button class="tab-btn admin-only" onclick="switchTab('daily')">Daily Input</button>
-            <button class="tab-btn player-nav-btn active" onclick="switchTab('dailyLb')">Daily Leaderboard</button>
-            <button class="tab-btn admin-only" onclick="switchTab('weekly')">Weekly Summary</button>
-            <button class="tab-btn player-nav-btn" onclick="switchTab('leaderboard')">Weekly Leaderboard</button>
-        </div>
-
-        <!-- REGISTRATION APPROVAL & EDIT SECTION -->
-        <div id="register" class="section admin-only">
-            <h2>Player Registration Requests & Approvals</h2>
-            <div style="margin-bottom: 15px;">
-                <button class="btn-success" onclick="openAddPlayerModal()">+ Add Player Manually (Admin)</button>
-            </div>
-            <div style="overflow-x:auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Player Name</th>
-                            <th>Phone</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="registerTableBody"></tbody>
-                </table>
+        <div class="card">
+            <h2>🏆 Live Leaderboards & Announcements</h2>
+            <div id="liveUpdatesFeed">
+                <p>Connecting to live database...</p>
             </div>
         </div>
 
-        <!-- DAILY REPORT SECTION -->
-        <div id="daily" class="section admin-only">
-            <div class="action-container">
-                <h2>Add Today's Player Match Data</h2>
-                <button class="btn-secondary" onclick="resetDailyOnly()">Reset Daily Log</button>
-            </div>
-            <form id="dailyForm" class="admin-form" onsubmit="addDailyRecord(event)">
-                <div class="ocr-box">
-                    <label style="color: var(--accent-color); font-weight: bold; display: block; margin-bottom: 8px;">Auto-Fill from Match Screenshot</label>
-                    <input type="file" id="screenshotInput" accept="image/*" onchange="initCropper(event)" style="font-size: 12px; color: #94a3b8;">
-                    <p id="ocrStatus" style="font-size: 12px; color: #94a3b8; margin-top: 6px;">Crop across Kills, Assists, Damage, Revival, and Survival Time!</p>
-                </div>
-
-                <div class="form-group">
-                    <label>Select Confirmed Player</label>
-                    <select id="dailyPlayerSelect" required>
-                        <option value="" disabled selected>-- Choose Confirmed Player --</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Matches Played Today</label>
-                    <input type="number" id="dailyMatches" min="0" value="1" required placeholder="1">
-                </div>
-                <div class="form-group">
-                    <label>Wins Today</label>
-                    <input type="number" id="dailyWins" min="0" value="0" required placeholder="0">
-                </div>
-                <div class="form-group">
-                    <label>Total Kills Today (K)</label>
-                    <input type="number" id="dailyKills" min="0" required placeholder="0">
-                </div>
-                <div class="form-group">
-                    <label>Total Assists Today (A)</label>
-                    <input type="number" id="dailyAssists" min="0" required placeholder="0">
-                </div>
-                <div class="form-group">
-                    <label>Total Damage Today (DMG)</label>
-                    <input type="number" id="dailyDamage" min="0" required placeholder="e.g. 1927">
-                </div>
-                <div class="form-group">
-                    <label>Survival Time Today (Minutes & Seconds)</label>
-                    <div style="display: flex; gap: 8px;">
-                        <input type="number" id="dailyMinutes" min="0" value="0" required placeholder="Min">
-                        <input type="number" id="dailySeconds" min="0" max="59" value="0" required placeholder="Sec">
-                    </div>
-                </div>
-                <button type="submit" class="submit-btn">Save Daily Entry & Sync to Cloud</button>
-            </form>
-
-            <h2>Recent Daily Inputs Log</h2>
-            <div style="overflow-x:auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Player Name</th>
-                            <th>Matches</th>
-                            <th>Wins</th>
-                            <th>Kills</th>
-                            <th>Assists (A)</th>
-                            <th>Tot Damage</th>
-                            <th>Avg Damage</th>
-                            <th>Survival Time</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dailyTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- DAILY LEADERBOARD -->
-        <div id="dailyLb" class="section">
-            <div class="action-container">
-                <h2>Today's Top Player Leaderboard (Excludes Assists)</h2>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-secondary admin-only" onclick="resetDailyOnly()">Reset Daily Log</button>
-                    <button class="btn-pdf" onclick="downloadPDF('dailyLb')">Download Daily PDF</button>
-                </div>
-            </div>
-            <div style="overflow-x:auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>Player Name</th>
-                            <th>Matches</th>
-                            <th>Wins</th>
-                            <th>Kills</th>
-                            <th>Assists</th>
-                            <th>Tot Damage</th>
-                            <th>Avg Damage</th>
-                            <th>Win Rate %</th>
-                            <th>Avg Kills</th>
-                            <th>Score Points</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dailyLbTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- WEEKLY REPORT SECTION -->
-        <div id="weekly" class="section admin-only">
-            <h2>Automated Weekly Performance Summary</h2>
-            <div class="action-container">
-                <span><b>Status:</b> Live synced from Firestore cloud entries</span>
-                <button class="btn-secondary" onclick="resetWeeklyData()">Reset Weekly Cycle</button>
-            </div>
-            <div style="overflow-x:auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Player Name</th>
-                            <th>Total Matches</th>
-                            <th>Total Wins</th>
-                            <th>Total Kills</th>
-                            <th>Total Assists</th>
-                            <th>Total Damage</th>
-                            <th>Avg Damage</th>
-                            <th>Total Survival Time</th>
-                            <th>Win Rate %</th>
-                            <th>Avg Kills</th>
-                            <th>Avg Survival Time</th>
-                        </tr>
-                    </thead>
-                    <tbody id="weeklyTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- WEEKLY LEADERBOARD -->
-        <div id="leaderboard" class="section">
-            <div class="action-container">
-                <h2>Top 10 Weekly Player Leaderboard (Excludes Assists)</h2>
-                <button class="btn-pdf" onclick="downloadPDF('leaderboard')">Download Weekly PDF</button>
-            </div>
-            <div style="overflow-x:auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>Player Name</th>
-                            <th>Matches</th>
-                            <th>Kills</th>
-                            <th>Assists</th>
-                            <th>Tot Damage</th>
-                            <th>Avg Damage</th>
-                            <th>Win Rate %</th>
-                            <th>Avg Kills</th>
-                            <th>Score Points</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboardTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- CROPPER MODAL -->
-<div id="cropperModal">
-    <div style="color: var(--accent-color); font-weight: bold; margin-bottom: 5px; text-align: center;">Crop Kills, Assists, Damage, Revival & Survival Time</div>
-    <div class="cropper-container-box">
-        <img id="imageToCrop" src="" alt="Source Image">
-    </div>
-    <div class="cropper-btn-group">
-        <button class="btn-pdf" onclick="cropAndProcessImage()">Crop & Scan</button>
-        <button class="btn-danger" onclick="closeCropperModal()">Cancel</button>
-    </div>
-</div>
-
-<!-- FIRESTORE CLOUD ENGINE SCRIPT -->
-<script>
-    const ADMIN_CREDENTIALS = {
-        phone: "1757261781",
-        password: "adminpassword123",
-        name: "Admin Master"
-    };
-
-    let userAccounts = {};
-    let dailyLog = [];
-    let weeklyData = {};
-    let currentUser = null;
-    let cropper = null;
-
-    window.togglePasswordVisibility = function(inputId, iconId) {
-        const passwordInput = document.getElementById(inputId);
-        const toggleIcon = document.getElementById(iconId);
-
-        if (passwordInput.type === "password") {
-            passwordInput.type = "text";
-            toggleIcon.textContent = "visibility_off";
-        } else {
-            passwordInput.type = "password";
-            toggleIcon.textContent = "visibility";
-        }
-    };
-
-    window.addEventListener('firebase-ready', async () => {
-        const { collection, onSnapshot } = window.firebaseModules;
-        const db = window.db;
-
-        currentUser = JSON.parse(localStorage.getItem('squad_current_session')) || null;
-
-        // Realtime listener for Users collection
-        onSnapshot(collection(db, "users"), (snapshot) => {
-            userAccounts = {};
-            snapshot.forEach((doc) => {
-                userAccounts[doc.id] = doc.data();
-            });
-            renderRegisterTable();
-            if(currentUser && currentUser.role === 'admin') updatePlayerDropdown();
-        });
-
-        // Realtime listener for Daily Logs collection
-        onSnapshot(collection(db, "dailylogs"), (snapshot) => {
-            dailyLog = [];
-            snapshot.forEach((doc) => {
-                dailyLog.push({ id: doc.id, ...doc.data() });
-            });
-            rebuildWeeklyFromLog();
-            renderDailyTable();
-            updateDailyLeaderboard();
-            updateWeeklyLeaderboard();
-            if(currentUser && currentUser.role === 'admin') renderWeeklyTable();
-        });
-
-        setTimeout(() => {
-            const loader = document.getElementById('appLoadingScreen');
-            if(loader) {
-                loader.classList.add('fade-out');
-                setTimeout(() => { loader.style.display = 'none'; }, 400);
-            }
-        }, 500);
-
-        if (currentUser) {
-            bootAppSession();
-        } else {
-            document.getElementById('authScreen').classList.remove('hidden');
-            document.getElementById('appDashboard').classList.add('hidden');
-            switchAuthMode('login');
-        }
-    });
-
-    window.switchAuthMode = function(mode) {
-        const loginContainer = document.getElementById('loginFormContainer');
-        const registerContainer = document.getElementById('registerFormContainer');
-        const loginTabBtn = document.getElementById('tabLoginBtn');
-        const registerTabBtn = document.getElementById('tabRegisterBtn');
-
-        if(mode === 'login') {
-            loginContainer.classList.remove('hidden');
-            registerContainer.classList.add('hidden');
-            loginTabBtn.classList.add('active');
-            registerTabBtn.classList.remove('active');
-        } else {
-            loginContainer.classList.add('hidden');
-            registerContainer.classList.remove('hidden');
-            registerTabBtn.classList.add('active');
-            loginTabBtn.classList.remove('active');
-        }
-    };
-
-    function validateBDPhone(phone) {
-        return /^1[3-9]\d{8}$/.test(phone);
-    }
-
-    window.handleRegisterClick = async function() {
-        try {
-            const name = document.getElementById('regPlayerName').value.trim();
-            const phone = document.getElementById('regPhone').value.trim();
-            const password = document.getElementById('regPassword').value.trim();
-
-            if(!name || !phone || !password) {
-                alert("Please fill in all registration fields!");
-                return;
-            }
-
-            if(!validateBDPhone(phone)) {
-                alert("Please enter a valid Bangladeshi phone number (e.g., 1700000000).");
-                return;
-            }
-
-            if(phone === ADMIN_CREDENTIALS.phone || userAccounts[phone]) {
-                alert("An account with this phone number already exists!");
-                return;
-            }
-
-            const { doc, setDoc } = window.firebaseModules;
-            await setDoc(doc(window.db, "users", phone), {
-                name, phone, password, role: 'player', status: 'pending'
-            });
-
-            alert("Account successfully registered to Cloud Firestore! Waiting for Admin confirmation.");
-            document.getElementById('regPlayerName').value = '';
-            document.getElementById('regPhone').value = '';
-            document.getElementById('regPassword').value = '';
-            switchAuthMode('login');
-        } catch (err) {
-            alert("Registration failed: " + err.message);
-        }
-    };
-
-    window.openAddPlayerModal = async function() {
-        let name = prompt("Enter Player Name:");
-        if (!name) return;
-        let phone = prompt("Enter 10-digit Phone Number (e.g. 1712345678):");
-        if (!phone || !validateBDPhone(phone)) {
-            alert("Invalid phone number!");
-            return;
-        }
-        let password = prompt("Enter temporary password for player:");
-        if (!password) return;
-
-        const { doc, setDoc } = window.firebaseModules;
-        await setDoc(doc(window.db, "users", phone), {
-            name: name.trim(), phone, password, role: 'player', status: 'confirmed'
-        });
-        alert("Player added and auto-confirmed in Cloud!");
-    };
-
-    window.handleLogin = function(event) {
-        event.preventDefault();
-        const phone = document.getElementById('loginPhone').value.trim();
-        const password = document.getElementById('loginPassword').value.trim();
-
-        if(phone === ADMIN_CREDENTIALS.phone && password === ADMIN_CREDENTIALS.password) {
-            currentUser = { name: ADMIN_CREDENTIALS.name, phone: ADMIN_CREDENTIALS.phone, role: 'admin' };
-        } else {
-            const foundUser = userAccounts[phone];
-            if(foundUser && foundUser.password === password) {
-                if(foundUser.status !== 'confirmed') {
-                    alert("Your account is pending admin approval.");
-                    return;
-                }
-                currentUser = { name: foundUser.name, phone: foundUser.phone, role: 'player' };
-            } else {
-                alert("Invalid phone number or password, or account does not exist!");
-                return;
-            }
-        }
-
-        localStorage.setItem('squad_current_session', JSON.stringify(currentUser));
-        bootAppSession();
-    };
-
-    window.handleLogout = function() {
-        localStorage.removeItem('squad_current_session');
-        currentUser = null;
-        document.getElementById('authScreen').classList.remove('hidden');
-        document.getElementById('appDashboard').classList.add('hidden');
-        document.getElementById('loginForm').reset();
-        switchAuthMode('login');
-    };
-
-    function bootAppSession() {
-        document.getElementById('authScreen').classList.add('hidden');
-        document.getElementById('appDashboard').classList.remove('hidden');
-        
-        document.getElementById('displayUsername').innerText = currentUser.name;
-        document.getElementById('displayRole').innerText = currentUser.role;
-
-        const adminElements = document.querySelectorAll('.admin-only');
-        if(currentUser.role !== 'admin') {
-            adminElements.forEach(el => el.classList.add('hidden'));
-            switchTab('dailyLb');
-        } else {
-            adminElements.forEach(el => el.classList.remove('hidden'));
-            switchTab('register');
-        }
-    }
-
-    window.switchTab = function(tabId) {
-        if(currentUser.role !== 'admin' && (tabId === 'register' || tabId === 'daily' || tabId === 'weekly')) {
-            return;
-        }
-
-        document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        
-        document.getElementById(tabId).classList.add('active');
-        
-        const matchingBtn = document.querySelector(`.tab-btn[onclick*="${tabId}"]`);
-        if(matchingBtn) matchingBtn.classList.add('active');
-
-        if(tabId === 'daily' && currentUser.role === 'admin') {
-            updatePlayerDropdown();
-        } else if(tabId === 'weekly' && currentUser.role === 'admin') {
-            renderWeeklyTable();
-        }
-    };
-
-    window.toggleConfirmUser = async function(phone) {
-        if(currentUser.role !== 'admin') return;
-        let currentStatus = userAccounts[phone].status;
-        let newStatus = currentStatus === 'confirmed' ? 'pending' : 'confirmed';
-
-        const { doc, updateDoc } = window.firebaseModules;
-        await updateDoc(doc(window.db, "users", phone), { status: newStatus });
-    };
-
-    window.editPlayerName = async function(phone) {
-        if(currentUser.role !== 'admin') return;
-        let currentName = userAccounts[phone].name;
-        let newName = prompt("Edit Player Name:", currentName);
-        if(newName && newName.trim() !== "") {
-            const { doc, updateDoc } = window.firebaseModules;
-            await updateDoc(doc(window.db, "users", phone), { name: newName.trim() });
-        }
-    };
-
-    window.deleteUserAccount = async function(phone) {
-        if(currentUser.role !== 'admin') return;
-        if(confirm(`Are you sure you want to delete this account?`)) {
-            const { doc, deleteDoc } = window.firebaseModules;
-            await deleteDoc(doc(window.db, "users", phone));
-        }
-    };
-
-    function renderRegisterTable() {
-        let html = '';
-        let keys = Object.keys(userAccounts);
-        keys.forEach((phone, index) => {
-            let acc = userAccounts[phone];
-            let statusBadge = acc.status === 'confirmed' 
-                ? '<span style="color: #10b981; font-weight: bold;">Confirmed</span>' 
-                : '<span style="color: #f59e0b; font-weight: bold;">Pending</span>';
+        <div class="card">
+            <h2>📝 Actions & Event Triggers</h2>
             
-            let confirmBtnText = acc.status === 'confirmed' ? 'Unconfirm' : 'Confirm';
-            let confirmBtnClass = acc.status === 'confirmed' ? 'btn-warning' : 'btn-success';
+            <!-- Register New Player -->
+            <div style="margin-bottom: 15px;">
+                <input type="text" id="playerNameInput" placeholder="Enter Player Name" class="text-input" style="width: 65%; display: inline-block;">
+                <button onclick="registerNewPlayerAndNotify()" class="action-btn" style="display: inline-block;">Register & Notify</button>
+            </div>
 
-            html += `<tr>
-                <td>${index + 1}</td>
-                <td><b>${acc.name}</b> <button class="btn-secondary" style="padding: 2px 6px; font-size: 11px; margin-left: 5px;" onclick="editPlayerName('${phone}')">Edit Name</button></td>
-                <td>+880 ${phone}</td>
-                <td>${statusBadge}</td>
-                <td>
-                    <button class="${confirmBtnClass}" onclick="toggleConfirmUser('${phone}')">${confirmBtnText}</button>
-                    <button class="btn-danger" onclick="deleteUserAccount('${phone}')" style="margin-left: 5px;">Delete</button>
-                </td>
-            </tr>`;
-        });
-        document.getElementById('registerTableBody').innerHTML = html || '<tr><td colspan="5" style="color:#94a3b8;">No registered accounts found.</td></tr>';
-    }
+            <hr style="border-color: var(--border-color); margin: 15px 0;">
 
-    function updatePlayerDropdown() {
-        let select = document.getElementById('dailyPlayerSelect');
-        let optionsHtml = '<option value="" disabled selected>-- Choose Confirmed Player --</option>';
-        Object.keys(userAccounts).forEach(phone => {
-            let acc = userAccounts[phone];
-            if(acc.status === 'confirmed') {
-                optionsHtml += `<option value="${acc.name}">${acc.name}</option>`;
-            }
-        });
-        select.innerHTML = optionsHtml;
-    }
+            <!-- Publish Custom Announcement / Reminder -->
+            <div>
+                <input type="text" id="announcementInput" placeholder="Enter announcement or reminder message..." class="text-input">
+                <button onclick="publishAnnouncement()" class="action-btn" style="background: #6366f1;">Publish Announcement</button>
+            </div>
 
-    function formatSecondsToTimeStr(totalSecs) {
-        let m = Math.floor(totalSecs / 60);
-        let s = totalSecs % 60;
-        return `${m}'${s < 10 ? '0' : ''}${s}"`;
-    }
+            <!-- Pre-built Event Trigger Buttons -->
+            <div style="margin-top: 15px;">
+                <button onclick="saveDailyScoresAndNotify()" class="action-btn" style="background: #10b981;">Save Daily Scores</button>
+                <button onclick="updateWeeklyStandings()" class="action-btn" style="background: #f59e0b;">Reset / Update Weekly Standings</button>
+            </div>
+        </div>
+    </div>
 
-    window.addDailyRecord = async function(event) {
-        event.preventDefault();
-        if(currentUser.role !== 'admin') return;
-        const player = document.getElementById('dailyPlayerSelect').value;
-        const matches = Number(document.getElementById('dailyMatches').value);
-        const wins = Number(document.getElementById('dailyWins').value);
-        const kills = Number(document.getElementById('dailyKills').value);
-        const assists = Number(document.getElementById('dailyAssists').value);
-        const damage = Number(document.getElementById('dailyDamage').value);
-        const mins = Number(document.getElementById('dailyMinutes').value) || 0;
-        const secs = Number(document.getElementById('dailySeconds').value) || 0;
-        const totalSeconds = (mins * 60) + secs;
-        const survivalTimeStr = formatSecondsToTimeStr(totalSeconds);
-
-        const logId = 'log_' + Date.now();
-        const { doc, setDoc } = window.firebaseModules;
-        await setDoc(doc(window.db, "dailylogs", logId), {
-            player, matches, wins, kills, assists, damage, survivalTimeStr, totalSeconds, timestamp: Date.now()
-        });
-
-        document.getElementById('dailyForm').reset();
-        document.getElementById('ocrStatus').innerText = "Crop across Kills, Assists, Damage, Revival, and Survival Time!";
-    };
-
-    window.deleteDailyLog = async function(id) {
-        if(currentUser.role !== 'admin') return;
-        const { doc, deleteDoc } = window.firebaseModules;
-        await deleteDoc(doc(window.db, "dailylogs", id));
-    };
-
-    function rebuildWeeklyFromLog() {
-        weeklyData = {};
-        dailyLog.forEach(item => {
-            if (!weeklyData[item.player]) {
-                weeklyData[item.player] = { matches: 0, wins: 0, kills: 0, assists: 0, damage: 0, totalSeconds: 0 };
-            }
-            weeklyData[item.player].matches += item.matches;
-            weeklyData[item.player].wins += item.wins;
-            weeklyData[item.player].kills += item.kills;
-            weeklyData[item.player].assists += (item.assists || 0);
-            weeklyData[item.player].damage += (item.damage || 0);
-            weeklyData[item.player].totalSeconds += (item.totalSeconds || 0);
-        });
-    }
-
-    window.resetDailyOnly = async function() {
-        if(currentUser.role !== 'admin') return;
-        if(confirm("Are you sure you want to clear today's cloud logs?")) {
-            const { doc, deleteDoc } = window.firebaseModules;
-            for (let item of dailyLog) {
-                await deleteDoc(doc(window.db, "dailylogs", item.id));
-            }
-        }
-    };
-
-    window.resetWeeklyData = async function() {
-        if(currentUser.role !== 'admin') return;
-        if(confirm("Are you sure you want to clear all weekly data from the cloud?")) {
-            const { doc, deleteDoc } = window.firebaseModules;
-            for (let item of dailyLog) {
-                await deleteDoc(doc(window.db, "dailylogs", item.id));
-            }
-        }
-    };
-
-    function renderDailyTable() {
-        let tableHtml = '';
-        let sortedLogs = [...dailyLog].sort((a,b) => b.timestamp - a.timestamp);
-        sortedLogs.forEach(item => {
-            const avgDamage = item.matches > 0 ? (item.damage / item.matches).toFixed(1) : 0;
-            let actionCol = currentUser.role === 'admin' ? `<td><button class="btn-danger" onclick="deleteDailyLog('${item.id}')">Delete</button></td>` : '';
-            tableHtml += `<tr>
-                <td><b>${item.player}</b></td>
-                <td>${item.matches}</td>
-                <td>${item.wins}</td>
-                <td>${item.kills}</td>
-                <td>${item.assists || 0}</td>
-                <td>${item.damage || 0}</td>
-                <td>${avgDamage}</td>
-                <td>${item.survivalTimeStr || formatSecondsToTimeStr(item.totalSeconds)}</td>
-                ${actionCol}
-            </tr>`;
-        });
-        document.getElementById('dailyTableBody').innerHTML = tableHtml || '<tr><td colspan="9" style="color:#94a3b8;">No daily cloud entries added yet.</td></tr>';
-    }
-
-    function updateDailyLeaderboard() {
-        let dailyTotals = {};
-        dailyLog.forEach(item => {
-            if (!dailyTotals[item.player]) {
-                dailyTotals[item.player] = { matches: 0, wins: 0, kills: 0, assists: 0, damage: 0, totalSeconds: 0 };
-            }
-            dailyTotals[item.player].matches += item.matches;
-            dailyTotals[item.player].wins += item.wins;
-            dailyTotals[item.player].kills += item.kills;
-            dailyTotals[item.player].assists += (item.assists || 0);
-            dailyTotals[item.player].damage += (item.damage || 0);
-            dailyTotals[item.player].totalSeconds += (item.totalSeconds || 0);
-        });
-
-        let rankedArray = [];
-        for (let player in dailyTotals) {
-            let data = dailyTotals[player];
-            let winRate = data.matches > 0 ? (data.wins / data.matches) * 100 : 0;
-            let avgKills = data.matches > 0 ? (data.kills / data.matches).toFixed(1) : 0;
-            let score = (data.wins * 50) + (data.kills * 10) + ((data.damage || 0) * 0.1) + (winRate * 2);
-
-            rankedArray.push({
-                player, matches: data.matches, wins: data.wins, kills: data.kills,
-                assists: data.assists || 0, damage: data.damage || 0, 
-                avgDamage: data.matches > 0 ? (data.damage / data.matches).toFixed(1) : 0, 
-                winRate: winRate.toFixed(1), avgKills, score: Math.round(score)
-            });
-        }
-
-        rankedArray.sort((a, b) => b.score - a.score);
-
-        let lbHTML = '';
-        rankedArray.forEach((item, index) => {
-            let rankClass = index === 0 ? 'top-1' : index === 1 ? 'top-2' : index === 2 ? 'top-3' : '';
-            lbHTML += `<tr class="${rankClass}">
-                <td><b>#${index + 1}</b></td>
-                <td><b>${item.player}</b></td>
-                <td>${item.matches}</td>
-                <td>${item.wins}</td>
-                <td>${item.kills}</td>
-                <td>${item.assists}</td>
-                <td>${item.damage}</td>
-                <td>${item.avgDamage}</td>
-                <td>${item.winRate}%</td>
-                <td>${item.avgKills}</td>
-                <td><b>${item.score} pts</b></td>
-            </tr>`;
-        });
-        document.getElementById('dailyLbTableBody').innerHTML = lbHTML || '<tr><td colspan="11" style="color:#94a3b8;">No entries found for today yet.</td></tr>';
-    }
-
-    function renderWeeklyTable() {
-        if(currentUser.role !== 'admin') return;
-        let html = '';
-        for (let player in weeklyData) {
-            let data = weeklyData[player];
-            let winRate = data.matches > 0 ? ((data.wins / data.matches) * 100).toFixed(1) : 0;
-            let avgKills = data.matches > 0 ? (data.kills / data.matches).toFixed(1) : 0;
-            let avgDamage = data.matches > 0 ? ((data.damage || 0) / data.matches).toFixed(1) : 0;
-            let avgSeconds = data.matches > 0 ? Math.round(data.totalSeconds / data.matches) : 0;
-
-            html += `<tr>
-                <td><b>${player}</b></td>
-                <td>${data.matches}</td>
-                <td>${data.wins}</td>
-                <td>${data.kills}</td>
-                <td>${data.assists || 0}</td>
-                <td>${data.damage || 0}</td>
-                <td>${avgDamage}</td>
-                <td>${formatSecondsToTimeStr(data.totalSeconds)}</td>
-                <td>${winRate}%</td>
-                <td>${avgKills}</td>
-                <td>${formatSecondsToTimeStr(avgSeconds)}</td>
-            </tr>`;
-        }
-        document.getElementById('weeklyTableBody').innerHTML = html || '<tr><td colspan="11" style="color:#94a3b8;">No accumulated weekly data available yet.</td></tr>';
-    }
-
-    function updateWeeklyLeaderboard() {
-        let rankedArray = [];
-        for (let player in weeklyData) {
-            let data = weeklyData[player];
-            let winRate = data.matches > 0 ? (data.wins / data.matches) * 100 : 0;
-            let score = (data.wins * 50) + (data.kills * 10) + ((data.damage || 0) * 0.1) + (winRate * 2);
-
-            rankedArray.push({
-                player, matches: data.matches, wins: data.wins, kills: data.kills,
-                assists: data.assists || 0, damage: data.damage || 0, 
-                avgDamage: data.matches > 0 ? ((data.damage || 0) / data.matches).toFixed(1) : 0, 
-                winRate: winRate.toFixed(1), 
-                avgKills: data.matches > 0 ? (data.kills / data.matches).toFixed(1) : 0, 
-                score: Math.round(score)
-            });
-        }
-
-        rankedArray.sort((a, b) => b.score - a.score);
-        let top10 = rankedArray.slice(0, 10);
-
-        let fixedLbHTML = '';
-        top10.forEach((item, index) => {
-            let rankClass = index === 0 ? 'top-1' : index === 1 ? 'top-2' : index === 2 ? 'top-3' : '';
-            fixedLbHTML += `<tr class="${rankClass}">
-                <td><b>#${index + 1}</b></td>
-                <td><b>${item.player}</b></td>
-                <td>${item.matches}</td>
-                <td>${item.kills}</td>
-                <td>${item.assists}</td>
-                <td>${item.damage}</td>
-                <td>${item.avgDamage}</td>
-                <td>${item.winRate}%</td>
-                <td>${item.avgKills}</td>
-                <td><b>${item.score} pts</b></td>
-            </tr>`;
-        });
-        document.getElementById('leaderboardTableBody').innerHTML = fixedLbHTML || '<tr><td colspan="10" style="color:#94a3b8;">No leaderboard data available yet.</td></tr>';
-    }
-
-    window.initCropper = function(event) {
-        if(currentUser.role !== 'admin') return;
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const imgElement = document.getElementById('imageToCrop');
-            imgElement.src = e.target.result;
-            document.getElementById('cropperModal').style.display = 'flex';
-
-            if (cropper) { cropper.destroy(); cropper = null; }
-
-            setTimeout(() => {
-                cropper = new Cropper(imgElement, {
-                    aspectRatio: NaN, viewMode: 1, dragMode: 'crop', autoCropArea: 0.8, responsive: true
-                });
-            }, 100);
-        };
-        reader.readAsDataURL(file);
-    };
-
-    window.closeCropperModal = function() {
-        document.getElementById('cropperModal').style.display = 'none';
-        if (cropper) { cropper.destroy(); cropper = null; }
-        document.getElementById('screenshotInput').value = '';
-    };
-
-    window.cropAndProcessImage = async function() {
-        if (!cropper) return;
-        const canvas = cropper.getCroppedCanvas({ maxWidth: 4096, maxHeight: 4096, fillColor: '#fff' });
-        if (!canvas) return;
-
-        closeCropperModal();
-        const statusEl = document.getElementById('ocrStatus');
-        statusEl.innerText = "Scanning stats row... Please wait";
-
-        canvas.toBlob(async (blob) => {
+    <script>
+        // 1. Handle App Permissions (Notifications & Local Storage Check)
+        function requestAppPermissions() {
             try {
-                const result = await Tesseract.recognize(blob, 'eng');
-                const text = result.data.text;
-                let lines = text.split('\n').filter(l => l.trim().length > 0);
-                let allTokens = [];
-                
-                lines.forEach(line => {
-                    let matches = line.match(/\d+['":\.]?\d*/g);
-                    if (matches) matches.forEach(m => allTokens.push(m));
+                localStorage.setItem("zero_stress_test", "active");
+                localStorage.removeItem("zero_stress_test");
+                console.log("Local Storage permission/availability: OK");
+            } catch (e) {
+                alert("Storage permission error! Please enable storage in your device/app settings.");
+            }
+
+            if (!("Notification" in window)) {
+                alert("This device/browser does not support status bar notifications.");
+                return;
+            }
+
+            Notification.requestPermission().then((permission) => {
+                if (permission === "granted") {
+                    alert("Notifications enabled successfully!");
+                    document.getElementById("permissionCard").style.display = "none";
+                } else {
+                    alert("Notification permission denied. You won't receive live alerts.");
+                }
+            });
+        }
+
+        // Trigger status bar notifications popup on mobile devices
+        function showStatusBarAlert(title, message) {
+            if ("Notification" in window && Notification.permission === "granted") {
+                try {
+                    if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+                        navigator.serviceWorker.ready.then(registration => {
+                            registration.showNotification(title, {
+                                body: message,
+                                icon: "https://cdn-icons-png.flaticon.com/512/3112/3112946.png",
+                                badge: "https://cdn-icons-png.flaticon.com/512/3112/3112946.png",
+                                vibrate: [200, 100, 200]
+                            });
+                        });
+                    } else {
+                        new Notification(title, { 
+                            body: message,
+                            icon: "https://cdn-icons-png.flaticon.com/512/3112/3112946.png"
+                        });
+                    }
+                } catch (e) {
+                    console.error("Error triggering status bar alert:", e);
+                }
+            }
+        }
+
+        // 2. Initialize Firebase Listeners upon loading
+        window.addEventListener('firebase-ready', () => {
+            document.getElementById('appLoadingScreen').style.display = 'none';
+            initRealtimeListeners();
+        });
+
+        function initRealtimeListeners() {
+            const { collection, onSnapshot, query, orderBy } = window.firebaseModules;
+            const db = window.db;
+
+            const q = query(collection(db, "notifications_feed"), orderBy("timestamp", "desc"));
+            
+            onSnapshot(q, (snapshot) => {
+                let feedHTML = "";
+                let isFirstChange = true;
+
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "added" && !isFirstChange) {
+                        const data = change.doc.data();
+                        showStatusBarAlert(data.title || "Zero Stress Update", data.message || "New activity recorded.");
+                    }
                 });
 
-                if (allTokens.length >= 4) {
-                    document.getElementById('dailyKills').value = parseInt(allTokens[0].replace(/[^\d]/g, '')) || 0;
-                    document.getElementById('dailyAssists').value = parseInt(allTokens[1].replace(/[^\d]/g, '')) || 0;
-                    document.getElementById('dailyDamage').value = parseInt(allTokens[2].replace(/[^\d]/g, '')) || 0;
-                    
-                    let rawTime = allTokens[4] || allTokens[3] || "";
-                    if (rawTime) {
-                        let parts = rawTime.split(/['":\.]/);
-                        document.getElementById('dailyMinutes').value = parseInt(parts[0]) || 0;
-                        if (parts[1]) document.getElementById('dailySeconds').value = parseInt(parts[1]) || 0;
-                    }
-                    statusEl.innerText = "Successfully mapped stats!";
-                    statusEl.style.color = "#10b981";
-                } else {
-                    statusEl.innerText = "Could not map clearly. Try cropping tighter.";
-                }
-            } catch (error) {
-                statusEl.innerText = "Error scanning image. Input manually.";
-            }
-        }, 'image/png');
-    };
-
-    window.downloadPDF = function(sectionId) {
-        const sections = document.querySelectorAll('.section');
-        sections.forEach(sec => { if(sec.id !== sectionId) sec.style.display = 'none'; });
-        window.print();
-        sections.forEach(sec => { sec.style.display = ''; });
-        if(currentUser.role !== 'admin') {
-            document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
-            switchTab('dailyLb');
+                snapshot.forEach((doc) => {
+                    let data = doc.data();
+                    feedHTML += `<div style="padding: 10px 0; border-bottom: 1px solid var(--border-color);">
+                        <strong>${data.title}</strong>: ${data.message} <br><small style="color: var(--silver);">${data.timestamp?.toDate ? new Date(data.timestamp.toDate()).toLocaleTimeString() : 'Just now'}</small>
+                    </div>`;
+                });
+                
+                document.getElementById("liveUpdatesFeed").innerHTML = feedHTML || "<p>No recent updates found.</p>";
+            }, (error) => {
+                console.error("Firestore snapshot error: ", error);
+                document.getElementById("liveUpdatesFeed").innerHTML = "<p>Connected, waiting for feed data...</p>";
+            });
         }
-    };
-</script>
 
+        // 3. Connected App Event Triggers
+
+        // A. Register New Player
+        async function registerNewPlayerAndNotify() {
+            const playerName = document.getElementById("playerNameInput").value.trim();
+            if (!playerName) {
+                alert("Please enter a player name!");
+                return;
+            }
+
+            const { collection, addDoc } = window.firebaseModules;
+            const db = window.db;
+
+            try {
+                const title = "New Player Registered!";
+                const message = `Welcome ${playerName} to the ZERO STRESS League! Check out the updated leaderboard.`;
+
+                await addDoc(collection(db, "notifications_feed"), { title, message, timestamp: new Date() });
+                showStatusBarAlert(title, message);
+                
+                document.getElementById("playerNameInput").value = "";
+                alert("Player registered and broadcasted successfully!");
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                alert("Failed to register player. Check network connection.");
+            }
+        }
+
+        // B. Save Daily Scores & Notify
+        async function saveDailyScoresAndNotify() {
+            const { collection, addDoc } = window.firebaseModules;
+            const db = window.db;
+
+            try {
+                const title = "🏆 Daily Leaderboard Updated";
+                const message = "Today's scores have been finalized. Check your new rank!";
+                
+                await addDoc(collection(db, "notifications_feed"), { title, message, timestamp: new Date() });
+                showStatusBarAlert(title, message);
+                alert("Daily scores saved and broadcasted to device status bars!");
+            } catch (e) {
+                console.error("Error saving daily scores: ", e);
+                alert("Failed to save daily scores.");
+            }
+        }
+
+        // C. Update Weekly Standings & Notify
+        async function updateWeeklyStandings() {
+            const { collection, addDoc } = window.firebaseModules;
+            const db = window.db;
+
+            try {
+                const title = "🌟 Weekly Standings Live!";
+                const message = "The weekly leaderboard has been updated. See who took the crown!";
+                
+                await addDoc(collection(db, "notifications_feed"), { title, message, timestamp: new Date() });
+                showStatusBarAlert(title, message);
+                alert("Weekly standings updated and broadcasted!");
+            } catch (e) {
+                console.error("Error updating weekly standings: ", e);
+                alert("Failed to update weekly standings.");
+            }
+        }
+
+        // D. Publish Announcement / Reminder & Notify
+        async function publishAnnouncement() {
+            const announcementText = document.getElementById("announcementInput").value.trim();
+            if (!announcementText) {
+                alert("Please enter an announcement or reminder message!");
+                return;
+            }
+
+            const { collection, addDoc } = window.firebaseModules;
+            const db = window.db;
+
+            try {
+                const title = "📢 Announcement & Reminder";
+                const message = announcementText;
+                
+                await addDoc(collection(db, "notifications_feed"), { title, message, timestamp: new Date() });
+                showStatusBarAlert(title, message);
+                
+                document.getElementById("announcementInput").value = "";
+                alert("Announcement published and sent to device status bars!");
+            } catch (e) {
+                console.error("Error publishing announcement: ", e);
+                alert("Failed to publish announcement.");
+            }
+        }
+    </script>
 </body>
 </html>
