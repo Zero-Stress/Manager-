@@ -72,310 +72,1584 @@
             transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s ease;
         }
 
-        .permission-banner {
-            background: var(--card-bg);
-            border: 1px solid var(--accent-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: var(--glow-shadow);
-        }
-
-        .permission-banner button {
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .permission-banner button:hover {
-            background: var(--accent-hover);
-        }
-
         #appLoadingScreen {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: var(--bg-color);
+            background-color: var(--bg-color);
+            z-index: 999999;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
-            font-size: 1.2rem;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        #appLoadingScreen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .spinner {
+            width: 54px;
+            height: 54px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-title {
+            color: var(--accent-color);
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            margin-bottom: 6px;
+        }
+
+        .loading-subtitle {
+            color: var(--silver);
+            font-size: 13px;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 960px;
             margin: 0 auto;
         }
 
-        .card {
-            background: var(--card-bg);
+        h1, h2 {
+            text-align: center;
+            color: var(--accent-color);
+            letter-spacing: 0.5px;
+        }
+
+        #authScreen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+        }
+
+        .auth-card {
+            background-color: var(--card-bg);
+            padding: 35px;
+            border-radius: 16px;
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
+            width: 100%;
+            max-width: 420px;
             box-shadow: var(--glow-shadow);
         }
 
-        h2 { margin-top: 0; color: var(--accent-color); }
-        .action-btn {
-            padding: 10px 15px;
-            background: var(--accent-color);
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .auth-tab {
+            flex: 1;
+            background: none;
             border: none;
+            color: var(--silver);
+            padding: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 700;
+            transition: 0.3s;
+        }
+
+        .auth-tab.active {
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .user-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--card-bg);
+            padding: 14px 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--glow-shadow);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .theme-toggle-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+        .theme-toggle-btn:hover { border-color: var(--accent-color); }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 10px;
+            transition: all 0.25s ease;
+        }
+        .tab-btn:hover { border-color: var(--accent-color); transform: translateY(-1px); }
+
+        .tab-btn.active {
+            background-color: var(--accent-color);
+            color: #090d16;
+            font-weight: 800;
+            border-color: var(--accent-color);
+            box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3);
+        }
+
+        .section {
+            display: none;
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+            box-shadow: var(--glow-shadow);
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        form.admin-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--silver);
+        }
+
+        input, select, textarea {
+            padding: 11px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent-color); }
+
+        .phone-input-group {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--bg-color);
+            overflow: hidden;
+        }
+        .phone-input-group:focus-within { border-color: var(--accent-color); }
+
+        .phone-prefix {
+            padding: 11px 12px;
+            background-color: var(--card-bg);
+            color: var(--accent-color);
+            font-weight: 700;
+            border-right: 1px solid var(--border-color);
+            font-size: 14px;
+            user-select: none;
+        }
+
+        .phone-input-group input {
+            border: none;
+            background: transparent;
+            flex: 1;
+            padding: 11px;
+            color: var(--text-color);
+            outline: none;
+        }
+
+        .password-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .password-container input {
+            width: 100%;
+            padding-right: 45px;
+            box-sizing: border-box;
+        }
+
+        .password-container .material-symbols-outlined {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--silver);
+            user-select: none;
+            font-size: 20px;
+            transition: color 0.2s;
+        }
+        .password-container .material-symbols-outlined:hover { color: var(--accent-color); }
+
+        .ocr-box {
+            grid-column: 1 / -1;
+            background: var(--bg-color);
+            border: 2px dashed var(--accent-color);
+            padding: 18px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        #cropperModal {
+            display: none;
+            position: fixed;
+            z-index: 99999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .cropper-container-box {
+            width: 100%;
+            max-width: 520px;
+            height: 60vh;
+            background: #000;
+            margin-bottom: 16px;
+            overflow: hidden;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #imageToCrop {
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+        }
+
+        .cropper-btn-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        button.submit-btn {
+            grid-column: 1 / -1;
+            background-color: var(--accent-color);
+            color: #090d16;
+            border: none;
+            padding: 13px;
+            font-size: 15px;
+            font-weight: 800;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button.submit-btn:hover { background-color: var(--accent-hover); transform: translateY(-1px); }
+
+        .action-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 13px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--bg-color);
+            color: var(--accent-color);
+            font-weight: 700;
+        }
+
+        tr:hover { background-color: rgba(56, 189, 248, 0.03); }
+
+        .top-1 { background-color: rgba(245, 158, 11, 0.12) !important; }
+        .top-2 { background-color: rgba(148, 163, 184, 0.12) !important; }
+        .top-3 { background-color: rgba(180, 83, 9, 0.12) !important; }
+
+        .btn-danger {
+            background: #ef4444;
             color: white;
+            border: none;
+            padding: 7px 12px;
             border-radius: 6px;
             cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
-            margin-right: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            transition: background 0.2s;
         }
-        .action-btn:hover { background: var(--accent-hover); }
-        .text-input {
-            padding: 10px;
-            width: 100%;
-            box-sizing: border-box;
+        .btn-danger:hover { background: #dc2626; }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 7px 12px;
             border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn-success:hover { background: #059669; }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 7px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn-warning:hover { background: #d97706; }
+
+        .btn-secondary {
+            background: #475569;
+            color: white;
+            border: none;
+            padding: 9px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn-secondary:hover { background: #334155; }
+
+        .btn-pdf {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 9px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+        .btn-pdf:hover { background: #059669; }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 16px;
+            margin-top: 18px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background-color: var(--bg-color);
             border: 1px solid var(--border-color);
-            background: var(--bg-color);
-            color: var(--text-color);
-            margin-bottom: 10px;
+            padding: 18px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .stat-card h3 {
+            margin: 0 0 6px 0;
+            font-size: 12px;
+            color: var(--silver);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stat-card p {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--accent-color);
+        }
+        .announcement-card {
+            background-color: var(--bg-color);
+            border-left: 4px solid var(--accent-color);
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            border-left-width: 4px;
+        }
+        .announcement-date {
+            font-size: 11px;
+            color: var(--silver);
+            margin-bottom: 4px;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
 
-    <div id="appLoadingScreen">
-        <p>Loading ZERO STRESS Manager...</p>
+<!-- OPTIMIZED LOADING SCREEN -->
+<div id="appLoadingScreen">
+    <div class="spinner"></div>
+    <div class="loading-title">ZERO STRESS MANAGER</div>
+    <div class="loading-subtitle">Initializing Secure Cloud Firestore & Realtime Sync...</div>
+</div>
+
+<!-- Toast Notification Container -->
+<div id="toast-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 999999; display: flex; flex-direction: column; gap: 8px;"></div>
+
+<div class="container" id="printableContainer">
+    <h1>ZERO STRESS Performance & Leaderboard Manager</h1>
+
+    <!-- LOGIN / REGISTER SCREEN -->
+    <div id="authScreen" class="hidden">
+        <div class="auth-card">
+            <div class="auth-tabs">
+                <button type="button" class="auth-tab active" id="tabLoginBtn" onclick="switchAuthMode('login')">Login</button>
+                <button type="button" class="auth-tab" id="tabRegisterBtn" onclick="switchAuthMode('register')">Register</button>
+            </div>
+
+            <!-- LOGIN FORM -->
+            <div id="loginFormContainer">
+                <form id="loginForm" class="auth-form" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label>Phone Number (Bangladesh)</label>
+                        <div class="phone-input-group">
+                            <span class="phone-prefix">+880</span>
+                            <input type="tel" id="loginPhone" required maxlength="10" placeholder="1700000000" pattern="^1[3-9]\d{8}$">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div class="password-container">
+                            <input type="password" id="loginPassword" required placeholder="********">
+                            <span id="toggleLoginPasswordIcon" class="material-symbols-outlined" onclick="togglePasswordVisibility('loginPassword', 'toggleLoginPasswordIcon')">visibility</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-btn">Login to Leaderboards</button>
+                </form>
+            </div>
+
+            <!-- REGISTER FORM -->
+            <div id="registerFormContainer" class="hidden">
+                <div id="registerAuthForm" class="auth-form">
+                    <div class="form-group">
+                        <label>Player Name</label>
+                        <input type="text" id="regPlayerName" required placeholder="e.g. ShadowWarrior">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number (Bangladesh)</label>
+                        <div class="phone-input-group">
+                            <span class="phone-prefix">+880</span>
+                            <input type="tel" id="regPhone" required maxlength="10" placeholder="1700000000" pattern="^1[3-9]\d{8}$">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div class="password-container">
+                            <input type="password" id="regPassword" required placeholder="********">
+                            <span id="toggleRegPasswordIcon" class="material-symbols-outlined" onclick="togglePasswordVisibility('regPassword', 'toggleRegPasswordIcon')">visibility</span>
+                        </div>
+                    </div>
+                    <button type="button" class="submit-btn" onclick="handleRegisterClick()">Register Account</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="container">
-        <!-- Permissions Request Bar -->
-        <div id="permissionCard" class="permission-banner">
+    <!-- MAIN APP DASHBOARD -->
+    <div id="appDashboard" class="hidden">
+        
+        <div class="user-header-bar">
             <div>
-                <strong>Enable App Permissions:</strong> Allow notifications and local storage access for live leaderboards.
+                Logged in as: <b id="displayUsername" style="color: var(--accent-color);"></b> 
+                (<span id="displayRole" style="text-transform: uppercase; font-size: 11px; background: var(--border-color); padding: 3px 8px; border-radius: 6px; font-weight:700;"></span>)
             </div>
-            <button onclick="requestAppPermissions()">Grant Permissions</button>
-        </div>
-
-        <div class="card">
-            <h2>🏆 Live Leaderboards & Announcements</h2>
-            <div id="liveUpdatesFeed">
-                <p>Connecting to live database...</p>
+            <div class="header-controls">
+                <button class="theme-toggle-btn" onclick="toggleTheme()"><span id="themeIcon" class="material-symbols-outlined" style="font-size:16px;">dark_mode</span> <span id="themeText">Theme</span></button>
+                <button class="btn-danger" onclick="handleLogout()">Logout</button>
             </div>
         </div>
 
-        <div class="card">
-            <h2>📝 Actions & Event Triggers</h2>
+        <!-- LIVE CLOUD ANNOUNCEMENT BOARD -->
+        <div id="announcementBanner" style="margin-bottom: 24px;"></div>
+
+        <div class="tabs" id="navTabsContainer">
+            <button class="tab-btn admin-only" onclick="switchTab('register')">Manage Registrations</button>
+            <button class="tab-btn admin-only" onclick="switchTab('daily')">Daily Input</button>
+            <button class="tab-btn player-nav-btn active" onclick="switchTab('dailyLb')">Daily Leaderboard</button>
+            <button class="tab-btn admin-only" onclick="switchTab('weekly')">Weekly Summary</button>
+            <button class="tab-btn player-nav-btn" onclick="switchTab('leaderboard')">Weekly Leaderboard</button>
+            <button class="tab-btn" onclick="switchTab('myProfile')">My Profile</button>
+            <button class="tab-btn admin-only" onclick="switchTab('announcements')">Announcements</button>
+        </div>
+
+        <!-- REGISTRATION APPROVAL & EDIT SECTION -->
+        <div id="register" class="section admin-only">
+            <h2>Player Registration Requests & Approvals</h2>
+            <div style="margin-bottom: 18px;">
+                <button class="btn-success" onclick="openAddPlayerModal()">+ Add Player Manually (Admin)</button>
+            </div>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Player Name</th>
+                            <th>Phone</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="registerTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- DAILY REPORT SECTION -->
+        <div id="daily" class="section admin-only">
+            <div class="action-container">
+                <h2>Add Today's Player Match Data</h2>
+                <button class="btn-secondary" onclick="resetDailyOnly()">Reset Daily Log</button>
+            </div>
+            <form id="dailyForm" class="admin-form" onsubmit="addDailyRecord(event)">
+                <div class="ocr-box">
+                    <label style="color: var(--accent-color); font-weight: 700; display: block; margin-bottom: 8px;">Auto-Fill from Match Screenshot</label>
+                    <input type="file" id="screenshotInput" accept="image/*" onchange="initCropper(event)" style="font-size: 12px; color: var(--silver);">
+                    <p id="ocrStatus" style="font-size: 12px; color: var(--silver); margin-top: 6px;">Crop across Kills, Assists, Damage, Revival, and Survival Time!</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Confirmed Player</label>
+                    <select id="dailyPlayerSelect" required>
+                        <option value="" disabled selected>-- Choose Confirmed Player --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Matches Played Today</label>
+                    <input type="number" id="dailyMatches" min="0" value="1" required placeholder="1">
+                </div>
+                <div class="form-group">
+                    <label>Wins Today</label>
+                    <input type="number" id="dailyWins" min="0" value="0" required placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Total Kills Today (K)</label>
+                    <input type="number" id="dailyKills" min="0" required placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Total Assists Today (A)</label>
+                    <input type="number" id="dailyAssists" min="0" required placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Total Damage Today (DMG)</label>
+                    <input type="number" id="dailyDamage" min="0" required placeholder="e.g. 1927">
+                </div>
+                <div class="form-group">
+                    <label>Survival Time Today (Minutes & Seconds)</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="number" id="dailyMinutes" min="0" value="0" required placeholder="Min">
+                        <input type="number" id="dailySeconds" min="0" max="59" value="0" required placeholder="Sec">
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn">Save Daily Entry & Sync to Cloud</button>
+            </form>
+
+            <h2>Recent Daily Inputs Log</h2>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Player Name</th>
+                            <th>Matches</th>
+                            <th>Wins</th>
+                            <th>Kills</th>
+                            <th>Assists (A)</th>
+                            <th>Tot Damage</th>
+                            <th>Avg Damage</th>
+                            <th>Survival Time</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dailyTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- DAILY LEADERBOARD -->
+        <div id="dailyLb" class="section">
+            <div class="action-container">
+                <h2>Today's Top Player Leaderboard (Excludes Assists)</h2>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn-secondary admin-only" onclick="resetDailyOnly()">Reset Daily Log</button>
+                    <button class="btn-pdf" onclick="exportScorecard('dailyLb')">📷 Share Scorecard</button>
+                    <button class="btn-pdf" onclick="downloadPDF()">Download PDF</button>
+                </div>
+            </div>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player Name</th>
+                            <th>Matches</th>
+                            <th>Wins</th>
+                            <th>Kills</th>
+                            <th>Assists</th>
+                            <th>Tot Damage</th>
+                            <th>Avg Damage</th>
+                            <th>Win Rate %</th>
+                            <th>Avg Kills</th>
+                            <th>Score Points</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dailyLbTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- WEEKLY REPORT SECTION -->
+        <div id="weekly" class="section admin-only">
+            <h2>Automated Weekly Performance Summary</h2>
+            <div class="action-container">
+                <span><b>Status:</b> Live synced from Firestore cloud entries</span>
+                <button class="btn-secondary" onclick="resetWeeklyData()">Reset Weekly Cycle</button>
+            </div>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Player Name</th>
+                            <th>Total Matches</th>
+                            <th>Total Wins</th>
+                            <th>Total Kills</th>
+                            <th>Total Assists</th>
+                            <th>Total Damage</th>
+                            <th>Avg Damage</th>
+                            <th>Total Survival Time</th>
+                            <th>Win Rate %</th>
+                            <th>Avg Kills</th>
+                            <th>Avg Survival Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="weeklyTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- WEEKLY LEADERBOARD -->
+        <div id="leaderboard" class="section">
+            <div class="action-container">
+                <h2>Top 10 Weekly Player Leaderboard (Excludes Assists)</h2>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn-pdf" onclick="exportScorecard('leaderboard')">📷 Share Scorecard</button>
+                    <button class="btn-pdf" onclick="downloadPDF()">Download PDF</button>
+                </div>
+            </div>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player Name</th>
+                            <th>Matches</th>
+                            <th>Kills</th>
+                            <th>Assists</th>
+                            <th>Tot Damage</th>
+                            <th>Avg Damage</th>
+                            <th>Win Rate %</th>
+                            <th>Avg Kills</th>
+                            <th>Score Points</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PLAYER PROFILE STATISTICS PAGE -->
+        <div id="myProfile" class="section">
+            <h2>Player Profile Statistics</h2>
+            <div style="text-align: center; margin-bottom: 24px;">
+                <h3 id="profilePlayerName" style="color: var(--accent-color); font-size: 26px; margin: 0; font-weight: 800;"></h3>
+                <p id="profilePlayerPhone" style="color: var(--silver); margin: 6px 0 0 0; font-size: 14px;"></p>
+            </div>
             
-            <!-- Register New Player -->
-            <div style="margin-bottom: 15px;">
-                <input type="text" id="playerNameInput" placeholder="Enter Player Name" class="text-input" style="width: 65%; display: inline-block;">
-                <button onclick="registerNewPlayerAndNotify()" class="action-btn" style="display: inline-block;">Register & Notify</button>
+            <div class="profile-grid">
+                <div class="stat-card">
+                    <h3>Lifetime Matches</h3>
+                    <p id="profMatches">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Lifetime Wins</h3>
+                    <p id="profWins">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Win Rate</h3>
+                    <p id="profWinRate">0%</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Kills</h3>
+                    <p id="profKills">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Assists</h3>
+                    <p id="profAssists">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Damage</h3>
+                    <p id="profDamage">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Avg Damage / Match</h3>
+                    <p id="profAvgDamage">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Lifetime Score</h3>
+                    <p id="profScore">0 pts</p>
+                </div>
             </div>
 
-            <hr style="border-color: var(--border-color); margin: 15px 0;">
-
-            <!-- Publish Custom Announcement / Reminder -->
-            <div>
-                <input type="text" id="announcementInput" placeholder="Enter announcement or reminder message..." class="text-input">
-                <button onclick="publishAnnouncement()" class="action-btn" style="background: #6366f1;">Publish Announcement</button>
-            </div>
-
-            <!-- Pre-built Event Trigger Buttons -->
-            <div style="margin-top: 15px;">
-                <button onclick="saveDailyScoresAndNotify()" class="action-btn" style="background: #10b981;">Save Daily Scores</button>
-                <button onclick="updateWeeklyStandings()" class="action-btn" style="background: #f59e0b;">Reset / Update Weekly Standings</button>
+            <div style="text-align: center; margin-top: 24px;">
+                <button class="btn-pdf" onclick="exportScorecard('myProfile')" style="margin: 0 auto;">📷 Export Profile Card</button>
             </div>
         </div>
+
+        <!-- ANNOUNCEMENTS ADMIN & MANAGEMENT -->
+        <div id="announcements" class="section admin-only">
+            <h2>Broadcast Announcements</h2>
+            <form class="auth-form" onsubmit="postAnnouncement(event)" style="margin-bottom: 25px;">
+                <div class="form-group">
+                    <label>New Announcement Message</label>
+                    <textarea id="announcementText" rows="3" required placeholder="Type match timing, updates, or rules for players..."></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Publish Announcement to All Players</button>
+            </form>
+            <h2>Active Broadcasts Log</h2>
+            <div id="adminAnnouncementList"></div>
+        </div>
+
     </div>
+</div>
 
-    <script>
-        // 1. Handle App Permissions (Notifications & Local Storage Check)
-        function requestAppPermissions() {
-            try {
-                localStorage.setItem("zero_stress_test", "active");
-                localStorage.removeItem("zero_stress_test");
-                console.log("Local Storage permission/availability: OK");
-            } catch (e) {
-                alert("Storage permission error! Please enable storage in your device/app settings.");
+<!-- CROPPER MODAL -->
+<div id="cropperModal">
+    <div style="color: var(--accent-color); font-weight: 700; margin-bottom: 8px; text-align: center;">Crop Kills, Assists, Damage, Revival & Survival Time</div>
+    <div class="cropper-container-box">
+        <img id="imageToCrop" src="" alt="Source Image">
+    </div>
+    <div class="cropper-btn-group">
+        <button class="btn-pdf" onclick="cropAndProcessImage()">Crop & Scan</button>
+        <button class="btn-danger" onclick="closeCropperModal()">Cancel</button>
+    </div>
+</div>
+
+<!-- FIRESTORE CLOUD ENGINE SCRIPT -->
+<script>
+    const ADMIN_CREDENTIALS = {
+        phone: "1757261781",
+        password: "adminpassword123",
+        name: "Admin Master"
+    };
+
+    let userAccounts = {};
+    let dailyLog = [];
+    let weeklyData = {};
+    let announcementsList = [];
+    let currentUser = null;
+    let cropper = null;
+
+    // Toast Notification Helper Function
+    function showToast(message, type = "success") {
+        const container = document.getElementById("toast-container");
+        if (!container) return;
+        
+        const toast = document.createElement("div");
+        toast.innerText = message;
+        
+        toast.style.background = type === "success" ? "#10b981" : "#ef4444";
+        toast.style.color = "#fff";
+        toast.style.padding = "13px 20px";
+        toast.style.borderRadius = "8px";
+        toast.style.boxShadow = "0 8px 16px rgba(0,0,0,0.25)";
+        toast.style.fontFamily = "system-ui, sans-serif";
+        toast.style.fontSize = "14px";
+        toast.style.fontWeight = "700";
+        toast.style.opacity = "0";
+        toast.style.transform = "translateY(10px)";
+        toast.style.transition = "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => { 
+            toast.style.opacity = "1"; 
+            toast.style.transform = "translateY(0)";
+        }, 10);
+        
+        setTimeout(() => {
+            toast.style.opacity = "0";
+            toast.style.transform = "translateY(10px)";
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
+    }
+
+    // Theme Toggle Functionality
+    window.toggleTheme = function() {
+        document.body.classList.toggle('light-theme');
+        const isLight = document.body.classList.contains('light-theme');
+        localStorage.setItem('zero_stress_theme', isLight ? 'light' : 'dark');
+        updateThemeButtonUI(isLight);
+    };
+
+    function updateThemeButtonUI(isLight) {
+        const icon = document.getElementById('themeIcon');
+        const text = document.getElementById('themeText');
+        if(icon && text) {
+            if(isLight) {
+                icon.textContent = "light_mode";
+                text.textContent = "Light";
+            } else {
+                icon.textContent = "dark_mode";
+                text.textContent = "Dark";
             }
+        }
+    }
 
-            if (!("Notification" in window)) {
-                alert("This device/browser does not support status bar notifications.");
-                return;
-            }
+    if(localStorage.getItem('zero_stress_theme') === 'light') {
+        document.body.classList.add('light-theme');
+        updateThemeButtonUI(true);
+    }
 
-            Notification.requestPermission().then((permission) => {
-                if (permission === "granted") {
-                    alert("Notifications enabled successfully!");
-                    document.getElementById("permissionCard").style.display = "none";
-                } else {
-                    alert("Notification permission denied. You won't receive live alerts.");
-                }
+    window.togglePasswordVisibility = function(inputId, iconId) {
+        const passwordInput = document.getElementById(inputId);
+        const toggleIcon = document.getElementById(iconId);
+
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            toggleIcon.textContent = "visibility_off";
+        } else {
+            passwordInput.type = "password";
+            toggleIcon.textContent = "visibility";
+        }
+    };
+
+    window.addEventListener('firebase-ready', async () => {
+        const { collection, onSnapshot } = window.firebaseModules;
+        const db = window.db;
+
+        currentUser = JSON.parse(localStorage.getItem('squad_current_session')) || null;
+
+        onSnapshot(collection(db, "users"), (snapshot) => {
+            userAccounts = {};
+            snapshot.forEach((doc) => {
+                userAccounts[doc.id] = doc.data();
             });
-        }
-
-        // Trigger status bar notifications popup on mobile devices
-        function showStatusBarAlert(title, message) {
-            if ("Notification" in window && Notification.permission === "granted") {
-                try {
-                    if (navigator.serviceWorker && navigator.serviceWorker.ready) {
-                        navigator.serviceWorker.ready.then(registration => {
-                            registration.showNotification(title, {
-                                body: message,
-                                icon: "https://cdn-icons-png.flaticon.com/512/3112/3112946.png",
-                                badge: "https://cdn-icons-png.flaticon.com/512/3112/3112946.png",
-                                vibrate: [200, 100, 200]
-                            });
-                        });
-                    } else {
-                        new Notification(title, { 
-                            body: message,
-                            icon: "https://cdn-icons-png.flaticon.com/512/3112/3112946.png"
-                        });
-                    }
-                } catch (e) {
-                    console.error("Error triggering status bar alert:", e);
-                }
-            }
-        }
-
-        // 2. Initialize Firebase Listeners upon loading
-        window.addEventListener('firebase-ready', () => {
-            document.getElementById('appLoadingScreen').style.display = 'none';
-            initRealtimeListeners();
+            renderRegisterTable();
+            if(currentUser && currentUser.role === 'admin') updatePlayerDropdown();
         });
 
-        function initRealtimeListeners() {
-            const { collection, onSnapshot, query, orderBy } = window.firebaseModules;
-            const db = window.db;
-
-            const q = query(collection(db, "notifications_feed"), orderBy("timestamp", "desc"));
-            
-            onSnapshot(q, (snapshot) => {
-                let feedHTML = "";
-                let isFirstChange = true;
-
-                snapshot.docChanges().forEach((change) => {
-                    if (change.type === "added" && !isFirstChange) {
-                        const data = change.doc.data();
-                        showStatusBarAlert(data.title || "Zero Stress Update", data.message || "New activity recorded.");
-                    }
-                });
-
-                snapshot.forEach((doc) => {
-                    let data = doc.data();
-                    feedHTML += `<div style="padding: 10px 0; border-bottom: 1px solid var(--border-color);">
-                        <strong>${data.title}</strong>: ${data.message} <br><small style="color: var(--silver);">${data.timestamp?.toDate ? new Date(data.timestamp.toDate()).toLocaleTimeString() : 'Just now'}</small>
-                    </div>`;
-                });
-                
-                document.getElementById("liveUpdatesFeed").innerHTML = feedHTML || "<p>No recent updates found.</p>";
-            }, (error) => {
-                console.error("Firestore snapshot error: ", error);
-                document.getElementById("liveUpdatesFeed").innerHTML = "<p>Connected, waiting for feed data...</p>";
+        onSnapshot(collection(db, "dailylogs"), (snapshot) => {
+            dailyLog = [];
+            snapshot.forEach((doc) => {
+                dailyLog.push({ id: doc.id, ...doc.data() });
             });
+            rebuildWeeklyFromLog();
+            renderDailyTable();
+            updateDailyLeaderboard();
+            updateWeeklyLeaderboard();
+            if(currentUser && currentUser.role === 'admin') renderWeeklyTable();
+            if(currentUser) renderProfileStats();
+        });
+
+        onSnapshot(collection(db, "announcements"), (snapshot) => {
+            announcementsList = [];
+            snapshot.forEach((doc) => {
+                announcementsList.push({ id: doc.id, ...doc.data() });
+            });
+            announcementsList.sort((a,b) => b.timestamp - a.timestamp);
+            renderAnnouncementsBoard();
+        });
+
+        setTimeout(() => {
+            const loader = document.getElementById('appLoadingScreen');
+            if(loader) {
+                loader.classList.add('fade-out');
+                setTimeout(() => { loader.style.display = 'none'; }, 500);
+            }
+        }, 600);
+
+        if (currentUser) {
+            bootAppSession();
+        } else {
+            document.getElementById('authScreen').classList.remove('hidden');
+            document.getElementById('appDashboard').classList.add('hidden');
+            switchAuthMode('login');
         }
+    });
 
-        // 3. Connected App Event Triggers
+    window.switchAuthMode = function(mode) {
+        const loginContainer = document.getElementById('loginFormContainer');
+        const registerContainer = document.getElementById('registerFormContainer');
+        const loginTabBtn = document.getElementById('tabLoginBtn');
+        const registerTabBtn = document.getElementById('tabRegisterBtn');
 
-        // A. Register New Player
-        async function registerNewPlayerAndNotify() {
-            const playerName = document.getElementById("playerNameInput").value.trim();
-            if (!playerName) {
-                alert("Please enter a player name!");
+        if(mode === 'login') {
+            loginContainer.classList.remove('hidden');
+            registerContainer.classList.add('hidden');
+            loginTabBtn.classList.add('active');
+            registerTabBtn.classList.remove('active');
+        } else {
+            loginContainer.classList.add('hidden');
+            registerContainer.classList.remove('hidden');
+            registerTabBtn.classList.add('active');
+            loginTabBtn.classList.remove('active');
+        }
+    };
+
+    function validateBDPhone(phone) {
+        return /^1[3-9]\d{8}$/.test(phone);
+    }
+
+    window.handleRegisterClick = async function() {
+        try {
+            const name = document.getElementById('regPlayerName').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            const password = document.getElementById('regPassword').value.trim();
+
+            if(!name || !phone || !password) {
+                showToast("Please fill in all registration fields!", "error");
                 return;
             }
 
-            const { collection, addDoc } = window.firebaseModules;
-            const db = window.db;
-
-            try {
-                const title = "New Player Registered!";
-                const message = `Welcome ${playerName} to the ZERO STRESS League! Check out the updated leaderboard.`;
-
-                await addDoc(collection(db, "notifications_feed"), { title, message, timestamp: new Date() });
-                showStatusBarAlert(title, message);
-                
-                document.getElementById("playerNameInput").value = "";
-                alert("Player registered and broadcasted successfully!");
-            } catch (e) {
-                console.error("Error adding document: ", e);
-                alert("Failed to register player. Check network connection.");
-            }
-        }
-
-        // B. Save Daily Scores & Notify
-        async function saveDailyScoresAndNotify() {
-            const { collection, addDoc } = window.firebaseModules;
-            const db = window.db;
-
-            try {
-                const title = "🏆 Daily Leaderboard Updated";
-                const message = "Today's scores have been finalized. Check your new rank!";
-                
-                await addDoc(collection(db, "notifications_feed"), { title, message, timestamp: new Date() });
-                showStatusBarAlert(title, message);
-                alert("Daily scores saved and broadcasted to device status bars!");
-            } catch (e) {
-                console.error("Error saving daily scores: ", e);
-                alert("Failed to save daily scores.");
-            }
-        }
-
-        // C. Update Weekly Standings & Notify
-        async function updateWeeklyStandings() {
-            const { collection, addDoc } = window.firebaseModules;
-            const db = window.db;
-
-            try {
-                const title = "🌟 Weekly Standings Live!";
-                const message = "The weekly leaderboard has been updated. See who took the crown!";
-                
-                await addDoc(collection(db, "notifications_feed"), { title, message, timestamp: new Date() });
-                showStatusBarAlert(title, message);
-                alert("Weekly standings updated and broadcasted!");
-            } catch (e) {
-                console.error("Error updating weekly standings: ", e);
-                alert("Failed to update weekly standings.");
-            }
-        }
-
-        // D. Publish Announcement / Reminder & Notify
-        async function publishAnnouncement() {
-            const announcementText = document.getElementById("announcementInput").value.trim();
-            if (!announcementText) {
-                alert("Please enter an announcement or reminder message!");
+            if(!validateBDPhone(phone)) {
+                showToast("Please enter a valid Bangladeshi phone number (e.g., 1700000000).", "error");
                 return;
             }
 
-            const { collection, addDoc } = window.firebaseModules;
-            const db = window.db;
+            if(phone === ADMIN_CREDENTIALS.phone || userAccounts[phone]) {
+                showToast("An account with this phone number already exists!", "error");
+                return;
+            }
 
-            try {
-                const title = "📢 Announcement & Reminder";
-                const message = announcementText;
-                
-                await addDoc(collection(db, "notifications_feed"), { title, message, timestamp: new Date() });
-                showStatusBarAlert(title, message);
-                
-                document.getElementById("announcementInput").value = "";
-                alert("Announcement published and sent to device status bars!");
-            } catch (e) {
-                console.error("Error publishing announcement: ", e);
-                alert("Failed to publish announcement.");
+            const { doc, setDoc } = window.firebaseModules;
+            await setDoc(doc(window.db, "users", phone), {
+                name, phone, password, role: 'player', status: 'pending'
+            });
+
+            showToast("Registration Successful! Waiting for Admin approval.", "success");
+
+            document.getElementById('regPlayerName').value = '';
+            document.getElementById('regPhone').value = '';
+            document.getElementById('regPassword').value = '';
+            switchAuthMode('login');
+        } catch (err) {
+            showToast("Registration failed: " + err.message, "error");
+        }
+    };
+
+    window.openAddPlayerModal = async function() {
+        let name = prompt("Enter Player Name:");
+        if (!name) return;
+        let phone = prompt("Enter 10-digit Phone Number (e.g. 1712345678):");
+        if (!phone || !validateBDPhone(phone)) {
+            showToast("Invalid phone number!", "error");
+            return;
+        }
+        let password = prompt("Enter temporary password for player:");
+        if (!password) return;
+
+        const { doc, setDoc } = window.firebaseModules;
+        await setDoc(doc(window.db, "users", phone), {
+            name: name.trim(), phone, password, role: 'player', status: 'confirmed'
+        });
+        showToast("Player added and auto-confirmed in Cloud!", "success");
+    };
+
+    window.handleLogin = function(event) {
+        event.preventDefault();
+        const phone = document.getElementById('loginPhone').value.trim();
+        const password = document.getElementById('loginPassword').value.trim();
+
+        if(phone === ADMIN_CREDENTIALS.phone && password === ADMIN_CREDENTIALS.password) {
+            currentUser = { name: ADMIN_CREDENTIALS.name, phone: ADMIN_CREDENTIALS.phone, role: 'admin' };
+        } else {
+            const foundUser = userAccounts[phone];
+            if(foundUser && foundUser.password === password) {
+                if(foundUser.status !== 'confirmed') {
+                    showToast("Your account is pending admin approval.", "error");
+                    return;
+                }
+                currentUser = foundUser;
+            } else {
+                showToast("Invalid phone number or password!", "error");
+                return;
             }
         }
-    </script>
+
+        localStorage.setItem('squad_current_session', JSON.stringify(currentUser));
+        bootAppSession();
+        showToast("Login successful!", "success");
+    };
+
+    window.handleLogout = function() {
+        localStorage.removeItem('squad_current_session');
+        currentUser = null;
+        document.getElementById('authScreen').classList.remove('hidden');
+        document.getElementById('appDashboard').classList.add('hidden');
+        showToast("Logged out successfully.", "success");
+    };
+
+    function bootAppSession() {
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('appDashboard').classList.remove('hidden');
+        document.getElementById('displayUsername').textContent = currentUser.name;
+        document.getElementById('displayRole').textContent = currentUser.role;
+
+        const adminElements = document.querySelectorAll('.admin-only');
+        adminElements.forEach(el => {
+            if(currentUser.role === 'admin') {
+                el.style.display = '';
+            } else {
+                el.style.display = 'none';
+            }
+        });
+
+        if(currentUser.role === 'admin') {
+            switchTab('dailyLb');
+            updatePlayerDropdown();
+        } else {
+            switchTab('dailyLb');
+        }
+
+        renderProfileStats();
+    }
+
+    window.switchTab = function(tabId) {
+        const sections = document.querySelectorAll('.section');
+        sections.forEach(sec => sec.classList.remove('active'));
+
+        const target = document.getElementById(tabId);
+        if(target) target.classList.add('active');
+
+        const buttons = document.querySelectorAll('.tabs button');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        
+        event && event.target && event.target.classList.add('active');
+    };
+
+    // Registration Table Rendering
+    function renderRegisterTable() {
+        const tbody = document.getElementById('registerTableBody');
+        if(!tbody) return;
+
+        let html = "";
+        let index = 1;
+        for(let phone in userAccounts) {
+            let u = userAccounts[phone];
+            html += `<tr>
+                <td>${index++}</td>
+                <td><b>${u.name}</b></td>
+                <td>+880 ${u.phone}</td>
+                <td><span style="padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; background: ${u.status === 'confirmed' ? 'rgba(16, 185, 129, 0.15); color: #10b981;' : 'rgba(245, 158, 11, 0.15); color: #f59e0b;'}">${u.status.toUpperCase()}</span></td>
+                <td>
+                    ${u.status === 'pending' ? `<button class="btn-success" onclick="updatePlayerStatus('${phone}', 'confirmed')">Confirm</button>` : `<button class="btn-warning" onclick="updatePlayerStatus('${phone}', 'pending')">Set Pending</button>`}
+                    <button class="btn-danger" onclick="deleteUserAccount('${phone}')">Delete</button>
+                </td>
+            </tr>`;
+        }
+        tbody.innerHTML = html || `<tr><td colspan="5" style="color: var(--silver);">No pending or registered players found.</td></tr>`;
+    }
+
+    window.updatePlayerStatus = async function(phone, status) {
+        const { doc, updateDoc } = window.firebaseModules;
+        await updateDoc(doc(window.db, "users", phone), { status });
+        showToast("Player status updated successfully!");
+    };
+
+    window.deleteUserAccount = async function(phone) {
+        if(!confirm("Are you sure you want to delete this user?")) return;
+        const { doc, deleteDoc } = window.firebaseModules;
+        await deleteDoc(doc(window.db, "users", phone));
+        showToast("User deleted successfully!");
+    };
+
+    function updatePlayerDropdown() {
+        const select = document.getElementById('dailyPlayerSelect');
+        if(!select) return;
+
+        let html = `<option value="" disabled selected>-- Choose Confirmed Player --</option>`;
+        for(let phone in userAccounts) {
+            let u = userAccounts[phone];
+            if(u.status === 'confirmed') {
+                html += `<option value="${u.name}">${u.name} (+880 ${u.phone})</option>`;
+            }
+        }
+        select.innerHTML = html;
+    }
+
+    // OCR Cropper Functions
+    window.initCropper = function(event) {
+        const files = event.target.files;
+        if (files && files.length > 0) {
+            const file = files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imageToCrop').src = e.target.result;
+                document.getElementById('cropperModal').style.display = 'flex';
+                if (cropper) cropper.destroy();
+                cropper = new Cropper(document.getElementById('imageToCrop'), {
+                    aspectRatio: NaN,
+                    viewMode: 1,
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    window.closeCropperModal = function() {
+        document.getElementById('cropperModal').style.display = 'none';
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+        document.getElementById('screenshotInput').value = '';
+    };
+
+    window.cropAndProcessImage = function() {
+        if (!cropper) return;
+        const canvas = cropper.croppedCanvas || cropper.getCroppedCanvas();
+        if (!canvas) return;
+
+        document.getElementById('ocrStatus').textContent = "Scanning cropped image via Tesseract OCR...";
+        document.getElementById('cropperModal').style.display = 'none';
+
+        canvas.toBlob((blob) => {
+            Tesseract.recognize(
+                blob,
+                'eng',
+                { logger: m => console.log(m) }
+            ).then(({ data: { text } }) => {
+                console.log("OCR Extracted Text:", text);
+                parseOCRText(text);
+                document.getElementById('ocrStatus').textContent = "OCR Complete! Fields auto-filled below.";
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
+            }).catch(err => {
+                console.error("OCR Error:", err);
+                document.getElementById('ocrStatus').textContent = "OCR failed. Please enter manually.";
+                closeCropperModal();
+            });
+        });
+    };
+
+    function parseOCRText(text) {
+        const numbers = text.match(/\d+/g);
+        if (!numbers || numbers.length === 0) return;
+
+        // Smart guess fields based on typical scorecard order or numerical values
+        if(numbers.length >= 1) document.getElementById('dailyKills').value = numbers[0];
+        if(numbers.length >= 2) document.getElementById('dailyAssists').value = numbers[1];
+        if(numbers.length >= 3) document.getElementById('dailyDamage').value = numbers[2];
+        if(numbers.length >= 4) document.getElementById('dailyMinutes').value = Math.floor(numbers[3] / 60) || numbers[3];
+    }
+
+    // Daily Records Management
+    window.addDailyRecord = async function(event) {
+        event.preventDefault();
+        const playerName = document.getElementById('dailyPlayerSelect').value;
+        const matches = parseInt(document.getElementById('dailyMatches').value) || 0;
+        const wins = parseInt(document.getElementById('dailyWins').value) || 0;
+        const kills = parseInt(document.getElementById('dailyKills').value) || 0;
+        const assists = parseInt(document.getElementById('dailyAssists').value) || 0;
+        const damage = parseInt(document.getElementById('dailyDamage').value) || 0;
+        const minutes = parseInt(document.getElementById('dailyMinutes').value) || 0;
+        const seconds = parseInt(document.getElementById('dailySeconds').value) || 0;
+
+        if(!playerName) {
+            showToast("Please select a player!", "error");
+            return;
+        }
+
+        const survivalSeconds = (minutes * 60) + seconds;
+        const avgDamage = matches > 0 ? Math.round(damage / matches) : 0;
+
+        const { collection, addDoc } = window.firebaseModules;
+        await addDoc(collection(window.db, "dailylogs"), {
+            playerName, matches, wins, kills, assists, damage, avgDamage, survivalSeconds,
+            timestamp: Date.now()
+        });
+
+        document.getElementById('dailyForm').reset();
+        showToast("Daily match record saved and synced!");
+    };
+
+    window.deleteDailyRecord = async function(id) {
+        if(!confirm("Delete this entry?")) return;
+        const { doc, deleteDoc } = window.firebaseModules;
+        await deleteDoc(doc(window.db, "dailylogs", id));
+        showToast("Daily entry deleted.");
+    };
+
+    window.resetDailyOnly = async function() {
+        if(!confirm("Reset all daily match records?")) return;
+        const { getDocs, collection, doc, deleteDoc } = window.firebaseModules;
+        const snapshot = await getDocs(collection(window.db, "dailylogs"));
+        const batchDeletions = [];
+        snapshot.forEach((d) => {
+            batchDeletions.push(deleteDoc(doc(window.db, "dailylogs", d.id)));
+        });
+        await Promise.all(batchDeletions);
+        showToast("Daily logs cleared!");
+    };
+
+    function renderDailyTable() {
+        const tbody = document.getElementById('dailyTableBody');
+        if(!tbody) return;
+
+        let html = "";
+        dailyLog.forEach(item => {
+            let mins = Math.floor(item.survivalSeconds / 60);
+            let secs = item.survivalSeconds % 60;
+            html += `<tr>
+                <td><b>${item.playerName}</b></td>
+                <td>${item.matches}</td>
+                <td>${item.wins}</td>
+                <td>${item.kills}</td>
+                <td>${item.assists}</td>
+                <td>${item.damage}</td>
+                <td>${item.avgDamage}</td>
+                <td>${mins}m ${secs}s</td>
+                <td><button class="btn-danger" onclick="deleteDailyRecord('${item.id}')">Delete</button></td>
+            </tr>`;
+        });
+        tbody.innerHTML = html || `<tr><td colspan="9" style="color: var(--silver);">No daily match entries recorded yet.</td></tr>`;
+    }
+
+    // Leaderboard Calculators & Score Formulas
+    function updateDailyLeaderboard() {
+        const tbody = document.getElementById('dailyLbTableBody');
+        if(!tbody) return;
+
+        let aggregated = {};
+        dailyLog.forEach(item => {
+            if(!aggregated[item.playerName]) {
+                aggregated[item.playerName] = { matches: 0, wins: 0, kills: 0, assists: 0, damage: 0 };
+            }
+            aggregated[item.playerName].matches += item.matches;
+            aggregated[item.playerName].wins += item.wins;
+            aggregated[item.playerName].kills += item.kills;
+            aggregated[item.playerName].assists += item.assists;
+            aggregated[item.playerName].damage += item.damage;
+        });
+
+        let list = [];
+        for(let name in aggregated) {
+            let data = aggregated[name];
+            let avgDamage = data.matches > 0 ? Math.round(data.damage / data.matches) : 0;
+            let winRate = data.matches > 0 ? ((data.wins / data.matches) * 100).toFixed(1) : 0;
+            let avgKills = data.matches > 0 ? (data.kills / data.matches).toFixed(1) : 0;
+            // Formula points: (Kills * 10) + (Damage / 100) + (Wins * 50) - Excludes Assists
+            let scorePoints = Math.round((data.kills * 10) + (data.damage / 100) + (data.wins * 50));
+            list.push({ name, ...data, avgDamage, winRate, avgKills, scorePoints });
+        }
+
+        list.sort((a,b) => b.scorePoints - a.scorePoints);
+
+        let html = "";
+        list.forEach((item, index) => {
+            let rankClass = index === 0 ? 'top-1' : (index === 1 ? 'top-2' : (index === 2 ? 'top-3' : ''));
+            let medal = index === 0 ? '👑 ' : (index === 1 ? '🥈 ' : (index === 2 ? '🥉 ' : ''));
+            html += `<tr class="${rankClass}">
+                <td><b>${medal}${index + 1}</b></td>
+                <td><b>${item.name}</b></td>
+                <td>${item.matches}</td>
+                <td>${item.wins}</td>
+                <td>${item.kills}</td>
+                <td>${item.assists}</td>
+                <td>${item.damage}</td>
+                <td>${item.avgDamage}</td>
+                <td>${item.winRate}%</td>
+                <td>${item.avgKills}</td>
+                <td><b style="color: var(--accent-color);">${item.scorePoints} pts</b></td>
+            </tr>`;
+        });
+        tbody.innerHTML = html || `<tr><td colspan="11" style="color: var(--silver);">No leaderboard statistics found for today.</td></tr>`;
+    }
+
+    function rebuildWeeklyFromLog() {
+        weeklyData = {};
+        dailyLog.forEach(item => {
+            if(!weeklyData[item.playerName]) {
+                weeklyData[item.playerName] = { matches: 0, wins: 0, kills: 0, assists: 0, damage: 0, survivalSeconds: 0 };
+            }
+            weeklyData[item.playerName].matches += item.matches;
+            weeklyData[item.playerName].wins += item.wins;
+            weeklyData[item.playerName].kills += item.kills;
+            weeklyData[item.playerName].assists += item.assists;
+            weeklyData[item.playerName].damage += item.damage;
+            weeklyData[item.playerName].survivalSeconds += item.survivalSeconds;
+        });
+    }
+
+    function renderWeeklyTable() {
+        const tbody = document.getElementById('weeklyTableBody');
+        if(!tbody) return;
+
+        let html = "";
+        for(let name in weeklyData) {
+            let data = weeklyData[name];
+            let avgDamage = data.matches > 0 ? Math.round(data.damage / data.matches) : 0;
+            let winRate = data.matches > 0 ? ((data.wins / data.matches) * 100).toFixed(1) : 0;
+            let avgKills = data.matches > 0 ? (data.kills / data.matches).toFixed(1) : 0;
+            let avgSurvSec = data.matches > 0 ? Math.round(data.survivalSeconds / data.matches) : 0;
+            let mins = Math.floor(avgSurvSec / 60);
+            let secs = avgSurvSec % 60;
+
+            html += `<tr>
+                <td><b>${name}</b></td>
+                <td>${data.matches}</td>
+                <td>${data.wins}</td>
+                <td>${data.kills}</td>
+                <td>${data.assists}</td>
+                <td>${data.damage}</td>
+                <td>${avgDamage}</td>
+                <td>${Math.floor(data.survivalSeconds/60)}m</td>
+                <td>${winRate}%</td>
+                <td>${avgKills}</td>
+                <td>${mins}m ${secs}s</td>
+            </tr>`;
+        }
+        tbody.innerHTML = html || `<tr><td colspan="11" style="color: var(--silver);">No weekly summary data available.</td></tr>`;
+    }
+
+    function updateWeeklyLeaderboard() {
+        const tbody = document.getElementById('leaderboardTableBody');
+        if(!tbody) return;
+
+        let list = [];
+        for(let name in weeklyData) {
+            let data = weeklyData[name];
+            let avgDamage = data.matches > 0 ? Math.round(data.damage / data.matches) : 0;
+            let winRate = data.matches > 0 ? ((data.wins / data.matches) * 100).toFixed(1) : 0;
+            let avgKills = data.matches > 0 ? (data.kills / data.matches).toFixed(1) : 0;
+            // Formula points: (Kills * 10) + (Damage / 100) + (Wins * 50) - Excludes Assists
+            let scorePoints = Math.round((data.kills * 10) + (data.damage / 100) + (data.wins * 50));
+            list.push({ name, ...data, avgDamage, winRate, avgKills, scorePoints });
+        }
+
+        list.sort((a,b) => b.scorePoints - a.scorePoints);
+        let top10 = list.slice(0, 10);
+
+        let html = "";
+        top10.forEach((item, index) => {
+            let rankClass = index === 0 ? 'top-1' : (index === 1 ? 'top-2' : (index === 2 ? 'top-3' : ''));
+            let medal = index === 0 ? '👑 ' : (index === 1 ? '🥈 ' : (index === 2 ? '🥉 ' : ''));
+            html += `<tr class="${rankClass}">
+                <td><b>${medal}${index + 1}</b></td>
+                <td><b>${item.name}</b></td>
+                <td>${item.matches}</td>
+                <td>${item.kills}</td>
+                <td>${item.assists}</td>
+                <td>${item.damage}</td>
+                <td>${item.avgDamage}</td>
+                <td>${item.winRate}%</td>
+                <td>${item.avgKills}</td>
+                <td><b style="color: var(--accent-color);">${item.scorePoints} pts</b></td>
+            </tr>`;
+        });
+        tbody.innerHTML = html || `<tr><td colspan="10" style="color: var(--silver);">No weekly leaderboard data found.</td></tr>`;
+    }
+
+    window.resetWeeklyData = function() {
+        if(!confirm("Reset weekly cycle? This clears all current records.")) return;
+        resetDailyOnly();
+    };
+
+    function renderProfileStats() {
+        if(!currentUser) return;
+        document.getElementById('profilePlayerName').textContent = currentUser.name;
+        document.getElementById('profilePlayerPhone').textContent = currentUser.role === 'admin' ? "Administrator Master" : `+880 ${currentUser.phone}`;
+
+        let pName = currentUser.name;
+        let tMatches = 0, tWins = 0, tKills = 0, tAssists = 0, tDamage = 0;
+
+        dailyLog.forEach(item => {
+            if(currentUser.role === 'admin' || item.playerName === pName) {
+                tMatches += item.matches;
+                tWins += item.wins;
+                tKills += item.kills;
+                tAssists += item.assists;
+                tDamage += item.damage;
+            }
+        });
+
+        let winRate = tMatches > 0 ? ((tWins / tMatches) * 100).toFixed(1) : 0;
+        let avgDamage = tMatches > 0 ? Math.round(tDamage / tMatches) : 0;
+        let scorePoints = Math.round((tKills * 10) + (tDamage / 100) + (tWins * 50));
+
+        document.getElementById('profMatches').textContent = tMatches;
+        document.getElementById('profWins').textContent = tWins;
+        document.getElementById('profWinRate').textContent = winRate + '%';
+        document.getElementById('profKills').textContent = tKills;
+        document.getElementById('profAssists').textContent = tAssists;
+        document.getElementById('profDamage').textContent = tDamage;
+        document.getElementById('profAvgDamage').textContent = avgDamage;
+        document.getElementById('profScore').textContent = scorePoints + ' pts';
+    }
+
+    // Announcements Management
+    window.postAnnouncement = async function(event) {
+        event.preventDefault();
+        const text = document.getElementById('announcementText').value.trim();
+        if(!text) return;
+
+        const { collection, addDoc } = window.firebaseModules;
+        await addDoc(collection(window.db, "announcements"), {
+            message: text,
+            timestamp: Date.now()
+        });
+
+        document.getElementById('announcementText').value = '';
+        showToast("Announcement published live!");
+    };
+
+    window.deleteAnnouncement = async function(id) {
+        const { doc, deleteDoc } = window.firebaseModules;
+        await deleteDoc(doc(window.db, "announcements", id));
+        showToast("Announcement removed.");
+    };
+
+    function renderAnnouncementsBoard() {
+        const banner = document.getElementById('announcementBanner');
+        const adminList = document.getElementById('adminAnnouncementList');
+
+        if(announcementsList.length === 0) {
+            if(banner) banner.innerHTML = "";
+            if(adminList) adminList.innerHTML = `<p style="color: var(--silver);">No announcements broadcasted yet.</p>`;
+            return;
+        }
+
+        let latest = announcementsList[0];
+        let dateStr = new Date(latest.timestamp).toLocaleString();
+        if(banner) {
+            banner.innerHTML = `<div class="announcement-card">
+                <div class="announcement-date">📢 LATEST BROADCAST — ${dateStr}</div>
+                <div style="font-size: 14px; font-weight: 600;">${latest.message}</div>
+            </div>`;
+        }
+
+        if(adminList) {
+            let html = "";
+            announcementsList.forEach(item => {
+                let dStr = new Date(item.timestamp).toLocaleString();
+                html += `<div class="announcement-card" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div class="announcement-date">${dStr}</div>
+                        <div style="font-size: 14px;">${item.message}</div>
+                    </div>
+                    <button class="btn-danger" onclick="deleteAnnouncement('${item.id}')">Delete</button>
+                </div>`;
+            });
+            adminList.innerHTML = html;
+        }
+    }
+
+    // Export Scorecard Image & PDF
+    window.exportScorecard = function(sectionId) {
+        const el = document.getElementById(sectionId);
+        if(!el) return;
+        showToast("Generating scorecard image...");
+        html2canvas(el, { scale: 2, backgroundColor: getComputedStyle(document.body).getPropertyValue('--card-bg') }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `ZeroStress_${sectionId}_Scorecard.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showToast("Scorecard saved successfully!");
+        }).catch(err => {
+            console.error(err);
+            showToast("Failed to export scorecard image.", "error");
+        });
+    };
+
+    window.downloadPDF = function() {
+        window.print();
+    };
+</script>
 </body>
 </html>
