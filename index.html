@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZERO STRESS Performance & Leaderboard Manager [Advanced Edition]</title>
+    <title>ZERO STRESS Performance & Leaderboard Manager [Multi-URL Edition]</title>
     <!-- Include Tesseract.js for Image Text Recognition -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <!-- Include Cropper.js for Image Cropping -->
@@ -648,14 +648,15 @@
         <!-- LIVE CLOUD ANNOUNCEMENT BOARD -->
         <div id="announcementBanner" style="margin-bottom: 24px;"></div>
 
+        <!-- NAVIGATION BAR (Updated with distinct URL routing) -->
         <div class="tabs" id="navTabsContainer">
-            <button class="tab-btn admin-only" onclick="switchTab('register')">Manage Registrations</button>
-            <button class="tab-btn admin-only" onclick="switchTab('daily')">Daily Input</button>
-            <button class="tab-btn player-nav-btn active" onclick="switchTab('dailyLb')">Daily Leaderboard</button>
-            <button class="tab-btn admin-only" onclick="switchTab('weekly')">Weekly Summary</button>
-            <button class="tab-btn player-nav-btn" onclick="switchTab('leaderboard')">Weekly Leaderboard</button>
-            <button class="tab-btn" onclick="switchTab('myProfile')">My Profile</button>
-            <button class="tab-btn admin-only" onclick="switchTab('announcements')">Announcements</button>
+            <button class="tab-btn admin-only" id="btn-register" onclick="navigateTo('register')">Manage Registrations</button>
+            <button class="tab-btn admin-only" id="btn-daily" onclick="navigateTo('daily')">Daily Input</button>
+            <button class="tab-btn player-nav-btn" id="btn-dailyLb" onclick="navigateTo('dailyLb')">Daily Leaderboard</button>
+            <button class="tab-btn admin-only" id="btn-weekly" onclick="navigateTo('weekly')">Weekly Summary</button>
+            <button class="tab-btn player-nav-btn" id="btn-leaderboard" onclick="navigateTo('leaderboard')">Weekly Leaderboard</button>
+            <button class="tab-btn" id="btn-myProfile" onclick="navigateTo('myProfile')">My Profile</button>
+            <button class="tab-btn admin-only" id="btn-announcements" onclick="navigateTo('announcements')">Announcements</button>
         </div>
 
         <!-- REGISTRATION APPROVAL & EDIT SECTION -->
@@ -1170,6 +1171,7 @@
         currentUser = null;
         document.getElementById('authScreen').classList.remove('hidden');
         document.getElementById('appDashboard').classList.add('hidden');
+        window.history.pushState({}, '', window.location.pathname);
         showToast("Logged out successfully.", "success");
     };
 
@@ -1189,16 +1191,35 @@
         });
 
         if(currentUser.role === 'admin') {
-            switchTab('dailyLb');
             updatePlayerDropdown();
-        } else {
-            switchTab('dailyLb');
         }
 
         renderProfileStats();
+        handleInitialRouting();
     }
 
-    window.switchTab = function(tabId) {
+    // --- MULTI-URL ROUTER ENGINE ---
+    const routeMap = {
+        'register': 'register',
+        'daily-input': 'daily',
+        'daily-leaderboard': 'dailyLb',
+        'weekly-summary': 'weekly',
+        'weekly-leaderboard': 'leaderboard',
+        'my-profile': 'myProfile',
+        'announcements': 'announcements'
+    };
+
+    const reverseRouteMap = {
+        'register': 'register',
+        'daily': 'daily-input',
+        'dailyLb': 'daily-leaderboard',
+        'weekly': 'weekly-summary',
+        'leaderboard': 'weekly-leaderboard',
+        'myProfile': 'my-profile',
+        'announcements': 'announcements'
+    };
+
+    window.navigateTo = function(tabId, pushState = true) {
         const sections = document.querySelectorAll('.section');
         sections.forEach(sec => sec.classList.remove('active'));
 
@@ -1208,8 +1229,33 @@
         const buttons = document.querySelectorAll('.tabs button');
         buttons.forEach(btn => btn.classList.remove('active'));
         
-        event && event.target && event.target.classList.add('active');
+        const activeBtn = document.getElementById(`btn-${tabId}`);
+        if(activeBtn) activeBtn.classList.add('active');
+
+        if (pushState && currentUser) {
+            const slug = reverseRouteMap[tabId] || tabId;
+            window.history.pushState({ tabId }, '', `#/${slug}`);
+        }
     };
+
+    function handleInitialRouting() {
+        const hash = window.location.hash.replace('#/', '');
+        let targetTab = routeMap[hash] || 'dailyLb';
+        
+        // Non-admin fallback if trying to access restricted urls directly
+        if(currentUser.role !== 'admin' && ['register', 'daily', 'weekly', 'announcements'].includes(targetTab)) {
+            targetTab = 'dailyLb';
+        }
+        navigateTo(targetTab, false);
+    }
+
+    window.addEventListener('popstate', (event) => {
+        if (!currentUser) return;
+        const hash = window.location.hash.replace('#/', '');
+        let targetTab = routeMap[hash] || 'dailyLb';
+        navigateTo(targetTab, false);
+    });
+    // ---------------------------------
 
     // Registration Table Rendering
     function renderRegisterTable() {
@@ -1322,7 +1368,6 @@
         const numbers = text.match(/\d+/g);
         if (!numbers || numbers.length === 0) return;
 
-        // Smart guess fields based on typical scorecard order or numerical values
         if(numbers.length >= 1) document.getElementById('dailyKills').value = numbers[0];
         if(numbers.length >= 2) document.getElementById('dailyAssists').value = numbers[1];
         if(numbers.length >= 3) document.getElementById('dailyDamage').value = numbers[2];
@@ -1424,7 +1469,6 @@
             let avgDamage = data.matches > 0 ? Math.round(data.damage / data.matches) : 0;
             let winRate = data.matches > 0 ? ((data.wins / data.matches) * 100).toFixed(1) : 0;
             let avgKills = data.matches > 0 ? (data.kills / data.matches).toFixed(1) : 0;
-            // Formula points: (Kills * 10) + (Damage / 100) + (Wins * 50) - Excludes Assists
             let scorePoints = Math.round((data.kills * 10) + (data.damage / 100) + (data.wins * 50));
             list.push({ name, ...data, avgDamage, winRate, avgKills, scorePoints });
         }
@@ -1508,7 +1552,6 @@
             let avgDamage = data.matches > 0 ? Math.round(data.damage / data.matches) : 0;
             let winRate = data.matches > 0 ? ((data.wins / data.matches) * 100).toFixed(1) : 0;
             let avgKills = data.matches > 0 ? (data.kills / data.matches).toFixed(1) : 0;
-            // Formula points: (Kills * 10) + (Damage / 100) + (Wins * 50) - Excludes Assists
             let scorePoints = Math.round((data.kills * 10) + (data.damage / 100) + (data.wins * 50));
             list.push({ name, ...data, avgDamage, winRate, avgKills, scorePoints });
         }
