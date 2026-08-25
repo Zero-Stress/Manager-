@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Lightning bolt / Z symbol for ZERO STRESS -->
+    <path
+        android:fillColor="#38bdf8"
+        android:pathData="M54,24 L38,54 L48,54 L42,84 L70,48 L58,48 Z" />
+    
+    <!-- Circle background accent -->
+    <path
+        android:fillColor="#131c31"
+        android:pathData="M54,54 m-30,0 a30,30 0,1 1,60 0 a30,30 0,1 1,-60 0"
+        android:strokeColor="#38bdf8"
+        android:strokeWidth="2" />
+</vector>

@@ -1,0 +1,16 @@
+{
+  "indexes": [],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "users",
+      "fieldPath": "fcmToken",
+      "indexes": [
+        {
+          "collectionGroup": "users",
+          "fieldPath": "fcmToken",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.ZeroStressManager" parent="Theme.AppCompat.NoActionBar">
+        <!-- Dark theme matching the app's design -->
+        <item name="android:windowBackground">#090d16</item>
+        <item name="android:statusBarColor">#090d16</item>
+        <item name="android:navigationBarColor">#090d16</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>
