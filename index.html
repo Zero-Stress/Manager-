@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZERO STRESS Performance & Leaderboard Manager [Multi-URL Edition]</title>
+    <title>Manager-</title>
     <!-- Include Tesseract.js for Image Text Recognition -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <!-- Include Cropper.js for Image Cropping -->
@@ -558,6 +558,42 @@
             margin-bottom: 4px;
             font-weight: 600;
         }
+        .online-badge {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-left: 6px;
+            vertical-align: middle;
+            animation: pulse 2s infinite;
+        }
+        .online-badge.online { background-color: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.6); }
+        .online-badge.offline { background-color: #64748b; animation: none; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+        .online-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 10px 18px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            font-size: 13px;
+            color: var(--silver);
+        }
+        .online-bar .count {
+            color: #10b981;
+            font-weight: 800;
+            font-size: 16px;
+        }
+        .online-bar .offline-count {
+            color: #64748b;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
@@ -646,6 +682,15 @@
         </div>
 
         <!-- LIVE CLOUD ANNOUNCEMENT BOARD -->
+        
+        <!-- LIVE ONLINE STATUS BAR -->
+        <div id="onlineStatusBar" class="online-bar">
+            <span class="material-symbols-outlined" style="font-size:18px; color: #10b981;">group</span>
+            <span>Players Online: <span class="count" id="onlineCount">0</span></span>
+            <span style="color: var(--border-color);">|</span>
+            <span>Offline: <span class="offline-count" id="offlineCount">0</span></span>
+        </div>
+
         <div id="announcementBanner" style="margin-bottom: 24px;"></div>
 
         <!-- NAVIGATION BAR (Updated with distinct URL routing) -->
@@ -935,12 +980,17 @@
     let cropper = null;
 
     // Toast Notification Helper Function
-    function showToast(message, type = "success") {
+    function showToast(message, type = "success", undoCallback) {
         const container = document.getElementById("toast-container");
         if (!container) return;
         
         const toast = document.createElement("div");
-        toast.innerText = message;
+        if(undoCallback) {
+            toast.innerHTML = message + ' <button onclick="this.parentElement.undoFn()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:4px 12px;border-radius:6px;margin-left:12px;font-weight:700;cursor:pointer;font-size:13px;">Undo</button>';
+            toast.undoFn = undoCallback;
+        } else {
+            toast.innerText = message;
+        }
         
         toast.style.background = type === "success" ? "#10b981" : "#ef4444";
         toast.style.color = "#fff";
@@ -1020,6 +1070,7 @@
                 userAccounts[doc.id] = doc.data();
             });
             renderRegisterTable();
+            updateOnlineCounts();
             if(currentUser && currentUser.role === 'admin') updatePlayerDropdown();
         });
 
@@ -1167,6 +1218,7 @@
     };
 
     window.handleLogout = function() {
+        stopPresence();
         localStorage.removeItem('squad_current_session');
         currentUser = null;
         document.getElementById('authScreen').classList.remove('hidden');
@@ -1196,9 +1248,79 @@
 
         renderProfileStats();
         handleInitialRouting();
+        startPresence();
     }
 
-    // --- MULTI-URL ROUTER ENGINE ---
+    // ===== LIVE PRESENCE SYSTEM =====
+    var presenceInterval = null;
+    var heartbeatInterval = null;
+
+    function goOnline() {
+        if (!currentUser) return;
+        var { doc, updateDoc } = window.firebaseModules;
+        updateDoc(doc(window.db, 'users', currentUser.phone), {
+            isOnline: true,
+            lastSeen: Date.now()
+        }).catch(function(e) { console.log('Presence error:', e); });
+    }
+
+    function goOffline() {
+        if (!currentUser) return;
+        var { doc, updateDoc } = window.firebaseModules;
+        updateDoc(doc(window.db, 'users', currentUser.phone), {
+            isOnline: false,
+            lastSeen: Date.now()
+        }).catch(function(e) { console.log('Presence offline error:', e); });
+    }
+
+    function startHeartbeat() {
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        heartbeatInterval = setInterval(function() {
+            if (currentUser) goOnline();
+        }, 30000);
+    }
+
+    function stopHeartbeat() {
+        if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
+    }
+
+    function isPlayerOnline(userData) {
+        if (userData.isOnline === true) return true;
+        if (userData.lastSeen && (Date.now() - userData.lastSeen) < 60000) return true;
+        return false;
+    }
+
+    function onlineBadge(userData) {
+        var online = isPlayerOnline(userData);
+        return '<span class="online-badge ' + (online ? 'online' : 'offline') + '" title="' + (online ? 'Online' : 'Offline') + '"></span>';
+    }
+
+    function updateOnlineCounts() {
+        var online = 0, offline = 0;
+        for (var phone in userAccounts) {
+            var u = userAccounts[phone];
+            if (u.status === 'confirmed') {
+                if (isPlayerOnline(u)) online++; else offline++;
+            }
+        }
+        var oc = document.getElementById('onlineCount');
+        var ofc = document.getElementById('offlineCount');
+        if (oc) oc.textContent = online;
+        if (ofc) ofc.textContent = offline;
+    }
+
+    function startPresence() {
+        goOnline();
+        startHeartbeat();
+        window.addEventListener('beforeunload', function() { goOffline(); });
+    }
+
+    function stopPresence() {
+        goOffline();
+        stopHeartbeat();
+    }
+
+    // ---    // --- MULTI-URL ROUTER ENGINE ---
     const routeMap = {
         'register': 'register',
         'daily-input': 'daily',
@@ -1268,7 +1390,7 @@
             let u = userAccounts[phone];
             html += `<tr>
                 <td>${index++}</td>
-                <td><b>${u.name}</b></td>
+                <td><b>${u.name}</b>${onlineBadge(u)}</td>
                 <td>+880 ${u.phone}</td>
                 <td><span style="padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; background: ${u.status === 'confirmed' ? 'rgba(16, 185, 129, 0.15); color: #10b981;' : 'rgba(245, 158, 11, 0.15); color: #f59e0b;'}">${u.status.toUpperCase()}</span></td>
                 <td>
@@ -1406,21 +1528,41 @@
 
     window.deleteDailyRecord = async function(id) {
         if(!confirm("Delete this entry?")) return;
-        const { doc, deleteDoc } = window.firebaseModules;
+        // Save backup for undo
+        const backupItem = dailyLog.find(d => d.id === id);
+        const { doc, deleteDoc, setDoc } = window.firebaseModules;
         await deleteDoc(doc(window.db, "dailylogs", id));
-        showToast("Daily entry deleted.");
+        showToast("Daily entry deleted.", "success", async function() {
+            if(backupItem) {
+                const { id: bid, ...data } = backupItem;
+                await setDoc(doc(window.db, "dailylogs", bid), data);
+                showToast("Entry restored!");
+            }
+        });
     };
 
-    window.resetDailyOnly = async function() {
+    window.resetDailyOnly = async function(skipWeekly) {
         if(!confirm("Reset all daily match records?")) return;
-        const { getDocs, collection, doc, deleteDoc } = window.firebaseModules;
+        // Save backup for undo
+        const backupDaily = JSON.parse(JSON.stringify(dailyLog));
+        const backupWeekly = JSON.parse(JSON.stringify(weeklyData));
+        // First, accumulate current daily data into weekly before clearing (unless skipping)
+        if(!skipWeekly) rebuildWeeklyFromLog();
+        const { getDocs, collection, doc, deleteDoc, setDoc } = window.firebaseModules;
         const snapshot = await getDocs(collection(window.db, "dailylogs"));
         const batchDeletions = [];
         snapshot.forEach((d) => {
             batchDeletions.push(deleteDoc(doc(window.db, "dailylogs", d.id)));
         });
         await Promise.all(batchDeletions);
-        showToast("Daily logs cleared!");
+        showToast("Daily logs cleared!", "success", async function() {
+            // Undo: restore all daily logs from backup
+            for(const item of backupDaily) {
+                const { id, ...data } = item;
+                await setDoc(doc(window.db, "dailylogs", id), data);
+            }
+            showToast("Daily logs restored!");
+        });
     };
 
     function renderDailyTable() {
@@ -1481,7 +1623,7 @@
             let medal = index === 0 ? '👑 ' : (index === 1 ? '🥈 ' : (index === 2 ? '🥉 ' : ''));
             html += `<tr class="${rankClass}">
                 <td><b>${medal}${index + 1}</b></td>
-                <td><b>${item.name}</b></td>
+                <td><b>${item.name}</b>${(function(){ var u = null; for(var p in userAccounts){if(userAccounts[p].name===item.name) u=userAccounts[p];} return u ? onlineBadge(u) : '';})()}</td>
                 <td>${item.matches}</td>
                 <td>${item.wins}</td>
                 <td>${item.kills}</td>
@@ -1497,7 +1639,7 @@
     }
 
     function rebuildWeeklyFromLog() {
-        weeklyData = {};
+        // Merge daily data into weekly (accumulate, don't reset)
         dailyLog.forEach(item => {
             if(!weeklyData[item.playerName]) {
                 weeklyData[item.playerName] = { matches: 0, wins: 0, kills: 0, assists: 0, damage: 0, survivalSeconds: 0 };
@@ -1565,7 +1707,7 @@
             let medal = index === 0 ? '👑 ' : (index === 1 ? '🥈 ' : (index === 2 ? '🥉 ' : ''));
             html += `<tr class="${rankClass}">
                 <td><b>${medal}${index + 1}</b></td>
-                <td><b>${item.name}</b></td>
+                <td><b>${item.name}</b>${(function(){ var u = null; for(var p in userAccounts){if(userAccounts[p].name===item.name) u=userAccounts[p];} return u ? onlineBadge(u) : '';})()}</td>
                 <td>${item.matches}</td>
                 <td>${item.kills}</td>
                 <td>${item.assists}</td>
@@ -1579,9 +1721,33 @@
         tbody.innerHTML = html || `<tr><td colspan="10" style="color: var(--silver);">No weekly leaderboard data found.</td></tr>`;
     }
 
-    window.resetWeeklyData = function() {
-        if(!confirm("Reset weekly cycle? This clears all current records.")) return;
-        resetDailyOnly();
+    window.resetWeeklyData = async function() {
+        if(!confirm("Reset weekly cycle? This clears ALL daily and weekly records.")) return;
+        // Save backup for undo
+        const backupDaily = JSON.parse(JSON.stringify(dailyLog));
+        const backupWeekly = JSON.parse(JSON.stringify(weeklyData));
+        const { getDocs, collection, doc, deleteDoc, setDoc } = window.firebaseModules;
+        // Save current daily data to Firestore as weekly snapshot before clearing
+        rebuildWeeklyFromLog();
+        // Clear weekly in memory
+        weeklyData = {};
+        renderWeeklyTable();
+        updateWeeklyLeaderboard();
+        // Delete all daily logs
+        const snapshot = await getDocs(collection(window.db, "dailylogs"));
+        const batchDeletions = [];
+        snapshot.forEach((d) => {
+            batchDeletions.push(deleteDoc(doc(window.db, "dailylogs", d.id)));
+        });
+        await Promise.all(batchDeletions);
+        showToast("Weekly and daily data cleared!", "success", async function() {
+            // Undo: restore all daily logs from backup
+            for(const item of backupDaily) {
+                const { id, ...data } = item;
+                await setDoc(doc(window.db, "dailylogs", id), data);
+            }
+            showToast("Weekly and daily data restored!");
+        });
     };
 
     function renderProfileStats() {
@@ -1674,24 +1840,58 @@
     }
 
     // Export Scorecard Image & PDF
+    var isAndroidApp = (typeof window.AndroidFileSaver !== 'undefined');
     window.exportScorecard = function(sectionId) {
-        const el = document.getElementById(sectionId);
+        var el = document.getElementById(sectionId);
         if(!el) return;
         showToast("Generating scorecard image...");
-        html2canvas(el, { scale: 2, backgroundColor: getComputedStyle(document.body).getPropertyValue('--card-bg') }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = `ZeroStress_${sectionId}_Scorecard.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+        html2canvas(el, { scale: 2, backgroundColor: getComputedStyle(document.body).getPropertyValue('--card-bg') }).then(function(canvas) {
+            var dataUrl = canvas.toDataURL('image/png');
+            var fn = 'ZeroStress_' + sectionId + '_Scorecard.png';
+            if (isAndroidApp) { window.AndroidFileSaver.saveImage(dataUrl.split(',')[1], fn); }
+            else { var l = document.createElement('a'); l.download = fn; l.href = dataUrl; l.click(); }
             showToast("Scorecard saved successfully!");
-        }).catch(err => {
+        }).catch(function(err) {
             console.error(err);
             showToast("Failed to export scorecard image.", "error");
         });
     };
 
     window.downloadPDF = function() {
-        window.print();
+        if (isAndroidApp) {
+            showToast("Generating PDF...");
+            try {
+                var sec = document.querySelector('.section.active');
+                if (!sec) { showToast('No active section.', 'error'); return; }
+                var tbl = sec.querySelector('table');
+                if (!tbl) { showToast('No table found.', 'error'); return; }
+                var txt = 'ZERO STRESS - Performance Report' + '\n' + 'Generated: ' + new Date().toLocaleString() + '\n\n';
+                tbl.querySelectorAll('tr').forEach(function(r, i) {
+                    var row = '';
+                    r.querySelectorAll('th, td').forEach(function(c, ci, arr) { row += c.textContent.trim(); if (ci < arr.length-1) row += ' | '; });
+                    txt += row + '\n'; if (i === 0) txt += '--------------------------------\n';
+                });
+                var pdf = generateSimplePDF(txt);
+                var bin = ''; for (var i = 0; i < pdf.length; i++) bin += String.fromCharCode(pdf[i]);
+                window.AndroidFileSaver.savePdf(btoa(bin), 'ZeroStress_Report_' + new Date().toISOString().slice(0,10) + '.pdf');
+            } catch(e) { console.error(e); showToast('Failed. Try Share Scorecard.', 'error'); }
+        } else { window.print(); }
+    };
+    function generateSimplePDF(text) {
+        var ls = text.split('\n'), pw = 595, ph = 842, mg = 50, lh = 14, fs = 10;
+        var sc = 'BT' + '\n' + '/F1 ' + fs + ' Tf' + '\n', y = ph - mg;
+        ls.forEach(function(l) { if (y < mg) y = ph - mg; sc += '1 0 0 1 ' + mg + ' ' + y + ' Tm' + '\n' + '(' + l + ') Tj' + '\n'; y -= lh; });
+        sc += 'ET';
+        var p = '%PDF-1.4' + '\n'; var o = [];
+        o[1]=p.length; p+='1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj' + '\n';
+        o[2]=p.length; p+='2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj' + '\n';
+        o[3]=p.length; p+='3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 '+pw+' '+ph+']/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj' + '\n';
+        o[4]=p.length; p+='4 0 obj<</Length '+sc.length+'>><<stream'+sc+'endstream' + '\n' + 'endobj' + '\n';
+        o[5]=p.length; p+='5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj' + '\n';
+        var xo=p.length; p+='xref' + '\n' + '0 6' + '\n' + '0000000000 65535 f ' + '\n';
+        for(var i=1;i<=5;i++) p+=String(o[i]).padStart(10,'0')+' 00000 n ' + '\n';
+        p+='trailer<</Size 6/Root 1 0 R>>' + '\n' + 'startxref' + '\n'+xo+'\n%%EOF';
+        var b=new Uint8Array(p.length); for(var i=0;i<p.length;i++) b[i]=p.charCodeAt(i); return b;
     };
 </script>
 </body>
