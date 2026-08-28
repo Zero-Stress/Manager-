@@ -7,34 +7,46 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Helper class to manage notifications and sync FCM tokens with Firestore.
- * Also provides a Firestore listener for real-time leaderboard updates.
+ * Helper class to manage notifications.
+ * Polls Firestore every 30 seconds for changes and shows local notifications.
+ * No Cloud Functions needed!
  */
 public class NotificationHelper {
 
     private static final String TAG = "NotificationHelper";
     private static final String CHANNEL_ID = "leaderboard_updates";
     private static final String CHANNEL_NAME = "Leaderboard Updates";
+    private static final long POLL_INTERVAL_MS = 30000; // 30 seconds
 
     private final Context context;
     private final SharedPreferences prefs;
     private final FirebaseFirestore db;
-    private ListenerRegistration dailyLogListener;
-    private ListenerRegistration announcementListener;
 
-    // Callback to notify when leaderboard changes
+    // Polling
+    private Handler pollHandler;
+    private Runnable pollRunnable;
+    private boolean isPolling = false;
+
+    // Track last seen timestamps to detect changes
+    private long lastDailyLogTimestamp = 0;
+    private long lastAnnouncementTimestamp = 0;
+    private boolean isFirstPoll = true;
+
+    // Callback
     public interface LeaderboardUpdateCallback {
         void onLeaderboardChanged(String type, String message);
     }
@@ -45,7 +57,12 @@ public class NotificationHelper {
         this.context = context;
         this.prefs = context.getSharedPreferences("zero_stress_prefs", Context.MODE_PRIVATE);
         this.db = FirebaseFirestore.getInstance();
+        this.pollHandler = new Handler(Looper.getMainLooper());
         createNotificationChannel();
+
+        // Restore last known timestamps
+        lastDailyLogTimestamp = prefs.getLong("last_daily_timestamp", 0);
+        lastAnnouncementTimestamp = prefs.getLong("last_announcement_timestamp", 0);
     }
 
     /**
@@ -73,71 +90,120 @@ public class NotificationHelper {
     }
 
     /**
-     * Start listening for daily log changes (leaderboard updates).
+     * Start polling Firestore for changes.
+     * Shows notifications when leaderboard or announcements change.
      */
     public void startLeaderboardListener() {
-        // Listen for changes in dailylogs collection
-        dailyLogListener = db.collection("dailylogs")
-                .addSnapshotListener((snapshots, error) -> {
-                    if (error != null) {
-                        Log.e(TAG, "Daily log listener error", error);
-                        return;
-                    }
+        if (isPolling) return;
 
-                    if (snapshots != null && !snapshots.isEmpty()) {
-                        Log.d(TAG, "Daily logs updated: " + snapshots.size() + " entries");
+        isPolling = true;
+        isFirstPoll = true;
 
-                        // Notify callback if set
-                        if (callback != null) {
-                            callback.onLeaderboardChanged(
-                                    "daily",
-                                    "Daily leaderboard has been updated with " + snapshots.size() + " entries"
-                            );
-                        }
-                    }
-                });
+        pollRunnable = new Runnable() {
+            @Override
+            public void run() {
+                checkForUpdates();
+                pollHandler.postDelayed(this, POLL_INTERVAL_MS);
+            }
+        };
 
-        // Listen for announcements
-        announcementListener = db.collection("announcements")
-                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+        pollHandler.post(pollRunnable);
+        Log.d(TAG, "Started polling for leaderboard updates");
+    }
+
+    /**
+     * Check Firestore for new updates and show notifications.
+     */
+    private void checkForUpdates() {
+        // Check daily logs for changes
+        db.collection("dailylogs")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .limit(1)
-                .addSnapshotListener((snapshots, error) -> {
-                    if (error != null) {
-                        Log.e(TAG, "Announcement listener error", error);
-                        return;
-                    }
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        Long timestamp = queryDocumentSnapshots.getDocuments().get(0)
+                                .getLong("timestamp");
 
-                    if (snapshots != null && !snapshots.isEmpty()) {
-                        Map<String, Object> latestAnnouncement = snapshots.getDocuments().get(0).getData();
-                        if (latestAnnouncement != null) {
-                            String message = (String) latestAnnouncement.get("message");
-                            if (callback != null) {
-                                callback.onLeaderboardChanged(
-                                        "announcement",
-                                        message != null ? message : "New announcement available"
+                        if (timestamp != null) {
+                            if (!isFirstPoll && timestamp > lastDailyLogTimestamp) {
+                                // New data added!
+                                String playerName = queryDocumentSnapshots.getDocuments().get(0)
+                                        .getString("playerName");
+
+                                String message = (playerName != null ? playerName : "A player")
+                                        + " added new match data!";
+
+                                showNotification(
+                                        "🏆 Daily Leaderboard Updated",
+                                        message,
+                                        "daily_leaderboard"
                                 );
+
+                                if (callback != null) {
+                                    callback.onLeaderboardChanged("daily", message);
+                                }
                             }
+                            lastDailyLogTimestamp = timestamp;
+                            prefs.edit().putLong("last_daily_timestamp", timestamp).apply();
                         }
                     }
-                });
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Error checking daily logs", e));
+
+        // Check announcements for new ones
+        db.collection("announcements")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        Long timestamp = queryDocumentSnapshots.getDocuments().get(0)
+                                .getLong("timestamp");
+
+                        if (timestamp != null) {
+                            if (!isFirstPoll && timestamp > lastAnnouncementTimestamp) {
+                                // New announcement!
+                                String message = queryDocumentSnapshots.getDocuments().get(0)
+                                        .getString("message");
+
+                                showNotification(
+                                        "📢 New Announcement",
+                                        message != null ? message : "New announcement available",
+                                        "announcement"
+                                );
+
+                                if (callback != null) {
+                                    callback.onLeaderboardChanged("announcement",
+                                            message != null ? message : "New announcement");
+                                }
+                            }
+                            lastAnnouncementTimestamp = timestamp;
+                            prefs.edit().putLong("last_announcement_timestamp", timestamp).apply();
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Error checking announcements", e));
+
+        // After first poll, disable "first poll" flag
+        if (isFirstPoll) {
+            isFirstPoll = false;
+        }
     }
 
     /**
      * Stop listening for updates.
      */
     public void stopLeaderboardListener() {
-        if (dailyLogListener != null) {
-            dailyLogListener.remove();
-            dailyLogListener = null;
+        if (pollHandler != null && pollRunnable != null) {
+            pollHandler.removeCallbacks(pollRunnable);
         }
-        if (announcementListener != null) {
-            announcementListener.remove();
-            announcementListener = null;
-        }
+        isPolling = false;
+        Log.d(TAG, "Stopped polling for leaderboard updates");
     }
 
     /**
-     * Show a local notification (for testing or in-app triggers).
+     * Show a local notification.
      */
     public void showNotification(String title, String body, String type) {
         Intent intent = new Intent(context, MainActivity.class);
@@ -186,6 +252,7 @@ public class NotificationHelper {
             NotificationManagerCompat manager = NotificationManagerCompat.from(context);
             int notificationId = (int) (System.currentTimeMillis() % Integer.MAX_VALUE);
             manager.notify(notificationId, builder.build());
+            Log.d(TAG, "Notification shown: " + title);
         } catch (SecurityException e) {
             Log.e(TAG, "Notification permission not granted", e);
         }

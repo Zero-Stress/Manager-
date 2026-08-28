@@ -2,32 +2,24 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Internet permission for Firebase connectivity -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <!-- Camera permission for screenshot/OCR features -->
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
-
-    <!-- Notification permissions -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ZeroStressManager"
-        android:usesCleartextTraffic="true"
         tools:targetApi="34">
 
         <activity
-            android:name=".MainActivity"
+            android:name=".LoginActivity"
             android:exported="true"
-            android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -36,7 +28,12 @@
             </intent-filter>
         </activity>
 
-        <!-- Firebase Cloud Messaging Service -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
+
         <service
             android:name=".MyFirebaseMessagingService"
             android:exported="false">
@@ -45,7 +42,6 @@
             </intent-filter>
         </service>
 
-        <!-- FileProvider for camera file access (screenshot/OCR feature) -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -56,5 +52,4 @@
                 android:resource="@xml/file_paths" />
         </provider>
     </application>
-
 </manifest>

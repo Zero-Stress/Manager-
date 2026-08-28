@@ -1,22 +1,28 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users collection - users can read/write their own data
+    // Users collection
     match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow read: if true;
+      allow write: if true;
     }
     
-    // Daily logs - authenticated users can read, admins can write
+    // Daily logs
     match /dailylogs/{logId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow read: if true;
+      allow write: if true;
     }
     
-    // Announcements - anyone can read, admins can write
+    // Announcements
     match /announcements/{announcementId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // App state (weekly data persistence, version config)
+    match /appState/{docId} {
+      allow read: if true;
+      allow write: if true;
     }
   }
 }

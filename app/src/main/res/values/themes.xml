@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.ZeroStressManager" parent="Theme.AppCompat.NoActionBar">
-        <!-- Dark theme matching the app's design -->
+    <style name="Theme.ZeroStressManager" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#38bdf8</item>
+        <item name="colorPrimaryVariant">#0ea5e9</item>
+        <item name="colorOnPrimary">#090d16</item>
+        <item name="colorSecondary">#10b981</item>
         <item name="android:windowBackground">#090d16</item>
         <item name="android:statusBarColor">#090d16</item>
-        <item name="android:navigationBarColor">#090d16</item>
+        <item name="android:navigationBarColor">#131c31</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>

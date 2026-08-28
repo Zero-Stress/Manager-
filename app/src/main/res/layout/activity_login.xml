@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#090d16"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="32">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ZERO STRESS"
+            android:textColor="#38bdf8"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Performance &amp; Leaderboard Manager"
+            android:textColor="#94a3b8"
+            android:textSize="13sp"
+            android:layout_marginBottom="40" />
+
+        <!-- Login Form -->
+        <LinearLayout
+            android:id="@+id/login_form"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12"
+                android:hint="Phone Number (e.g. 1712345678)"
+                android:textColorHint="#94a3b8"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/phone_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="phone"
+                    android:textColor="#f1f5f9"
+                    android:textColorHint="#64748b"
+                    android:backgroundTint="#38bdf8" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20"
+                android:hint="Password"
+                android:textColorHint="#94a3b8"
+                app:passwordToggleEnabled="true"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/password_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword"
+                    android:textColor="#f1f5f9"
+                    android:textColorHint="#64748b"
+                    android:backgroundTint="#38bdf8" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/login_btn"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="LOGIN"
+                android:textColor="#090d16"
+                android:textStyle="bold"
+                android:textSize="15sp"
+                android:backgroundTint="#38bdf8"
+                android:layout_marginBottom="8" />
+        </LinearLayout>
+
+        <!-- Register Form (hidden by default) -->
+        <LinearLayout
+            android:id="@+id/register_form"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12"
+                android:hint="Player Name"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/reg_name_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#f1f5f9"
+                    android:backgroundTint="#38bdf8" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12"
+                android:hint="Phone Number"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/reg_phone_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="phone"
+                    android:textColor="#f1f5f9"
+                    android:backgroundTint="#38bdf8" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20"
+                android:hint="Password"
+                app:passwordToggleEnabled="true"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/reg_password_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword"
+                    android:textColor="#f1f5f9"
+                    android:backgroundTint="#38bdf8" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/register_btn"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="REGISTER"
+                android:textColor="#090d16"
+                android:textStyle="bold"
+                android:backgroundTint="#38bdf8"
+                android:visibility="gone"
+                android:layout_marginBottom="8" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/toggle_auth_mode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Don't have an account? Register"
+            android:textColor="#38bdf8"
+            android:textSize="14sp"
+            android:padding="12"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16"
+            android:visibility="gone"
+            android:indeterminateTint="#38bdf8" />
+    </LinearLayout>
+</ScrollView>

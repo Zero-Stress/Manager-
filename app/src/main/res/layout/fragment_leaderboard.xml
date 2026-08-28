@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#090d16"
+    android:padding="16">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🏆 Daily Leaderboard"
+            android:textColor="#38bdf8"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:padding="12" />
+
+        <TextView
+            android:id="@+id/daily_empty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="No daily data yet"
+            android:textColor="#94a3b8"
+            android:gravity="center"
+            android:padding="24"
+            android:visibility="visible" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24">
+
+            <TableLayout
+                android:id="@+id/daily_leaderboard_table"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+        </HorizontalScrollView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📊 Weekly Leaderboard"
+            android:textColor="#38bdf8"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:padding="12" />
+
+        <TextView
+            android:id="@+id/weekly_empty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="No weekly data yet"
+            android:textColor="#94a3b8"
+            android:gravity="center"
+            android:padding="24"
+            android:visibility="visible" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TableLayout
+                android:id="@+id/weekly_leaderboard_table"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+        </HorizontalScrollView>
+    </LinearLayout>
+</ScrollView>

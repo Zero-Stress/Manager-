@@ -543,6 +543,54 @@
             font-weight: 800;
             color: var(--accent-color);
         }
+        /* Update Dialog */
+        #updateDialog {
+            display: none;
+            position: fixed;
+            z-index: 999999;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+        }
+        #updateDialog .update-box {
+            background: var(--card-bg);
+            border: 1px solid var(--accent-color);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(56, 189, 248, 0.2);
+        }
+        #updateDialog .update-icon { font-size: 48px; margin-bottom: 12px; }
+        #updateDialog .update-title { color: var(--accent-color); font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+        #updateDialog .update-msg { color: var(--silver); font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+        #updateDialog .update-btn {
+            background: var(--accent-color);
+            color: #090d16;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            margin: 4px;
+        }
+        #updateDialog .skip-btn {
+            background: transparent;
+            color: var(--silver);
+            border: 1px solid var(--border-color);
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 4px;
+        }
+
         .announcement-card {
             background-color: var(--bg-color);
             border-left: 4px solid var(--accent-color);
@@ -930,8 +978,9 @@
                 </div>
             </div>
 
-            <div style="text-align: center; margin-top: 24px;">
-                <button class="btn-pdf" onclick="exportScorecard('myProfile')" style="margin: 0 auto;">📷 Export Profile Card</button>
+            <div style="text-align: center; margin-top: 24px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn-pdf" onclick="exportScorecard('myProfile')">📷 Export Profile Card</button>
+                <button class="btn-secondary" onclick="exportPlayerDataCSV()">📊 Export Full History (CSV)</button>
             </div>
         </div>
 
@@ -978,6 +1027,15 @@
     let announcementsList = [];
     let currentUser = null;
     let cropper = null;
+
+    // Simple SHA-256 hash for password security
+    async function hashPassword(password) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
 
     // Toast Notification Helper Function
     function showToast(message, type = "success", undoCallback) {
@@ -1158,8 +1216,9 @@
             }
 
             const { doc, setDoc } = window.firebaseModules;
+            const hashedPassword = await hashPassword(password);
             await setDoc(doc(window.db, "users", phone), {
-                name, phone, password, role: 'player', status: 'pending'
+                name, phone, password: hashedPassword, role: 'player', status: 'pending'
             });
 
             showToast("Registration Successful! Waiting for Admin approval.", "success");
@@ -1200,7 +1259,8 @@
             currentUser = { name: ADMIN_CREDENTIALS.name, phone: ADMIN_CREDENTIALS.phone, role: 'admin' };
         } else {
             const foundUser = userAccounts[phone];
-            if(foundUser && foundUser.password === password) {
+            const hashedInput = await hashPassword(password);
+            if(foundUser && foundUser.password === hashedInput) {
                 if(foundUser.status !== 'confirmed') {
                     showToast("Your account is pending admin approval.", "error");
                     return;
@@ -1249,6 +1309,7 @@
         renderProfileStats();
         handleInitialRouting();
         startPresence();
+        loadWeeklyFromFirestore();
     }
 
     // ===== LIVE PRESENCE SYSTEM =====
@@ -1395,6 +1456,7 @@
                 <td><span style="padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; background: ${u.status === 'confirmed' ? 'rgba(16, 185, 129, 0.15); color: #10b981;' : 'rgba(245, 158, 11, 0.15); color: #f59e0b;'}">${u.status.toUpperCase()}</span></td>
                 <td>
                     ${u.status === 'pending' ? `<button class="btn-success" onclick="updatePlayerStatus('${phone}', 'confirmed')">Confirm</button>` : `<button class="btn-warning" onclick="updatePlayerStatus('${phone}', 'pending')">Set Pending</button>`}
+                    <button class="btn-warning" onclick="resetPlayerPassword('${phone}')">Reset Password</button>
                     <button class="btn-danger" onclick="deleteUserAccount('${phone}')">Delete</button>
                 </td>
             </tr>`;
@@ -1413,6 +1475,20 @@
         const { doc, deleteDoc } = window.firebaseModules;
         await deleteDoc(doc(window.db, "users", phone));
         showToast("User deleted successfully!");
+    };
+
+    window.resetPlayerPassword = async function(phone) {
+        const user = userAccounts[phone];
+        if (!user) return;
+        const newPass = prompt("Enter new password for " + user.name + ":");
+        if (!newPass || newPass.length < 4) {
+            showToast("Password must be at least 4 characters!", "error");
+            return;
+        }
+        const { doc, updateDoc } = window.firebaseModules;
+        const hashed = await hashPassword(newPass);
+        await updateDoc(doc(window.db, "users", phone), { password: hashed });
+        showToast("Password reset for " + user.name + "! They can now login with the new password.");
     };
 
     function updatePlayerDropdown() {
@@ -1487,13 +1563,53 @@
     };
 
     function parseOCRText(text) {
+        console.log('OCR Raw Text:', text);
+        const lower = text.toLowerCase();
+        
+        // Try keyword-based extraction first (more reliable)
+        function findNumberAfter(keyword) {
+            const patterns = [
+                new RegExp(keyword + '[\s:：]*?(\d+)', 'i'),
+                new RegExp(keyword + '[\s\S]{0,20}?(\d+)', 'i')
+            ];
+            for (const p of patterns) {
+                const m = text.match(p);
+                if (m) return parseInt(m[1]);
+            }
+            return null;
+        }
+
+        let kills = findNumberAfter('kill');
+        let assists = findNumberAfter('assist');
+        let damage = findNumberAfter('d(?:amag|mg)');
+        let survivalMin = findNumberAfter('surviv');
+        let wins = findNumberAfter('win');
+
+        // Fallback: look for common game screenshot patterns (K/A/D format)
+        if (kills === null || assists === null || damage === null) {
+            // Try "K:12 A:3 D:1500" or "12/3/1500" patterns
+            const kdaMatch = text.match(/(\d+)\s*[\/]\s*(\d+)\s*[\/]\s*(\d+)/);
+            if (kdaMatch) {
+                kills = kills || parseInt(kdaMatch[1]);
+                assists = assists || parseInt(kdaMatch[2]);
+                damage = damage || parseInt(kdaMatch[3]);
+            }
+        }
+
+        // Final fallback: use all numbers found
         const numbers = text.match(/\d+/g);
         if (!numbers || numbers.length === 0) return;
 
-        if(numbers.length >= 1) document.getElementById('dailyKills').value = numbers[0];
-        if(numbers.length >= 2) document.getElementById('dailyAssists').value = numbers[1];
-        if(numbers.length >= 3) document.getElementById('dailyDamage').value = numbers[2];
-        if(numbers.length >= 4) document.getElementById('dailyMinutes').value = Math.floor(numbers[3] / 60) || numbers[3];
+        if (kills === null) kills = parseInt(numbers[0]) || 0;
+        if (assists === null) assists = parseInt(numbers[1]) || 0;
+        if (damage === null) damage = parseInt(numbers[2]) || 0;
+        if (wins === null) wins = 0;
+
+        document.getElementById('dailyKills').value = kills;
+        document.getElementById('dailyAssists').value = assists;
+        document.getElementById('dailyDamage').value = damage;
+        if (survivalMin !== null) document.getElementById('dailyMinutes').value = survivalMin;
+        if (wins !== null) document.getElementById('dailyWins').value = wins;
     }
 
     // Daily Records Management
@@ -1651,6 +1767,30 @@
             weeklyData[item.playerName].damage += item.damage;
             weeklyData[item.playerName].survivalSeconds += item.survivalSeconds;
         });
+        // Persist weekly data to Firestore
+        saveWeeklyToFirestore();
+    }
+
+    async function saveWeeklyToFirestore() {
+        try {
+            const { doc, setDoc } = window.firebaseModules;
+            await setDoc(doc(window.db, "appState", "weeklyData"), {
+                data: weeklyData,
+                lastUpdated: Date.now()
+            });
+        } catch(e) { console.log('Failed to save weekly data:', e); }
+    }
+
+    async function loadWeeklyFromFirestore() {
+        try {
+            const { doc, getDoc } = window.firebaseModules;
+            const snap = await getDoc(doc(window.db, "appState", "weeklyData"));
+            if (snap.exists() && snap.data().data) {
+                weeklyData = snap.data().data;
+                renderWeeklyTable();
+                updateWeeklyLeaderboard();
+            }
+        } catch(e) { console.log('Failed to load weekly data:', e); }
     }
 
     function renderWeeklyTable() {
@@ -1877,6 +2017,41 @@
             } catch(e) { console.error(e); showToast('Failed. Try Share Scorecard.', 'error'); }
         } else { window.print(); }
     };
+
+    window.exportPlayerDataCSV = function() {
+        if (!currentUser) return;
+        const pName = currentUser.name;
+        let data = [];
+        dailyLog.forEach(item => {
+            if (currentUser.role === 'admin' || item.playerName === pName) {
+                let mins = Math.floor(item.survivalSeconds / 60);
+                let secs = item.survivalSeconds % 60;
+                data.push({
+                    Date: new Date(item.timestamp).toLocaleString(),
+                    Player: item.playerName,
+                    Matches: item.matches,
+                    Wins: item.wins,
+                    Kills: item.kills,
+                    Assists: item.assists,
+                    Damage: item.damage,
+                    AvgDamage: item.avgDamage,
+                    SurvivalTime: mins + 'm ' + secs + 's'
+                });
+            }
+        });
+        if (data.length === 0) { showToast("No data to export!", "error"); return; }
+        let csv = Object.keys(data[0]).join(',') + '\n';
+        data.forEach(row => { csv += Object.values(row).join(',') + '\n'; });
+        var blob = new Blob([csv], { type: 'text/csv' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'ZeroStress_' + (currentUser.role === 'admin' ? 'AllPlayers' : pName) + '_History.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast("Full history exported as CSV!");
+    };
+
     function generateSimplePDF(text) {
         var ls = text.split('\n'), pw = 595, ph = 842, mg = 50, lh = 14, fs = 10;
         var sc = 'BT' + '\n' + '/F1 ' + fs + ' Tf' + '\n', y = ph - mg;
