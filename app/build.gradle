@@ -17,11 +17,10 @@ android {
 
     signingConfigs {
         release {
-            // After generating keystore, uncomment and fill in:
-            // storeFile file("../zerostress.keystore")
-            // storePassword "your_password"
-            // keyAlias "zerostress"
-            // keyPassword "your_password"
+            storeFile file("../zerostress.keystore")
+            storePassword "zerostress123"
+            keyAlias "zerostress"
+            keyPassword "zerostress123"
         }
     }
 
@@ -34,7 +33,7 @@ android {
             }
         }
         release {
-            // signingConfig signingConfigs.release  // Uncomment after generating keystore
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             applicationVariants.configureEach { variant ->
