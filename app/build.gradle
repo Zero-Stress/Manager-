@@ -16,9 +16,21 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationVariants.configureEach { variant ->
+                variant.outputs.configureEach {
+                    outputFileName = "ZeroStress-v${variant.versionName}.apk"
+                }
+            }
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            applicationVariants.configureEach { variant ->
+                variant.outputs.configureEach {
+                    outputFileName = "ZeroStress-v${variant.versionName}.apk"
+                }
+            }
         }
     }
 
