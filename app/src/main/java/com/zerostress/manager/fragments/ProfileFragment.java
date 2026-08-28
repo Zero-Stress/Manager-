@@ -154,13 +154,11 @@ public class ProfileFragment extends Fragment {
 
                     int unlockedCount = 0;
                     for (Achievement a : all) {
-                        boolean isUnlocked = unlocked.containsKey(a.getId()) && unlocked.get(a.getId());
-                        // Also check live stats
-                        if (!isUnlocked) {
-                            isUnlocked = Achievement.checkAchievement(a, tKills, tWins, tMatches, tDamage, tAssists);
-                            if (isUnlocked) {
-                                repo.unlockAchievement(userPhone, a.getId());
-                            }
+                        boolean fromFirestore = unlocked.containsKey(a.getId()) && unlocked.get(a.getId());
+                        boolean fromStats = Achievement.checkAchievement(a, tKills, tWins, tMatches, tDamage, tAssists);
+                        final boolean isUnlocked = fromFirestore || fromStats;
+                        if (!fromFirestore && fromStats) {
+                            repo.unlockAchievement(userPhone, a.getId());
                         }
                         if (isUnlocked) unlockedCount++;
                         addAchievementBadge(a, isUnlocked);
