@@ -85,13 +85,11 @@ public class ProfileFragment extends Fragment {
 
         statsContainer.removeAllViews();
 
-        // Role badge
         if (!userRole.equals("admin")) {
             addRoleBadge();
         }
 
-        // Stats cards
-        addSectionHeader("📊 Lifetime Stats");
+        addSectionHeader("Lifetime Stats");
         addStatCard("Lifetime Matches", String.valueOf(tMatches));
         addStatCard("Lifetime Wins", String.valueOf(tWins));
         addStatCard("Win Rate", winRate + "%");
@@ -116,7 +114,7 @@ public class ProfileFragment extends Fragment {
         badge.setLayoutParams(params);
 
         TextView emojiTv = new TextView(getContext());
-        emojiTv.setText("🧠");
+        emojiTv.setText("\uD83E\uDDE0");
         emojiTv.setTextSize(18);
         badge.addView(emojiTv);
 
@@ -133,29 +131,30 @@ public class ProfileFragment extends Fragment {
     private void checkAchievements(List<MatchRecord> records) {
         if (!isAdded() || getContext() == null || userPhone.isEmpty()) return;
 
-        int tMatches = 0, tWins = 0, tKills = 0, tAssists = 0, tDamage = 0;
+        // Store stats in final array so lambdas can capture them
+        final int[] stats = {0, 0, 0, 0, 0}; // matches, wins, kills, assists, damage
         for (MatchRecord r : records) {
             if (r.getPlayerName() != null && r.getPlayerName().equals(userName)) {
-                tMatches += r.getMatches();
-                tWins += r.getWins();
-                tKills += r.getKills();
-                tAssists += r.getAssists();
-                tDamage += r.getDamage();
+                stats[0] += r.getMatches();
+                stats[1] += r.getWins();
+                stats[2] += r.getKills();
+                stats[3] += r.getAssists();
+                stats[4] += r.getDamage();
             }
         }
 
         Achievement[] all = Achievement.getAllAchievements();
 
-        // Load unlocked achievements from Firestore
         repo.loadAchievements(userPhone, unlocked -> {
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
-                    addSectionHeader("🎖️ Achievements");
+                    addSectionHeader("Achievements");
 
                     int unlockedCount = 0;
                     for (Achievement a : all) {
                         boolean fromFirestore = unlocked.containsKey(a.getId()) && unlocked.get(a.getId());
-                        boolean fromStats = Achievement.checkAchievement(a, tKills, tWins, tMatches, tDamage, tAssists);
+                        boolean fromStats = Achievement.checkAchievement(
+                            a, stats[2], stats[1], stats[0], stats[4], stats[3]);
                         final boolean isUnlocked = fromFirestore || fromStats;
                         if (!fromFirestore && fromStats) {
                             repo.unlockAchievement(userPhone, a.getId());
@@ -164,7 +163,6 @@ public class ProfileFragment extends Fragment {
                         addAchievementBadge(a, isUnlocked);
                     }
 
-                    // Add achievement summary
                     TextView summary = new TextView(getContext());
                     summary.setText("Unlocked: " + unlockedCount + "/" + all.length);
                     summary.setTextColor(Color.parseColor("#94a3b8"));
@@ -255,7 +253,7 @@ public class ProfileFragment extends Fragment {
         badge.addView(textLayout);
 
         TextView statusTv = new TextView(getContext());
-        statusTv.setText(unlocked ? "✅" : "🔒");
+        statusTv.setText(unlocked ? "\u2705" : "\uD83D\uDD12");
         statusTv.setTextSize(14);
         badge.addView(statusTv);
 
