@@ -52,6 +52,8 @@ public class RegistrationFragment extends Fragment {
     }
 
     private void renderPlayers(List<Player> players) {
+        if (!isAdded() || getContext() == null) return;
+
         playerTable.removeAllViews();
         if (players.isEmpty()) {
             emptyView.setVisibility(View.VISIBLE);
@@ -62,7 +64,7 @@ public class RegistrationFragment extends Fragment {
         playerTable.setVisibility(View.VISIBLE);
 
         // Header
-        TableRow header = new TableRow(requireContext());
+        TableRow header = new TableRow(getContext());
         header.setBackgroundColor(Color.parseColor("#090d16"));
         addHeaderCell(header, "#");
         addHeaderCell(header, "Name");
@@ -73,13 +75,13 @@ public class RegistrationFragment extends Fragment {
 
         int idx = 1;
         for (Player p : players) {
-            TableRow row = new TableRow(requireContext());
+            TableRow row = new TableRow(getContext());
             addCell(row, String.valueOf(idx++));
-            addCell(row, p.getName() + (p.isCurrentlyOnline() ? " 🟢" : ""));
+            addCell(row, p.getName() + (p.isCurrentlyOnline() ? " \uD83D\uDFE2" : ""));
             addCell(row, "+880 " + p.getPhone());
 
             // Status badge
-            TextView statusTv = new TextView(requireContext());
+            TextView statusTv = new TextView(getContext());
             statusTv.setText(p.getStatus().toUpperCase());
             statusTv.setTextSize(10);
             statusTv.setTextColor("confirmed".equals(p.getStatus()) ? Color.parseColor("#10b981") : Color.parseColor("#f59e0b"));
@@ -87,10 +89,10 @@ public class RegistrationFragment extends Fragment {
             row.addView(statusTv);
 
             // Actions
-            LinearLayout actions = new LinearLayout(requireContext());
+            LinearLayout actions = new LinearLayout(getContext());
             actions.setOrientation(LinearLayout.HORIZONTAL);
 
-            Button statusBtn = new Button(requireContext());
+            Button statusBtn = new Button(getContext());
             statusBtn.setTextSize(10);
             statusBtn.setBackgroundColor("confirmed".equals(p.getStatus()) ? Color.parseColor("#f59e0b") : Color.parseColor("#10b981"));
             statusBtn.setTextColor(Color.WHITE);
@@ -101,7 +103,7 @@ public class RegistrationFragment extends Fragment {
             });
             actions.addView(statusBtn);
 
-            Button resetBtn = new Button(requireContext());
+            Button resetBtn = new Button(getContext());
             resetBtn.setTextSize(10);
             resetBtn.setBackgroundColor(Color.parseColor("#f59e0b"));
             resetBtn.setTextColor(Color.WHITE);
@@ -109,14 +111,16 @@ public class RegistrationFragment extends Fragment {
             resetBtn.setOnClickListener(v -> showResetPasswordDialog(p));
             actions.addView(resetBtn);
 
-            Button deleteBtn = new Button(requireContext());
+            Button deleteBtn = new Button(getContext());
             deleteBtn.setTextSize(10);
             deleteBtn.setBackgroundColor(Color.parseColor("#ef4444"));
             deleteBtn.setTextColor(Color.WHITE);
             deleteBtn.setText("Delete");
             deleteBtn.setOnClickListener(v -> {
                 repo.deletePlayer(p.getPhone());
-                Toast.makeText(getContext(), "Player deleted", Toast.LENGTH_SHORT).show();
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "Player deleted", Toast.LENGTH_SHORT).show();
+                }
             });
             actions.addView(deleteBtn);
 
@@ -126,6 +130,8 @@ public class RegistrationFragment extends Fragment {
     }
 
     private void showAddPlayerDialog() {
+        if (!isAdded() || getContext() == null) return;
+
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
         builder.setTitle("Add New Player");
 
@@ -153,7 +159,9 @@ public class RegistrationFragment extends Fragment {
             String pass = passInput.getText().toString().trim();
             if (!name.isEmpty() && !phone.isEmpty() && !pass.isEmpty()) {
                 repo.addPlayer(name, phone, pass);
-                Toast.makeText(getContext(), "Player added and confirmed!", Toast.LENGTH_SHORT).show();
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "Player added and confirmed!", Toast.LENGTH_SHORT).show();
+                }
             }
         });
         builder.setNegativeButton("Cancel", null);
@@ -161,6 +169,8 @@ public class RegistrationFragment extends Fragment {
     }
 
     private void showResetPasswordDialog(Player player) {
+        if (!isAdded() || getContext() == null) return;
+
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
         builder.setTitle("Reset Password for " + player.getName());
 
@@ -172,9 +182,13 @@ public class RegistrationFragment extends Fragment {
             String newPass = input.getText().toString().trim();
             if (newPass.length() >= 4) {
                 repo.resetPassword(player.getPhone(), newPass);
-                Toast.makeText(getContext(), "Password reset for " + player.getName(), Toast.LENGTH_SHORT).show();
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "Password reset for " + player.getName(), Toast.LENGTH_SHORT).show();
+                }
             } else {
-                Toast.makeText(getContext(), "Password must be at least 4 characters", Toast.LENGTH_SHORT).show();
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "Password must be at least 4 characters", Toast.LENGTH_SHORT).show();
+                }
             }
         });
         builder.setNegativeButton("Cancel", null);
@@ -182,7 +196,7 @@ public class RegistrationFragment extends Fragment {
     }
 
     private void addHeaderCell(TableRow row, String text) {
-        TextView tv = new TextView(requireContext());
+        TextView tv = new TextView(getContext());
         tv.setText(text);
         tv.setTextColor(Color.parseColor("#38bdf8"));
         tv.setTextSize(11);
@@ -191,7 +205,7 @@ public class RegistrationFragment extends Fragment {
     }
 
     private void addCell(TableRow row, String text) {
-        TextView tv = new TextView(requireContext());
+        TextView tv = new TextView(getContext());
         tv.setText(text);
         tv.setTextColor(Color.parseColor("#f1f5f9"));
         tv.setTextSize(12);

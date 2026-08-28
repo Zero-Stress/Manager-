@@ -44,6 +44,7 @@ public class AnnouncementsFragment extends Fragment {
         Button postBtn = view.findViewById(R.id.post_announcement_btn);
 
         postBtn.setOnClickListener(v -> {
+            if (!isAdded() || getContext() == null) return;
             String text = announcementInput.getText().toString().trim();
             if (text.isEmpty()) {
                 Toast.makeText(getContext(), "Please enter a message", Toast.LENGTH_SHORT).show();
@@ -52,8 +53,10 @@ public class AnnouncementsFragment extends Fragment {
             repo.postAnnouncement(text, new FirestoreRepository.OnResultCallback() {
                 @Override public void onSuccess() {
                     if (getActivity() != null) getActivity().runOnUiThread(() -> {
-                        announcementInput.setText("");
-                        Toast.makeText(getContext(), "Announcement posted!", Toast.LENGTH_SHORT).show();
+                        if (getContext() != null) {
+                            announcementInput.setText("");
+                            Toast.makeText(getContext(), "Announcement posted!", Toast.LENGTH_SHORT).show();
+                        }
                     });
                 }
                 @Override public void onFailure(String e) {}
@@ -68,9 +71,11 @@ public class AnnouncementsFragment extends Fragment {
     }
 
     private void renderAnnouncements(List<Announcement> announcements) {
+        if (!isAdded() || getContext() == null) return;
+
         announcementList.removeAllViews();
         if (announcements.isEmpty()) {
-            TextView empty = new TextView(requireContext());
+            TextView empty = new TextView(getContext());
             empty.setText("No announcements yet");
             empty.setTextColor(Color.parseColor("#94a3b8"));
             empty.setPadding(16, 32, 16, 32);
@@ -80,7 +85,7 @@ public class AnnouncementsFragment extends Fragment {
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault());
         for (Announcement a : announcements) {
-            LinearLayout card = new LinearLayout(requireContext());
+            LinearLayout card = new LinearLayout(getContext());
             card.setOrientation(LinearLayout.VERTICAL);
             card.setBackgroundColor(Color.parseColor("#090d16"));
             card.setPadding(20, 16, 20, 16);
@@ -90,20 +95,20 @@ public class AnnouncementsFragment extends Fragment {
             params.setMargins(0, 0, 0, 10);
             card.setLayoutParams(params);
 
-            TextView dateTv = new TextView(requireContext());
-            dateTv.setText("📢 " + sdf.format(new Date(a.getTimestamp())));
+            TextView dateTv = new TextView(getContext());
+            dateTv.setText("\uD83D\uDCE2 " + sdf.format(new Date(a.getTimestamp())));
             dateTv.setTextColor(Color.parseColor("#94a3b8"));
             dateTv.setTextSize(11);
             card.addView(dateTv);
 
-            TextView msgTv = new TextView(requireContext());
+            TextView msgTv = new TextView(getContext());
             msgTv.setText(a.getMessage());
             msgTv.setTextColor(Color.WHITE);
             msgTv.setTextSize(14);
             msgTv.setPadding(0, 8, 0, 0);
             card.addView(msgTv);
 
-            Button delBtn = new Button(requireContext());
+            Button delBtn = new Button(getContext());
             delBtn.setText("Delete");
             delBtn.setTextSize(11);
             delBtn.setBackgroundColor(Color.parseColor("#ef4444"));

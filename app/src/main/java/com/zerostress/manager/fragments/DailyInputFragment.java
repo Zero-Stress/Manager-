@@ -21,7 +21,6 @@ import androidx.fragment.app.Fragment;
 
 import com.zerostress.manager.FirestoreRepository;
 import com.zerostress.manager.R;
-import com.zerostress.manager.models.LeaderboardEntry;
 import com.zerostress.manager.models.MatchRecord;
 import com.zerostress.manager.models.Player;
 
@@ -64,12 +63,13 @@ public class DailyInputFragment extends Fragment {
 
         // Listen to users for spinner
         repo.listenUsers(players -> {
+            if (!isAdded()) return;
             confirmedPlayers.clear();
             for (Player p : players) {
                 if ("confirmed".equals(p.getStatus())) confirmedPlayers.add(p);
             }
             if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> updateSpinner());
+                getActivity().runOnUiThread(this::updateSpinner);
             }
         });
 
@@ -83,6 +83,8 @@ public class DailyInputFragment extends Fragment {
     }
 
     private void updateSpinner() {
+        if (!isAdded() || getContext() == null) return;
+
         List<String> names = new ArrayList<>();
         names.add("-- Select Player --");
         for (Player p : confirmedPlayers) names.add(p.getName() + " (+880 " + p.getPhone() + ")");
@@ -92,6 +94,8 @@ public class DailyInputFragment extends Fragment {
     }
 
     private void submitDailyRecord() {
+        if (!isAdded() || getContext() == null) return;
+
         int pos = playerSpinner.getSelectedItemPosition();
         if (pos <= 0) {
             Toast.makeText(getContext(), "Please select a player!", Toast.LENGTH_SHORT).show();
@@ -117,7 +121,9 @@ public class DailyInputFragment extends Fragment {
             public void onSuccess() {
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getContext(), "Daily record saved!", Toast.LENGTH_SHORT).show();
+                        if (getContext() != null) {
+                            Toast.makeText(getContext(), "Daily record saved!", Toast.LENGTH_SHORT).show();
+                        }
                         clearForm();
                     });
                 }
@@ -126,22 +132,30 @@ public class DailyInputFragment extends Fragment {
             @Override
             public void onFailure(String error) {
                 if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> Toast.makeText(getContext(), "Error: " + error, Toast.LENGTH_SHORT).show());
+                    getActivity().runOnUiThread(() -> {
+                        if (getContext() != null) {
+                            Toast.makeText(getContext(), "Error: " + error, Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
             }
         });
     }
 
     private void confirmResetDaily() {
+        if (!isAdded() || getContext() == null) return;
+
         new AlertDialog.Builder(requireContext())
             .setTitle("Reset Daily Logs")
             .setMessage("This will clear all daily records. Continue?")
             .setPositiveButton("Reset", (d, w) -> {
                 repo.resetDailyLogs(backup -> {
                     if (getActivity() != null) {
-                        getActivity().runOnUiThread(() ->
-                            Toast.makeText(getContext(), "Daily logs cleared!", Toast.LENGTH_SHORT).show()
-                        );
+                        getActivity().runOnUiThread(() -> {
+                            if (getContext() != null) {
+                                Toast.makeText(getContext(), "Daily logs cleared!", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
                 });
             })
@@ -150,9 +164,11 @@ public class DailyInputFragment extends Fragment {
     }
 
     private void renderDailyTable() {
+        if (!isAdded() || getContext() == null) return;
+
         dailyTable.removeAllViews();
         if (dailyLogs.isEmpty()) {
-            TextView empty = new TextView(requireContext());
+            TextView empty = new TextView(getContext());
             empty.setText("No daily entries yet");
             empty.setTextColor(Color.parseColor("#94a3b8"));
             empty.setPadding(16, 32, 16, 32);
@@ -161,15 +177,15 @@ public class DailyInputFragment extends Fragment {
         }
 
         for (MatchRecord r : dailyLogs) {
-            TableRow row = new TableRow(requireContext());
-            TextView nameTv = new TextView(requireContext());
+            TableRow row = new TableRow(getContext());
+            TextView nameTv = new TextView(getContext());
             nameTv.setText(r.getPlayerName());
             nameTv.setTextColor(Color.WHITE);
             nameTv.setTextSize(12);
             nameTv.setPadding(8, 8, 8, 8);
             row.addView(nameTv);
 
-            TextView statsTv = new TextView(requireContext());
+            TextView statsTv = new TextView(getContext());
             int mins = r.getSurvivalSeconds() / 60;
             int secs = r.getSurvivalSeconds() % 60;
             statsTv.setText("K:" + r.getKills() + " A:" + r.getAssists() + " D:" + r.getDamage() + " | " + mins + "m" + secs + "s");
@@ -178,7 +194,7 @@ public class DailyInputFragment extends Fragment {
             statsTv.setPadding(8, 8, 8, 8);
             row.addView(statsTv);
 
-            Button delBtn = new Button(requireContext());
+            Button delBtn = new Button(getContext());
             delBtn.setText("X");
             delBtn.setTextSize(10);
             delBtn.setBackgroundColor(Color.parseColor("#ef4444"));
@@ -186,8 +202,11 @@ public class DailyInputFragment extends Fragment {
             delBtn.setOnClickListener(v -> {
                 repo.deleteDailyRecord(r.getId(), new FirestoreRepository.OnResultCallback() {
                     @Override public void onSuccess() {
-                        if (getActivity() != null) getActivity().runOnUiThread(() ->
-                            Toast.makeText(getContext(), "Deleted!", Toast.LENGTH_SHORT).show());
+                        if (getActivity() != null) getActivity().runOnUiThread(() -> {
+                            if (getContext() != null) {
+                                Toast.makeText(getContext(), "Deleted!", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
                     @Override public void onFailure(String e) {}
                 });
@@ -199,6 +218,7 @@ public class DailyInputFragment extends Fragment {
     }
 
     private void clearForm() {
+        if (!isAdded()) return;
         matchesInput.setText("1");
         winsInput.setText("0");
         killsInput.setText("");

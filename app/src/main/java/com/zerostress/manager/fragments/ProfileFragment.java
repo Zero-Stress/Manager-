@@ -15,14 +15,14 @@ import androidx.fragment.app.Fragment;
 import com.zerostress.manager.FirestoreRepository;
 import com.zerostress.manager.R;
 import com.zerostress.manager.models.MatchRecord;
-import com.zerostress.manager.models.Player;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ProfileFragment extends Fragment {
     private FirestoreRepository repo;
-    private String userName, userRole;
+    private String userName = "";
+    private String userRole = "player";
     private LinearLayout statsContainer;
 
     @Nullable
@@ -44,8 +44,8 @@ public class ProfileFragment extends Fragment {
 
         TextView nameTv = view.findViewById(R.id.profile_name);
         TextView roleTv = view.findViewById(R.id.profile_role);
-        nameTv.setText(userName);
-        roleTv.setText(userRole.equals("admin") ? "Administrator" : "Player");
+        if (nameTv != null) nameTv.setText(userName);
+        if (roleTv != null) roleTv.setText(userRole.equals("admin") ? "Administrator" : "Player");
 
         repo.listenDailyLogs(records -> {
             if (getActivity() != null) {
@@ -55,9 +55,11 @@ public class ProfileFragment extends Fragment {
     }
 
     private void calculateStats(List<MatchRecord> records) {
+        if (!isAdded() || getContext() == null) return;
+
         int tMatches = 0, tWins = 0, tKills = 0, tAssists = 0, tDamage = 0;
         for (MatchRecord r : records) {
-            if (userRole.equals("admin") || r.getPlayerName().equals(userName)) {
+            if (userRole.equals("admin") || (r.getPlayerName() != null && r.getPlayerName().equals(userName))) {
                 tMatches += r.getMatches();
                 tWins += r.getWins();
                 tKills += r.getKills();
@@ -82,7 +84,9 @@ public class ProfileFragment extends Fragment {
     }
 
     private void addStatCard(String label, String value) {
-        LinearLayout card = new LinearLayout(requireContext());
+        if (getContext() == null) return;
+
+        LinearLayout card = new LinearLayout(getContext());
         card.setOrientation(LinearLayout.VERTICAL);
         card.setBackgroundColor(Color.parseColor("#090d16"));
         card.setPadding(24, 20, 24, 20);
@@ -92,13 +96,13 @@ public class ProfileFragment extends Fragment {
         params.setMargins(0, 0, 0, 12);
         card.setLayoutParams(params);
 
-        TextView labelTv = new TextView(requireContext());
+        TextView labelTv = new TextView(getContext());
         labelTv.setText(label);
         labelTv.setTextColor(Color.parseColor("#94a3b8"));
         labelTv.setTextSize(11);
         card.addView(labelTv);
 
-        TextView valueTv = new TextView(requireContext());
+        TextView valueTv = new TextView(getContext());
         valueTv.setText(value);
         valueTv.setTextColor(Color.parseColor("#38bdf8"));
         valueTv.setTextSize(22);

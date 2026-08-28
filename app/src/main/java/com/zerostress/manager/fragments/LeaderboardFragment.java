@@ -20,9 +20,7 @@ import com.zerostress.manager.models.MatchRecord;
 import com.zerostress.manager.models.Player;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class LeaderboardFragment extends Fragment {
     private FirestoreRepository repo;
@@ -55,13 +53,17 @@ public class LeaderboardFragment extends Fragment {
         // Listen to daily logs
         repo.listenDailyLogs(records -> {
             allDailyLogs = records;
-            requireActivity().runOnUiThread(this::updateLeaderboards);
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(this::updateLeaderboards);
+            }
         });
 
         // Listen to users for online status
         repo.listenUsers(players -> {
             allPlayers = players;
-            requireActivity().runOnUiThread(this::updateLeaderboards);
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(this::updateLeaderboards);
+            }
         });
 
         // Load weekly data from Firestore
@@ -70,14 +72,15 @@ public class LeaderboardFragment extends Fragment {
 
     private void loadWeeklyData() {
         repo.loadWeeklyData(weeklyData -> {
-            requireActivity().runOnUiThread(() -> {
-                // Combine daily logs with saved weekly data for weekly leaderboard
-                updateLeaderboards();
-            });
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(this::updateLeaderboards);
+            }
         });
     }
 
     private void updateLeaderboards() {
+        if (!isAdded() || getContext() == null) return;
+
         // Daily leaderboard
         List<LeaderboardEntry> dailyEntries = FirestoreRepository.calculateLeaderboard(allDailyLogs, allPlayers);
         renderTable(dailyTable, dailyEmpty, dailyEntries, true);
@@ -87,6 +90,8 @@ public class LeaderboardFragment extends Fragment {
     }
 
     private void renderTable(TableLayout table, TextView emptyView, List<LeaderboardEntry> entries, boolean showAssists) {
+        if (!isAdded() || getContext() == null) return;
+
         table.removeAllViews();
         if (entries.isEmpty()) {
             emptyView.setVisibility(View.VISIBLE);
@@ -97,7 +102,7 @@ public class LeaderboardFragment extends Fragment {
         table.setVisibility(View.VISIBLE);
 
         // Header row
-        TableRow header = new TableRow(requireContext());
+        TableRow header = new TableRow(getContext());
         header.setBackgroundColor(Color.parseColor("#090d16"));
         addHeaderCell(header, "Rank");
         addHeaderCell(header, "Player");
@@ -114,16 +119,16 @@ public class LeaderboardFragment extends Fragment {
         int maxShow = 10;
         for (int i = 0; i < Math.min(entries.size(), maxShow); i++) {
             LeaderboardEntry e = entries.get(i);
-            TableRow row = new TableRow(requireContext());
+            TableRow row = new TableRow(getContext());
 
             // Highlight top 3
             if (i == 0) row.setBackgroundColor(Color.parseColor("#1a2940"));
             else if (i == 1) row.setBackgroundColor(Color.parseColor("#1a2535"));
             else if (i == 2) row.setBackgroundColor(Color.parseColor("#1a2230"));
 
-            String medal = i == 0 ? "👑" : (i == 1 ? "🥈" : (i == 2 ? "🥉" : ""));
+            String medal = i == 0 ? "\uD83D\uDC51" : (i == 1 ? "\uD83E\uDD48" : (i == 2 ? "\uD83E\uDD49" : ""));
             addCell(row, medal + " " + e.getRank());
-            addCell(row, e.getPlayerName() + (e.isOnline() ? " 🟢" : ""));
+            addCell(row, e.getPlayerName() + (e.isOnline() ? " \uD83D\uDFE2" : ""));
             addCell(row, String.valueOf(e.getMatches()));
             addCell(row, String.valueOf(e.getWins()));
             addCell(row, String.valueOf(e.getKills()));
@@ -132,7 +137,7 @@ public class LeaderboardFragment extends Fragment {
             addCell(row, String.valueOf(e.getAvgDamage()));
             addCell(row, e.getWinRate() + "%");
 
-            TextView scoreCell = new TextView(requireContext());
+            TextView scoreCell = new TextView(getContext());
             scoreCell.setText(e.getScorePoints() + " pts");
             scoreCell.setTextColor(Color.parseColor("#38bdf8"));
             scoreCell.setTextSize(12);
@@ -144,7 +149,7 @@ public class LeaderboardFragment extends Fragment {
     }
 
     private void addHeaderCell(TableRow row, String text) {
-        TextView tv = new TextView(requireContext());
+        TextView tv = new TextView(getContext());
         tv.setText(text);
         tv.setTextColor(Color.parseColor("#38bdf8"));
         tv.setTextSize(11);
@@ -153,7 +158,7 @@ public class LeaderboardFragment extends Fragment {
     }
 
     private void addCell(TableRow row, String text) {
-        TextView tv = new TextView(requireContext());
+        TextView tv = new TextView(getContext());
         tv.setText(text);
         tv.setTextColor(Color.parseColor("#f1f5f9"));
         tv.setTextSize(12);

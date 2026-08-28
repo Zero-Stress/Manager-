@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,11 +40,21 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        currentUser = new Gson().fromJson(userJson, Player.class);
+        try {
+            currentUser = new Gson().fromJson(userJson, Player.class);
+        } catch (Exception e) {
+            navigateToLogin();
+            return;
+        }
+
+        if (currentUser == null) {
+            navigateToLogin();
+            return;
+        }
 
         // Setup toolbar
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Zero Stress Manager");
+            getSupportActionBar().setTitle("Zero Stress");
             getSupportActionBar().setSubtitle(currentUser.getRole().toUpperCase());
         }
 
@@ -65,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
         Menu menu = bottomNav.getMenu();
 
         // Hide admin-only items for players
-        if (!currentUser.getRole().equals("admin")) {
+        if (!"admin".equals(currentUser.getRole())) {
             menu.findItem(R.id.nav_register).setVisible(false);
             menu.findItem(R.id.nav_daily_input).setVisible(false);
             menu.findItem(R.id.nav_announcements).setVisible(false);
@@ -96,10 +106,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadFragment(Fragment fragment, Player user) {
+        if (user == null) return;
+
         Bundle args = new Bundle();
-        args.putString("userName", user.getName());
-        args.putString("userPhone", user.getPhone());
-        args.putString("userRole", user.getRole());
+        args.putString("userName", user.getName() != null ? user.getName() : "");
+        args.putString("userPhone", user.getPhone() != null ? user.getPhone() : "");
+        args.putString("userRole", user.getRole() != null ? user.getRole() : "player");
         fragment.setArguments(args);
 
         getSupportFragmentManager()
@@ -129,7 +141,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void logout() {
-        repo.updatePresence(currentUser.getPhone(), false);
+        if (currentUser != null) {
+            repo.updatePresence(currentUser.getPhone(), false);
+        }
         prefs.edit().remove("current_user").apply();
         navigateToLogin();
     }
