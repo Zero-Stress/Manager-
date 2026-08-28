@@ -28,6 +28,16 @@
             android:paddingBottom="8dp" />
     </ScrollView>
 
+    <!-- Mention suggestions (hidden by default) -->
+    <LinearLayout
+        android:id="@+id/mention_suggestions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#131c31"
+        android:padding="4dp"
+        android:visibility="gone" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -40,7 +50,7 @@
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
-            android:hint="Type a message..."
+            android:hint="Type @ to mention a player..."
             android:textColor="#f1f5f9"
             android:textColorHint="#64748b"
             android:background="#1e3a5f"
