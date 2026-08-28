@@ -19,9 +19,7 @@ import com.zerostress.manager.models.Achievement;
 import com.zerostress.manager.models.MatchRecord;
 import com.zerostress.manager.models.Player;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class ProfileFragment extends Fragment {
     private FirestoreRepository repo;

@@ -17,8 +17,6 @@ import androidx.core.app.NotificationManagerCompat;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Polls Firestore every 30 seconds and shows local notifications when data changes.
