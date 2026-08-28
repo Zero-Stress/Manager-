@@ -3,18 +3,10 @@ package com.zerostress.manager;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.Typeface;
 import android.os.Bundle;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.PopupMenu;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -38,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private FirestoreRepository repo;
     private Player currentUser;
     private SharedPreferences prefs;
+    private NotificationHelper notificationHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,17 +50,43 @@ public class MainActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("Zero Stress");
             getSupportActionBar().setSubtitle(currentUser.getRole().toUpperCase() +
-                ("admin".equals(currentUser.getRole()) ? "" : " • " + currentUser.getRoleLabel()));
+                ("admin".equals(currentUser.getRole()) ? "" : " \u2022 " + currentUser.getRoleLabel()));
         }
 
+        // Setup presence
         repo.updatePresence(currentUser.getPhone(), true);
 
+        // Setup notification polling - monitors all Firestore changes
+        setupNotifications();
+
+        // Setup bottom navigation
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
         setupNavigation(bottomNav);
 
         if (savedInstanceState == null) {
             loadFragment(new LeaderboardFragment(), currentUser);
         }
+    }
+
+    private void setupNotifications() {
+        notificationHelper = new NotificationHelper(this);
+        notificationHelper.saveUserPhone(currentUser.getPhone());
+        notificationHelper.setLeaderboardUpdateCallback((type, message) -> {
+            // Show in-app toast when data changes
+            runOnUiThread(() -> {
+                android.widget.Toast.makeText(this, "\uD83D\uDD14 " + message, android.widget.Toast.LENGTH_SHORT).show();
+            });
+        });
+
+        // Request notification permission on Android 13+
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 100);
+            }
+        }
+
+        // Start polling - checks Firestore every 30 seconds
+        notificationHelper.startLeaderboardListener();
     }
 
     private void setupNavigation(BottomNavigationView bottomNav) {
@@ -98,17 +117,17 @@ public class MainActivity extends AppCompatActivity {
 
     private void showMoreMenu() {
         PopupMenu popup = new PopupMenu(this, findViewById(R.id.nav_more));
-        popup.getMenu().add(0, 1, 0, "👤 My Profile");
-        popup.getMenu().add(0, 2, 1, "⚔️ My Squad");
+        popup.getMenu().add(0, 1, 0, "\uD83D\uDC64 My Profile");
+        popup.getMenu().add(0, 2, 1, "\u2694\uFE0F My Squad");
 
         if ("admin".equals(currentUser.getRole())) {
-            popup.getMenu().add(0, 10, 10, "─── ADMIN ───").setEnabled(false);
-            popup.getMenu().add(0, 3, 2, "📋 Players");
-            popup.getMenu().add(0, 4, 3, "📊 Daily Input");
-            popup.getMenu().add(0, 5, 4, "📢 Announcements");
-            popup.getMenu().add(0, 6, 5, "🏆 Tournaments");
-            popup.getMenu().add(0, 7, 6, "📅 Attendance");
-            popup.getMenu().add(0, 8, 7, "⚔️ Squad Manager");
+            popup.getMenu().add(0, 10, 10, "\u2500\u2500\u2500 ADMIN \u2500\u2500\u2500").setEnabled(false);
+            popup.getMenu().add(0, 3, 2, "\uD83D\uDCCB Players");
+            popup.getMenu().add(0, 4, 3, "\uD83D\uDCCA Daily Input");
+            popup.getMenu().add(0, 5, 4, "\uD83D\uDCE2 Announcements");
+            popup.getMenu().add(0, 6, 5, "\uD83C\uDFC6 Tournaments");
+            popup.getMenu().add(0, 7, 6, "\u23F0 Attendance");
+            popup.getMenu().add(0, 8, 7, "\u2694\uFE0F Squad Manager");
         }
 
         popup.setOnMenuItemClickListener(item -> {
@@ -165,6 +184,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void logout() {
         if (currentUser != null) repo.updatePresence(currentUser.getPhone(), false);
+        if (notificationHelper != null) notificationHelper.cleanup();
         prefs.edit().remove("current_user").apply();
         navigateToLogin();
     }
@@ -180,5 +200,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (currentUser != null) repo.updatePresence(currentUser.getPhone(), false);
+        if (notificationHelper != null) notificationHelper.cleanup();
     }
 }
