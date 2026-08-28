@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#090d16"
@@ -10,7 +11,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="32">
+        android:padding="32dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -19,7 +20,7 @@
             android:textColor="#38bdf8"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:layout_marginBottom="8" />
+            android:layout_marginBottom="8dp" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -27,7 +28,7 @@
             android:text="Performance &amp; Leaderboard Manager"
             android:textColor="#94a3b8"
             android:textSize="13sp"
-            android:layout_marginBottom="40" />
+            android:layout_marginBottom="40dp" />
 
         <!-- Login Form -->
         <LinearLayout
@@ -39,7 +40,7 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12"
+                android:layout_marginBottom="12dp"
                 android:hint="Phone Number (e.g. 1712345678)"
                 android:textColorHint="#94a3b8"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
@@ -57,11 +58,10 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="20"
+                android:layout_marginBottom="20dp"
                 android:hint="Password"
                 android:textColorHint="#94a3b8"
                 app:passwordToggleEnabled="true"
-                xmlns:app="http://schemas.android.com/apk/res-auto"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -83,7 +83,7 @@
                 android:textStyle="bold"
                 android:textSize="15sp"
                 android:backgroundTint="#38bdf8"
-                android:layout_marginBottom="8" />
+                android:layout_marginBottom="8dp" />
         </LinearLayout>
 
         <!-- Register Form (hidden by default) -->
@@ -97,7 +97,7 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12"
+                android:layout_marginBottom="12dp"
                 android:hint="Player Name"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -112,7 +112,7 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12"
+                android:layout_marginBottom="12dp"
                 android:hint="Phone Number"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -128,10 +128,9 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="20"
+                android:layout_marginBottom="20dp"
                 android:hint="Password"
                 app:passwordToggleEnabled="true"
-                xmlns:app="http://schemas.android.com/apk/res-auto"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -152,7 +151,7 @@
                 android:textStyle="bold"
                 android:backgroundTint="#38bdf8"
                 android:visibility="gone"
-                android:layout_marginBottom="8" />
+                android:layout_marginBottom="8dp" />
         </LinearLayout>
 
         <TextView
@@ -162,7 +161,7 @@
             android:text="Don't have an account? Register"
             android:textColor="#38bdf8"
             android:textSize="14sp"
-            android:padding="12"
+            android:padding="12dp"
             android:clickable="true"
             android:focusable="true" />
 
@@ -170,7 +169,7 @@
             android:id="@+id/progress_bar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16"
+            android:layout_marginTop="16dp"
             android:visibility="gone"
             android:indeterminateTint="#38bdf8" />
     </LinearLayout>

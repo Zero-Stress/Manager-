@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#090d16"
-    android:padding="16">
+    android:padding="16dp">
 
     <TextView
         android:layout_width="match_parent"
@@ -13,12 +13,12 @@
         android:textColor="#38bdf8"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:padding="12" />
+        android:padding="12dp" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="12"
+        android:layout_marginBottom="12dp"
         android:hint="Type announcement message..."
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
         <com.google.android.material.textfield.TextInputEditText
@@ -39,7 +39,7 @@
         android:textColor="#090d16"
         android:textStyle="bold"
         android:backgroundTint="#38bdf8"
-        android:layout_marginBottom="20" />
+        android:layout_marginBottom="20dp" />
 
     <ScrollView
         android:layout_width="match_parent"

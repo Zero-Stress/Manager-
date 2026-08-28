@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#090d16"
-    android:padding="16">
+    android:padding="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,20 +17,20 @@
             android:textColor="#38bdf8"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:padding="12" />
+            android:padding="12dp" />
 
         <Spinner
             android:id="@+id/player_spinner"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:background="#131c31"
-            android:padding="12"
-            android:layout_marginBottom="12" />
+            android:padding="12dp"
+            android:layout_marginBottom="12dp" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8"
+            android:layout_marginBottom="8dp"
             android:hint="Matches Played"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
             <com.google.android.material.textfield.TextInputEditText
@@ -46,7 +46,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8"
+            android:layout_marginBottom="8dp"
             android:hint="Wins"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
             <com.google.android.material.textfield.TextInputEditText
@@ -62,7 +62,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8"
+            android:layout_marginBottom="8dp"
             android:hint="Total Kills"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
             <com.google.android.material.textfield.TextInputEditText
@@ -77,7 +77,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8"
+            android:layout_marginBottom="8dp"
             android:hint="Total Assists"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
             <com.google.android.material.textfield.TextInputEditText
@@ -92,7 +92,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8"
+            android:layout_marginBottom="8dp"
             android:hint="Total Damage"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
             <com.google.android.material.textfield.TextInputEditText
@@ -108,13 +108,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="16">
+            android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginEnd="8"
+                android:layout_marginEnd="8dp"
                 android:hint="Minutes"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                 <com.google.android.material.textfield.TextInputEditText
@@ -131,7 +131,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginStart="8"
+                android:layout_marginStart="8dp"
                 android:hint="Seconds"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                 <com.google.android.material.textfield.TextInputEditText
@@ -149,7 +149,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="24">
+            android:layout_marginBottom="24dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/submit_daily_btn"
@@ -160,7 +160,7 @@
                 android:textColor="#090d16"
                 android:textStyle="bold"
                 android:backgroundTint="#38bdf8"
-                android:layout_marginEnd="8" />
+                android:layout_marginEnd="8dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/reset_daily_btn"
@@ -170,7 +170,7 @@
                 android:text="RESET ALL"
                 android:textColor="#ffffff"
                 android:backgroundTint="#ef4444"
-                android:layout_marginStart="8" />
+                android:layout_marginStart="8dp" />
         </LinearLayout>
 
         <TextView
@@ -180,7 +180,7 @@
             android:textColor="#38bdf8"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:padding="8" />
+            android:padding="8dp" />
 
         <TableLayout
             android:id="@+id/daily_log_table"

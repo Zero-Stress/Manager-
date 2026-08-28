@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#090d16"
-    android:padding="16">
+    android:padding="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -19,7 +19,7 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:gravity="center"
-            android:padding="12" />
+            android:padding="12dp" />
 
         <TextView
             android:id="@+id/profile_name"
@@ -28,7 +28,7 @@
             android:textColor="#38bdf8"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:layout_marginBottom="4" />
+            android:layout_marginBottom="4dp" />
 
         <TextView
             android:id="@+id/profile_role"
@@ -36,7 +36,7 @@
             android:layout_height="wrap_content"
             android:textColor="#94a3b8"
             android:textSize="14sp"
-            android:layout_marginBottom="24" />
+            android:layout_marginBottom="24dp" />
 
         <LinearLayout
             android:id="@+id/stats_container"
