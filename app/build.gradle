@@ -15,15 +15,26 @@ android {
         versionName "2.0"
     }
 
+    signingConfigs {
+        release {
+            // After generating keystore, uncomment and fill in:
+            // storeFile file("../zerostress.keystore")
+            // storePassword "your_password"
+            // keyAlias "zerostress"
+            // keyPassword "your_password"
+        }
+    }
+
     buildTypes {
         debug {
             applicationVariants.configureEach { variant ->
                 variant.outputs.configureEach {
-                    outputFileName = "ZeroStress-v${variant.versionName}.apk"
+                    outputFileName = "ZeroStress-v${variant.versionName}-debug.apk"
                 }
             }
         }
         release {
+            // signingConfig signingConfigs.release  // Uncomment after generating keystore
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             applicationVariants.configureEach { variant ->
