@@ -10,6 +10,9 @@ public class Player implements Serializable {
     private String password;
     private String role;
     private String status;
+    private String playerRole; // "igl", "fragger", "support", "sniper", "medic"
+    private long rewardPoints;
+    private long totalRewardPoints;
 
     @PropertyName("online")
     private boolean isOnline;
@@ -27,6 +30,9 @@ public class Player implements Serializable {
         this.status = status;
         this.isOnline = false;
         this.lastSeen = 0;
+        this.playerRole = "fragger";
+        this.rewardPoints = 0;
+        this.totalRewardPoints = 0;
     }
 
     public String getPhone() { return phone; }
@@ -39,6 +45,12 @@ public class Player implements Serializable {
     public void setRole(String role) { this.role = role; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    public String getPlayerRole() { return playerRole; }
+    public void setPlayerRole(String playerRole) { this.playerRole = playerRole; }
+    public long getRewardPoints() { return rewardPoints; }
+    public void setRewardPoints(long rewardPoints) { this.rewardPoints = rewardPoints; }
+    public long getTotalRewardPoints() { return totalRewardPoints; }
+    public void setTotalRewardPoints(long totalRewardPoints) { this.totalRewardPoints = totalRewardPoints; }
 
     @PropertyName("online")
     public boolean isOnline() { return isOnline; }
@@ -54,5 +66,29 @@ public class Player implements Serializable {
     public boolean isCurrentlyOnline() {
         if (isOnline) return true;
         return lastSeen > 0 && (System.currentTimeMillis() - lastSeen) < 60000;
+    }
+
+    public String getRoleEmoji() {
+        if (playerRole == null) return "🔫";
+        switch (playerRole) {
+            case "igl": return "🧠";
+            case "fragger": return "🔫";
+            case "support": return "🛡️";
+            case "sniper": return "🎯";
+            case "medic": return "💊";
+            default: return "🔫";
+        }
+    }
+
+    public String getRoleLabel() {
+        if (playerRole == null) return "Fragger";
+        switch (playerRole) {
+            case "igl": return "IGL";
+            case "fragger": return "Fragger";
+            case "support": return "Support";
+            case "sniper": return "Sniper";
+            case "medic": return "Medic";
+            default: return "Fragger";
+        }
     }
 }

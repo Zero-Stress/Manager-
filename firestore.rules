@@ -5,22 +5,64 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if true;
       allow write: if true;
+
+      // User achievements subcollection
+      match /achievements/{achievementId} {
+        allow read: if true;
+        allow write: if true;
+      }
     }
-    
+
     // Daily logs
     match /dailylogs/{logId} {
       allow read: if true;
       allow write: if true;
     }
-    
+
     // Announcements
     match /announcements/{announcementId} {
       allow read: if true;
       allow write: if true;
     }
-    
+
     // App state (weekly data persistence, version config)
     match /appState/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Squads
+    match /squads/{squadId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Tournaments
+    match /tournaments/{tournamentId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // In-app chat
+    match /chat/{messageId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Match schedules
+    match /schedules/{scheduleId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Seasons
+    match /seasons/{seasonId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Attendance
+    match /attendance/{recordId} {
       allow read: if true;
       allow write: if true;
     }

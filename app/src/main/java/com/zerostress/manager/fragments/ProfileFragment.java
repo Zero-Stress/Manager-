@@ -1,6 +1,7 @@
 package com.zerostress.manager.fragments;
 
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,14 +15,18 @@ import androidx.fragment.app.Fragment;
 
 import com.zerostress.manager.FirestoreRepository;
 import com.zerostress.manager.R;
+import com.zerostress.manager.models.Achievement;
 import com.zerostress.manager.models.MatchRecord;
+import com.zerostress.manager.models.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ProfileFragment extends Fragment {
     private FirestoreRepository repo;
     private String userName = "";
+    private String userPhone = "";
     private String userRole = "player";
     private LinearLayout statsContainer;
 
@@ -39,17 +44,24 @@ public class ProfileFragment extends Fragment {
 
         if (getArguments() != null) {
             userName = getArguments().getString("userName", "");
+            userPhone = getArguments().getString("userPhone", "");
             userRole = getArguments().getString("userRole", "player");
         }
 
         TextView nameTv = view.findViewById(R.id.profile_name);
         TextView roleTv = view.findViewById(R.id.profile_role);
         if (nameTv != null) nameTv.setText(userName);
-        if (roleTv != null) roleTv.setText(userRole.equals("admin") ? "Administrator" : "Player");
+        if (roleTv != null) {
+            String roleLabel = userRole.equals("admin") ? "Administrator" : "Player";
+            roleTv.setText(roleLabel);
+        }
 
         repo.listenDailyLogs(records -> {
             if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> calculateStats(records));
+                getActivity().runOnUiThread(() -> {
+                    calculateStats(records);
+                    checkAchievements(records);
+                });
             }
         });
     }
@@ -70,9 +82,18 @@ public class ProfileFragment extends Fragment {
 
         double winRate = tMatches > 0 ? Math.round((float) tWins / tMatches * 1000) / 10.0 : 0;
         int avgDamage = tMatches > 0 ? Math.round((float) tDamage / tMatches) : 0;
+        double avgKills = tMatches > 0 ? Math.round((float) tKills / tMatches * 10) / 10.0 : 0;
         int score = Math.round((tKills * 10) + (tDamage / 100f) + (tWins * 50));
 
         statsContainer.removeAllViews();
+
+        // Role badge
+        if (!userRole.equals("admin")) {
+            addRoleBadge();
+        }
+
+        // Stats cards
+        addSectionHeader("📊 Lifetime Stats");
         addStatCard("Lifetime Matches", String.valueOf(tMatches));
         addStatCard("Lifetime Wins", String.valueOf(tWins));
         addStatCard("Win Rate", winRate + "%");
@@ -80,7 +101,93 @@ public class ProfileFragment extends Fragment {
         addStatCard("Total Assists", String.valueOf(tAssists));
         addStatCard("Total Damage", String.valueOf(tDamage));
         addStatCard("Avg Damage/Match", String.valueOf(avgDamage));
+        addStatCard("Avg Kills/Match", String.valueOf(avgKills));
         addStatCard("Lifetime Score", score + " pts");
+    }
+
+    private void addRoleBadge() {
+        if (getContext() == null) return;
+
+        LinearLayout badge = new LinearLayout(getContext());
+        badge.setOrientation(LinearLayout.HORIZONTAL);
+        badge.setBackgroundColor(Color.parseColor("#0f1729"));
+        badge.setPadding(16, 12, 16, 12);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        params.setMargins(0, 0, 0, 16);
+        badge.setLayoutParams(params);
+
+        TextView emojiTv = new TextView(getContext());
+        emojiTv.setText("🧠");
+        emojiTv.setTextSize(18);
+        badge.addView(emojiTv);
+
+        TextView roleTv = new TextView(getContext());
+        roleTv.setText(" Role: Player");
+        roleTv.setTextColor(Color.parseColor("#38bdf8"));
+        roleTv.setTextSize(14);
+        roleTv.setTypeface(null, Typeface.BOLD);
+        badge.addView(roleTv);
+
+        statsContainer.addView(badge);
+    }
+
+    private void checkAchievements(List<MatchRecord> records) {
+        if (!isAdded() || getContext() == null || userPhone.isEmpty()) return;
+
+        int tMatches = 0, tWins = 0, tKills = 0, tAssists = 0, tDamage = 0;
+        for (MatchRecord r : records) {
+            if (r.getPlayerName() != null && r.getPlayerName().equals(userName)) {
+                tMatches += r.getMatches();
+                tWins += r.getWins();
+                tKills += r.getKills();
+                tAssists += r.getAssists();
+                tDamage += r.getDamage();
+            }
+        }
+
+        Achievement[] all = Achievement.getAllAchievements();
+
+        // Load unlocked achievements from Firestore
+        repo.loadAchievements(userPhone, unlocked -> {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    addSectionHeader("🎖️ Achievements");
+
+                    int unlockedCount = 0;
+                    for (Achievement a : all) {
+                        boolean isUnlocked = unlocked.containsKey(a.getId()) && unlocked.get(a.getId());
+                        // Also check live stats
+                        if (!isUnlocked) {
+                            isUnlocked = Achievement.checkAchievement(a, tKills, tWins, tMatches, tDamage, tAssists);
+                            if (isUnlocked) {
+                                repo.unlockAchievement(userPhone, a.getId());
+                            }
+                        }
+                        if (isUnlocked) unlockedCount++;
+                        addAchievementBadge(a, isUnlocked);
+                    }
+
+                    // Add achievement summary
+                    TextView summary = new TextView(getContext());
+                    summary.setText("Unlocked: " + unlockedCount + "/" + all.length);
+                    summary.setTextColor(Color.parseColor("#94a3b8"));
+                    summary.setTextSize(12);
+                    summary.setPadding(0, 8, 0, 16);
+                    statsContainer.addView(summary);
+                });
+            }
+        });
+    }
+
+    private void addSectionHeader(String title) {
+        TextView header = new TextView(getContext());
+        header.setText(title);
+        header.setTextColor(Color.parseColor("#38bdf8"));
+        header.setTextSize(16);
+        header.setTypeface(null, Typeface.BOLD);
+        header.setPadding(0, 20, 0, 8);
+        statsContainer.addView(header);
     }
 
     private void addStatCard(String label, String value) {
@@ -106,9 +213,56 @@ public class ProfileFragment extends Fragment {
         valueTv.setText(value);
         valueTv.setTextColor(Color.parseColor("#38bdf8"));
         valueTv.setTextSize(22);
-        valueTv.setTypeface(null, android.graphics.Typeface.BOLD);
+        valueTv.setTypeface(null, Typeface.BOLD);
         card.addView(valueTv);
 
         statsContainer.addView(card);
+    }
+
+    private void addAchievementBadge(Achievement a, boolean unlocked) {
+        if (getContext() == null) return;
+
+        LinearLayout badge = new LinearLayout(getContext());
+        badge.setOrientation(LinearLayout.HORIZONTAL);
+        badge.setBackgroundColor(unlocked ? Color.parseColor("#0f2940") : Color.parseColor("#0f1729"));
+        badge.setPadding(16, 10, 16, 10);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        params.setMargins(0, 0, 0, 6);
+        badge.setLayoutParams(params);
+
+        TextView iconTv = new TextView(getContext());
+        iconTv.setText(a.getIcon());
+        iconTv.setTextSize(18);
+        badge.addView(iconTv);
+
+        LinearLayout textLayout = new LinearLayout(getContext());
+        textLayout.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
+        textLayout.setLayoutParams(textParams);
+        textLayout.setPadding(12, 0, 0, 0);
+
+        TextView nameTv = new TextView(getContext());
+        nameTv.setText(a.getName());
+        nameTv.setTextColor(unlocked ? Color.parseColor("#f1f5f9") : Color.parseColor("#64748b"));
+        nameTv.setTextSize(13);
+        nameTv.setTypeface(null, Typeface.BOLD);
+        textLayout.addView(nameTv);
+
+        TextView descTv = new TextView(getContext());
+        descTv.setText(a.getDescription());
+        descTv.setTextColor(unlocked ? Color.parseColor("#94a3b8") : Color.parseColor("#475569"));
+        descTv.setTextSize(11);
+        textLayout.addView(descTv);
+
+        badge.addView(textLayout);
+
+        TextView statusTv = new TextView(getContext());
+        statusTv.setText(unlocked ? "✅" : "🔒");
+        statusTv.setTextSize(14);
+        badge.addView(statusTv);
+
+        statsContainer.addView(badge);
     }
 }
