@@ -2,6 +2,7 @@ package com.zerostress.manager;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
@@ -31,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     private Player currentUser;
     private SharedPreferences prefs;
     private NotificationHelper notificationHelper;
+    private AppUpdateManager updateManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +60,11 @@ public class MainActivity extends AppCompatActivity {
 
         // Setup notification polling - monitors all Firestore changes
         setupNotifications();
+
+        // Check for app updates
+        updateManager = new AppUpdateManager(this);
+        boolean isAdmin = "admin".equals(currentUser.getRole());
+        updateManager.checkForUpdates(BuildConfig.VERSION_CODE, isAdmin);
 
         // Setup bottom navigation
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
@@ -129,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
             popup.getMenu().add(0, 7, 6, "\u23F0 Attendance");
             popup.getMenu().add(0, 8, 7, "\u2694\uFE0F Squad Manager");
             popup.getMenu().add(0, 9, 8, "\u2699\uFE0F App Customizer");
+            popup.getMenu().add(0, 11, 9, "\uD83D\uDCE6 Push Update");
         }
 
         popup.setOnMenuItemClickListener(item -> {
@@ -145,12 +153,94 @@ public class MainActivity extends AppCompatActivity {
             else if (id == 9) {
                 startActivity(new Intent(MainActivity.this, AdminCustomizerActivity.class));
                 return true;
+            } else if (id == 11) {
+                showPushUpdateDialog();
+                return true;
             }
 
             if (fragment != null) loadFragment(fragment, currentUser);
             return true;
         });
         popup.show();
+    }
+
+    private void showPushUpdateDialog() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        builder.setTitle("📦 Push App Update");
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(40, 20, 40, 10);
+
+        TextView infoTv = new TextView(this);
+        infoTv.setText("Set a new version. All players will be prompted to update.");
+        infoTv.setTextColor(Color.parseColor("#94a3b8"));
+        infoTv.setTextSize(12);
+        infoTv.setPadding(0, 0, 0, 12);
+        layout.addView(infoTv);
+
+        EditText versionCodeInput = new EditText(this);
+        versionCodeInput.setHint("Version Code (number, e.g. 3)");
+        versionCodeInput.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        layout.addView(versionCodeInput);
+
+        EditText versionNameInput = new EditText(this);
+        versionNameInput.setHint("Version Name (e.g. 2.1)");
+        layout.addView(versionNameInput);
+
+        EditText downloadUrlInput = new EditText(this);
+        downloadUrlInput.setHint("APK Download URL");
+        downloadUrlInput.setInputType(android.text.InputType.TYPE_TEXT_VARIATION_URI);
+        layout.addView(downloadUrlInput);
+
+        EditText changelogInput = new EditText(this);
+        changelogInput.setHint("What's New (changelog)");
+        changelogInput.setMinLines(3);
+        layout.addView(changelogInput);
+
+        SwitchCompat forceSwitch = new SwitchCompat(this);
+        forceSwitch.setText("Force Update (players must update)");
+        forceSwitch.setTextColor(Color.parseColor("#f1f5f9"));
+        forceSwitch.setTextSize(13);
+        LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        switchParams.setMargins(0, 12, 0, 0);
+        forceSwitch.setLayoutParams(switchParams);
+        layout.addView(forceSwitch);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Push Update", (d, w) -> {
+            String vc = versionCodeInput.getText().toString().trim();
+            String vn = versionNameInput.getText().toString().trim();
+            String url = downloadUrlInput.getText().toString().trim();
+            String cl = changelogInput.getText().toString().trim();
+            boolean force = forceSwitch.isChecked();
+
+            if (vc.isEmpty() || vn.isEmpty() || url.isEmpty()) {
+                android.widget.Toast.makeText(this, "Fill in version code, name, and URL", android.widget.Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            try {
+                int versionCode = Integer.parseInt(vc);
+                AppUpdateManager.setUpdateInfo(versionCode, vn, url, cl.isEmpty() ? "Bug fixes" : cl, force,
+                    new AppUpdateManager.OnUpdateSetCallback() {
+                        @Override public void onSuccess() {
+                            runOnUiThread(() -> android.widget.Toast.makeText(MainActivity.this,
+                                "\u2705 Update pushed! Players will see it on next app open.", android.widget.Toast.LENGTH_LONG).show());
+                        }
+                        @Override public void onFailure(String e) {
+                            runOnUiThread(() -> android.widget.Toast.makeText(MainActivity.this,
+                                "Failed: " + e, android.widget.Toast.LENGTH_SHORT).show());
+                        }
+                    });
+            } catch (NumberFormatException e) {
+                android.widget.Toast.makeText(this, "Version code must be a number", android.widget.Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
     }
 
     private void loadFragment(Fragment fragment, Player user) {
