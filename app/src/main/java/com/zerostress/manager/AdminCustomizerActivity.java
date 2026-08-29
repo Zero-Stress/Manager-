@@ -493,8 +493,7 @@ public class AdminCustomizerActivity extends AppCompatActivity {
         SeekBar seek = new SeekBar(this);
         seek.setMax(255);
         seek.setProgress(value);
-        seek.setThumbTintList(android.content.res.ColorStateList.valueOf(0xFF38bdf8));
-        seek.setProgressTintList(android.content.res.ColorStateList.valueOf(0xFF38bdf8));
+        // Tint handled by theme
         seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar sb, int p, boolean fromUser) {
                 listener.onChanged(p, fromUser);
