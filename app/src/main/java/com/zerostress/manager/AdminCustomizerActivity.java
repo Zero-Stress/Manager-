@@ -14,7 +14,6 @@ import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Spinner;
-import android.widget.SwitchCompat;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,7 +59,7 @@ public class AdminCustomizerActivity extends AppCompatActivity {
         initViews();
         loadCurrentTheme();
         setupPresetThemes();
-        setupColorPickers();
+
         setupListeners();
         updatePreview();
     }
@@ -305,7 +304,7 @@ public class AdminCustomizerActivity extends AppCompatActivity {
         switchSchedule.setOnCheckedChangeListener((b, c) -> current.setShowSchedule(c));
         switchChat.setOnCheckedChangeListener((b, c) -> current.setShowChat(c));
         switchVoiceChat.setOnCheckedChangeListener((b, c) -> current.setShowVoiceChat(c));
-        switchAttendance.setOnCheckedChangeListener((b, c) -> current.setAttendance(c));
+        switchAttendance.setOnCheckedChangeListener((b, c) -> current.setShowAttendance(c));
 
         // Text changes
         inputAppName.setOnFocusChangeListener((v, hasFocus) -> {

@@ -7,9 +7,13 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -64,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
         // Check for app updates
         updateManager = new AppUpdateManager(this);
         boolean isAdmin = "admin".equals(currentUser.getRole());
-        updateManager.checkForUpdates(BuildConfig.VERSION_CODE, isAdmin);
+        updateManager.checkForUpdates(com.zerostress.manager.BuildConfig.VERSION_CODE, isAdmin);
 
         // Setup bottom navigation
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
