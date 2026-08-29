@@ -3,25 +3,25 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#090d16"
-    android:padding="16dp">
+    android:background="#090d16">
 
-    <!-- Header -->
+    <!-- Status bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:padding="12dp"
         android:gravity="center_vertical"
-        android:paddingBottom="8dp">
+        android:background="#0f1729">
 
         <TextView
             android:id="@+id/voice_channel_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="\ud83c\udfa4 Voice Channel"
-            android:textColor="#38bdf8"
-            android:textSize="18sp"
+            android:text="🎤 Voice Channel"
+            android:textColor="#f1f5f9"
+            android:textSize="16sp"
             android:textStyle="bold" />
 
         <TextView
@@ -29,7 +29,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="00:00"
-            android:textColor="#94a3b8"
+            android:textColor="#38bdf8"
             android:textSize="14sp"
             android:fontFamily="monospace" />
     </LinearLayout>
@@ -39,92 +39,54 @@
         android:id="@+id/voice_status"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="\ud83d\udfe1 Connecting..."
-        android:textColor="#10b981"
+        android:text="🟡 Connecting..."
+        android:textColor="#f59e0b"
         android:textSize="12sp"
-        android:paddingBottom="8dp" />
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp"
+        android:background="#0f1729" />
 
-    <!-- Info text -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#0f1729"
-        android:padding="12dp"
-        android:layout_marginBottom="12dp"
-        android:orientation="vertical">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="\ud83d\udca1 Jitsi Meet voice chat is opening in a moment..."
-            android:textColor="#f59e0b"
-            android:textSize="12sp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="\u2022 Built-in noise cancellation \u2022 Echo cancellation \u2022 Auto gain control"
-            android:textColor="#94a3b8"
-            android:textSize="11sp"
-            android:paddingTop="4dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="\u2022 Tap mic icon in Jitsi to mute/unmute \u2022 Use speaker icon for audio output"
-            android:textColor="#94a3b8"
-            android:textSize="11sp"
-            android:paddingTop="2dp" />
-    </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#1e3a5f"
-        android:layout_marginBottom="8dp" />
-
-    <!-- Participants -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="\ud83d\udc65 In Voice"
-        android:textColor="#94a3b8"
-        android:textSize="12sp"
-        android:paddingBottom="8dp" />
-
+    <!-- Participants list (scrollable) -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:background="#090d16">
 
         <LinearLayout
             android:id="@+id/participants_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" />
+            android:orientation="vertical"
+            android:padding="8dp" />
     </ScrollView>
 
-    <!-- Leave Button -->
-    <Button
-        android:id="@+id/btn_leave"
+    <!-- WebView for Jitsi Meet (hidden, handles voice in background) -->
+    <WebView
+        android:id="@+id/webview"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:visibility="visible" />
+
+    <!-- Bottom controls -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:text="\ud83d\udcde Leave Voice"
-        android:backgroundTint="#ef4444"
-        android:textColor="#ffffff"
-        android:textStyle="bold"
-        android:layout_marginTop="12dp" />
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="16dp"
+        android:background="#0f1729">
 
-    <!-- Hidden buttons (needed by Java but not shown) -->
-    <LinearLayout
-        android:id="@+id/btn_mute"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone" />
-
-    <LinearLayout
-        android:id="@+id/btn_speaker"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone" />
+        <TextView
+            android:id="@+id/btn_leave"
+            android:layout_width="200dp"
+            android:layout_height="52dp"
+            android:background="@drawable/btn_danger"
+            android:gravity="center"
+            android:text="📞 Leave Voice"
+            android:textColor="#ffffff"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:padding="8dp" />
+    </LinearLayout>
 </LinearLayout>

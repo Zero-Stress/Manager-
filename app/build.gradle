@@ -66,10 +66,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-firestore'
     implementation 'com.google.firebase:firebase-messaging'
 
-    // Jitsi Meet SDK - FREE voice/video chat, no API key needed!
-    implementation 'org.jitsi:jitsi-meet-sdk:8.3.2'
-
-    // Firebase Auth (Jitsi needs it for user identity)
+    // Firebase Auth
     implementation 'com.google.firebase:firebase-auth'
 
     // Color picker for admin customizer
