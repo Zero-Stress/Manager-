@@ -497,10 +497,10 @@ public class AdminCustomizerActivity extends AppCompatActivity {
         seek.setProgressTintList(android.content.res.ColorStateList.valueOf(0xFF38bdf8));
         seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar sb, int p, boolean fromUser) {
-            @Override
-            public void onProgressChanged(SeekBar sb, int p, boolean fromUser) {
                 listener.onChanged(p, fromUser);
             }
+            @Override public void onStartTrackingTouch(SeekBar sb) {}
+            @Override public void onStopTrackingTouch(SeekBar sb) {}
         });
         row.addView(seek);
 
