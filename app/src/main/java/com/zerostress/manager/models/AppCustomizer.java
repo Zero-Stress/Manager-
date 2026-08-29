@@ -52,8 +52,6 @@ public class AppCustomizer implements Serializable {
     private int buttonCornerRadius = 12;      // Button corner radius in dp
     private float buttonTextSize = 14f;       // Button text size in sp
     private int iconSize = 24;                // Icon size in dp
-    private float headerTextSize = 20f;       // Header text size in sp
-    private float bodyTextSize = 14f;         // Body text size in sp
     private int inputHeight = 44;             // Input field height in dp
     private int navBarHeight = 56;            // Bottom nav bar height in dp
 

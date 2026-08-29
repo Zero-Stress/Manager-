@@ -150,93 +150,114 @@ public class AdminCustomizerActivity extends AppCompatActivity {
     }
 
     private void setupSizeControls() {
+        SeekBar.OnSeekBarChangeListener emptyListener = new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar sb, int p, boolean f) {}
+            @Override public void onStartTrackingTouch(SeekBar sb) {}
+            @Override public void onStopTrackingTouch(SeekBar sb) {}
+        };
+
         // Button Height (20-80)
         seekBtnHeight.setProgress(current.getButtonHeight() - 20);
         btnHeightVal.setText(current.getButtonHeight() + "dp");
-        seekBtnHeight.setOnSeekBarChangeListener(new SeekBar.SimpleOnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar sb, int p, boolean fromUser) {
-                int val = p + 20;
-                current.setButtonHeight(val);
-                btnHeightVal.setText(val + "dp");
+        seekBtnHeight.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar sb, int p, boolean f) {
+                current.setButtonHeight(p + 20);
+                btnHeightVal.setText((p + 20) + "dp");
                 updatePreview();
             }
+            @Override public void onStartTrackingTouch(SeekBar sb) {}
+            @Override public void onStopTrackingTouch(SeekBar sb) {}
         });
 
         // Button Corner Radius (0-30)
         seekBtnRadius.setProgress(current.getButtonCornerRadius());
         btnRadiusVal.setText(current.getButtonCornerRadius() + "dp");
-        seekBtnRadius.setOnSeekBarChangeListener(new SeekBar.SimpleOnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar sb, int p, boolean fromUser) {
+        seekBtnRadius.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar sb, int p, boolean f) {
                 current.setButtonCornerRadius(p);
                 btnRadiusVal.setText(p + "dp");
                 updatePreview();
             }
+            @Override public void onStartTrackingTouch(SeekBar sb) {}
+            @Override public void onStopTrackingTouch(SeekBar sb) {}
         });
 
         // Button Text Size (10-20)
         seekBtnTextSize.setProgress((int)(current.getButtonTextSize()) - 10);
         btnTextSizeVal.setText((int)current.getButtonTextSize() + "sp");
-        seekBtnTextSize.setOnSeekBarChangeListener(new SeekBar.SimpleOnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar sb, int p, boolean fromUser) {
+        seekBtnTextSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar sb, int p, boolean f) {
                 current.setButtonTextSize(p + 10);
                 btnTextSizeVal.setText((p + 10) + "sp");
                 updatePreview();
             }
+            @Override public void onStartTrackingTouch(SeekBar sb) {}
+            @Override public void onStopTrackingTouch(SeekBar sb) {}
         });
 
         // Icon Size (12-40)
         seekIconSize.setProgress(current.getIconSize() - 12);
         iconSizeVal.setText(current.getIconSize() + "dp");
-        seekIconSize.setOnSeekBarChangeListener(new SeekBar.SimpleOnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar sb, int p, boolean fromUser) {
+        seekIconSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar sb, int p, boolean f) {
                 current.setIconSize(p + 12);
                 iconSizeVal.setText((p + 12) + "dp");
                 updatePreview();
             }
+            @Override public void onStartTrackingTouch(SeekBar sb) {}
+            @Override public void onStopTrackingTouch(SeekBar sb) {}
         });
 
         // Header Text Size (14-28)
         seekHeaderTextSize.setProgress((int)current.getHeaderTextSize() - 14);
         headerTextSizeVal.setText((int)current.getHeaderTextSize() + "sp");
-        seekHeaderTextSize.setOnSeekBarChangeListener(new SeekBar.SimpleOnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar sb, int p, boolean fromUser) {
+        seekHeaderTextSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar sb, int p, boolean f) {
                 current.setHeaderTextSize(p + 14);
                 headerTextSizeVal.setText((p + 14) + "sp");
                 updatePreview();
             }
+            @Override public void onStartTrackingTouch(SeekBar sb) {}
+            @Override public void onStopTrackingTouch(SeekBar sb) {}
         });
 
         // Body Text Size (10-20)
         seekBodyTextSize.setProgress((int)current.getBodyTextSize() - 10);
         bodyTextSizeVal.setText((int)current.getBodyTextSize() + "sp");
-        seekBodyTextSize.setOnSeekBarChangeListener(new SeekBar.SimpleOnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar sb, int p, boolean fromUser) {
+        seekBodyTextSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar sb, int p, boolean f) {
                 current.setBodyTextSize(p + 10);
                 bodyTextSizeVal.setText((p + 10) + "sp");
                 updatePreview();
             }
+            @Override public void onStartTrackingTouch(SeekBar sb) {}
+            @Override public void onStopTrackingTouch(SeekBar sb) {}
         });
 
         // Input Height (32-72)
         seekInputHeight.setProgress(current.getInputHeight() - 32);
         inputHeightVal.setText(current.getInputHeight() + "dp");
-        seekInputHeight.setOnSeekBarChangeListener(new SeekBar.SimpleOnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar sb, int p, boolean fromUser) {
+        seekInputHeight.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar sb, int p, boolean f) {
                 current.setInputHeight(p + 32);
                 inputHeightVal.setText((p + 32) + "dp");
                 updatePreview();
             }
+            @Override public void onStartTrackingTouch(SeekBar sb) {}
+            @Override public void onStopTrackingTouch(SeekBar sb) {}
         });
 
         // Nav Bar Height (40-80)
         seekNavBarHeight.setProgress(current.getNavBarHeight() - 40);
         navBarHeightVal.setText(current.getNavBarHeight() + "dp");
-        seekNavBarHeight.setOnSeekBarChangeListener(new SeekBar.SimpleOnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar sb, int p, boolean fromUser) {
+        seekNavBarHeight.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar sb, int p, boolean f) {
                 current.setNavBarHeight(p + 40);
                 navBarHeightVal.setText((p + 40) + "dp");
                 updatePreview();
             }
+            @Override public void onStartTrackingTouch(SeekBar sb) {}
+            @Override public void onStopTrackingTouch(SeekBar sb) {}
         });
     }
 
@@ -474,9 +495,10 @@ public class AdminCustomizerActivity extends AppCompatActivity {
         seek.setProgress(value);
         seek.setThumbTintList(android.content.res.ColorStateList.valueOf(0xFF38bdf8));
         seek.setProgressTintList(android.content.res.ColorStateList.valueOf(0xFF38bdf8));
-        seek.setOnSeekBarChangeListener(new SeekBar.SimpleOnSeekBarChangeListener() {
+        seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar sb, int p, boolean fromUser) {
-                val.setText(String.valueOf(p));
+            @Override
+            public void onProgressChanged(SeekBar sb, int p, boolean fromUser) {
                 listener.onChanged(p, fromUser);
             }
         });
