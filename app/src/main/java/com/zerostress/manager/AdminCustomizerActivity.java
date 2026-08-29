@@ -2,7 +2,6 @@ package com.zerostress.manager;
 
 import android.app.AlertDialog;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -10,7 +9,6 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Spinner;
@@ -19,7 +17,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
-import androidx.core.content.ContextCompat;
 
 import com.zerostress.manager.models.AppCustomizer;
 
@@ -36,8 +33,7 @@ public class AdminCustomizerActivity extends AppCompatActivity {
     private SwitchCompat switchOnline, switchAchievements, switchRewards, switchAnalytics;
     private SwitchCompat switchSquads, switchTournaments, switchSchedule;
     private SwitchCompat switchChat, switchVoiceChat, switchAttendance;
-    private LinearLayout previewContainer, presetContainer;
-    private GridLayout colorGrid;
+    private LinearLayout previewContainer, presetContainer, colorGrid;
 
     private SeekBar seekBtnHeight, seekBtnRadius, seekBtnTextSize, seekIconSize;
     private SeekBar seekHeaderTextSize, seekBodyTextSize, seekInputHeight, seekNavBarHeight;
@@ -47,58 +43,51 @@ public class AdminCustomizerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_admin_customizer);
+        try {
+            setContentView(R.layout.activity_admin_customizer);
+        } catch (Exception e) {
+            Toast.makeText(this, "Layout error", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         try {
             themeManager = ThemeManager.getInstance(this);
             current = themeManager.getTheme();
-
-            initViews();
-            loadCurrentTheme();
-            setupPresetThemes();
-            setupSizeControls();
-            setupListeners();
-            tintViews();
-            updatePreview();
+            if (current == null) current = new AppCustomizer();
         } catch (Exception e) {
-            Toast.makeText(this, "Customizer error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Theme error", Toast.LENGTH_SHORT).show();
             finish();
-        }
-    }
-
-    /** Apply tints programmatically (safe — won't crash if unsupported) */
-    private void tintViews() {
-        int blue = 0xFF38bdf8;
-        int darkInput = 0xFF1e3a5f;
-
-        // Tint SeekBars
-        SeekBar[] seeks = {seekBtnHeight, seekBtnRadius, seekBtnTextSize, seekIconSize,
-                seekHeaderTextSize, seekBodyTextSize, seekInputHeight, seekNavBarHeight,
-                seekRadius, seekPadding};
-        for (SeekBar s : seeks) {
-            if (s == null) continue;
-            try {
-                s.getThumb().setTint(blue);
-                s.getProgressDrawable().setTint(blue);
-            } catch (Exception ignored) {}
+            return;
         }
 
-        // Tint Save button
         try {
-            Button saveBtn = findViewById(R.id.save_btn);
-            saveBtn.setBackgroundColor(0xFF10b981);
+            initViews();
+        } catch (Exception e) {
+            Toast.makeText(this, "View error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        try {
+            loadCurrentTheme();
         } catch (Exception ignored) {}
 
-        // Tint SwitchCompat thumbs
-        SwitchCompat[] switches = {switchRounded, switchGradient, switchOnline,
-                switchAchievements, switchRewards, switchAnalytics, switchSquads,
-                switchTournaments, switchSchedule, switchChat, switchVoiceChat, switchAttendance};
-        for (SwitchCompat sw : switches) {
-            if (sw == null) continue;
-            try {
-                sw.getThumbTintList();
-            } catch (Exception ignored) {}
-        }
+        try {
+            setupPresetThemes();
+        } catch (Exception ignored) {}
+
+        try {
+            setupSizeControls();
+        } catch (Exception ignored) {}
+
+        try {
+            setupListeners();
+        } catch (Exception ignored) {}
+
+        try {
+            updatePreview();
+        } catch (Exception ignored) {}
     }
 
     private void initViews() {
@@ -153,8 +142,8 @@ public class AdminCustomizerActivity extends AppCompatActivity {
     }
 
     private void loadCurrentTheme() {
-        inputAppName.setText(nvl(current.getAppName(), "Zero Stress"));
-        inputWelcomeMsg.setText(nvl(current.getWelcomeMessage(), "Welcome!"));
+        if (inputAppName != null) inputAppName.setText(nvl(current.getAppName(), "Zero Stress"));
+        if (inputWelcomeMsg != null) inputWelcomeMsg.setText(nvl(current.getWelcomeMessage(), "Welcome!"));
 
         String[] fonts = {"sans-serif", "serif", "monospace"};
         for (int i = 0; i < fonts.length; i++) {
@@ -164,9 +153,9 @@ public class AdminCustomizerActivity extends AppCompatActivity {
             }
         }
 
-        seekRadius.setProgress(safeProgress(current.getCardCornerRadius(), 32, 16));
+        seekRadius.setProgress(clamp(current.getCardCornerRadius(), 0, 32));
         radiusValue.setText(current.getCardCornerRadius() + "dp");
-        seekPadding.setProgress(safeProgress(current.getCardPadding(), 32, 16));
+        seekPadding.setProgress(clamp(current.getCardPadding(), 0, 32));
         paddingValue.setText(current.getCardPadding() + "dp");
 
         switchRounded.setChecked(current.isRoundedCards());
@@ -186,7 +175,6 @@ public class AdminCustomizerActivity extends AppCompatActivity {
     }
 
     private void setupSizeControls() {
-        // Button Height (20-80)
         int bh = clamp(current.getButtonHeight(), 20, 80);
         seekBtnHeight.setProgress(bh - 20);
         btnHeightVal.setText(bh + "dp");
@@ -200,7 +188,6 @@ public class AdminCustomizerActivity extends AppCompatActivity {
             @Override public void onStopTrackingTouch(SeekBar sb) {}
         });
 
-        // Button Corner Radius (0-30)
         int br = clamp(current.getButtonCornerRadius(), 0, 30);
         seekBtnRadius.setProgress(br);
         btnRadiusVal.setText(br + "dp");
@@ -214,7 +201,6 @@ public class AdminCustomizerActivity extends AppCompatActivity {
             @Override public void onStopTrackingTouch(SeekBar sb) {}
         });
 
-        // Button Text Size (10-20)
         int bts = clamp((int) current.getButtonTextSize(), 10, 20);
         seekBtnTextSize.setProgress(bts - 10);
         btnTextSizeVal.setText(bts + "sp");
@@ -228,7 +214,6 @@ public class AdminCustomizerActivity extends AppCompatActivity {
             @Override public void onStopTrackingTouch(SeekBar sb) {}
         });
 
-        // Icon Size (12-40)
         int is = clamp(current.getIconSize(), 12, 40);
         seekIconSize.setProgress(is - 12);
         iconSizeVal.setText(is + "dp");
@@ -242,7 +227,6 @@ public class AdminCustomizerActivity extends AppCompatActivity {
             @Override public void onStopTrackingTouch(SeekBar sb) {}
         });
 
-        // Header Text Size (14-28)
         int hts = clamp((int) current.getHeaderTextSize(), 14, 28);
         seekHeaderTextSize.setProgress(hts - 14);
         headerTextSizeVal.setText(hts + "sp");
@@ -256,7 +240,6 @@ public class AdminCustomizerActivity extends AppCompatActivity {
             @Override public void onStopTrackingTouch(SeekBar sb) {}
         });
 
-        // Body Text Size (10-20)
         int bts2 = clamp((int) current.getBodyTextSize(), 10, 20);
         seekBodyTextSize.setProgress(bts2 - 10);
         bodyTextSizeVal.setText(bts2 + "sp");
@@ -270,7 +253,6 @@ public class AdminCustomizerActivity extends AppCompatActivity {
             @Override public void onStopTrackingTouch(SeekBar sb) {}
         });
 
-        // Input Height (32-72)
         int ih = clamp(current.getInputHeight(), 32, 72);
         seekInputHeight.setProgress(ih - 32);
         inputHeightVal.setText(ih + "dp");
@@ -284,7 +266,6 @@ public class AdminCustomizerActivity extends AppCompatActivity {
             @Override public void onStopTrackingTouch(SeekBar sb) {}
         });
 
-        // Nav Bar Height (40-80)
         int nh = clamp(current.getNavBarHeight(), 40, 80);
         seekNavBarHeight.setProgress(nh - 40);
         navBarHeightVal.setText(nh + "dp");
@@ -308,31 +289,26 @@ public class AdminCustomizerActivity extends AppCompatActivity {
             {"gold", "\uD83C\uDFC6 Gold", "#eab308"},
             {"midnight", "\uD83C\uDF19 Midnight", "#6366f1"}
         };
-
         presetContainer.removeAllViews();
-
-        for (String[] preset : presets) {
+        for (String[] p : presets) {
             LinearLayout item = new LinearLayout(this);
             item.setOrientation(LinearLayout.VERTICAL);
             item.setGravity(Gravity.CENTER);
             item.setPadding(8, 8, 8, 8);
-
             TextView circle = new TextView(this);
             circle.setText("\u25CF");
             circle.setTextSize(28);
-            circle.setTextColor(safeColor(preset[2]));
+            circle.setTextColor(safeColor(p[2]));
             circle.setGravity(Gravity.CENTER);
             item.addView(circle);
-
             TextView label = new TextView(this);
-            label.setText(preset[1]);
+            label.setText(p[1]);
             label.setTextColor(0xFF94a3b8);
             label.setTextSize(10);
             label.setGravity(Gravity.CENTER);
             item.addView(label);
-
-            item.setOnClickListener(v -> applyPreset(preset[0]));
-
+            final String presetName = p[0];
+            item.setOnClickListener(v -> applyPreset(presetName));
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0,
                     LinearLayout.LayoutParams.WRAP_CONTENT, 1);
             item.setLayoutParams(params);
@@ -345,12 +321,11 @@ public class AdminCustomizerActivity extends AppCompatActivity {
         loadCurrentTheme();
         setupSizeControls();
         updatePreview();
-        Toast.makeText(this, "Applied " + name + " theme", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Applied " + name, Toast.LENGTH_SHORT).show();
     }
 
     private void setupColorButtons() {
         colorGrid.removeAllViews();
-
         String[][] colors = {
             {"Primary", current.getPrimaryColor()},
             {"Secondary", current.getSecondaryColor()},
@@ -359,46 +334,57 @@ public class AdminCustomizerActivity extends AppCompatActivity {
             {"Input", current.getInputColor()},
             {"Nav Bar", current.getNavBarColor()},
             {"Text", current.getTextColor()},
-            {"Muted Text", current.getSecondaryTextColor()},
+            {"Muted", current.getSecondaryTextColor()},
             {"Danger", current.getDangerColor()},
             {"Warning", current.getWarningColor()},
             {"Border", current.getBorderColor()}
         };
+        // Row 1
+        LinearLayout row1 = new LinearLayout(this);
+        row1.setOrientation(LinearLayout.HORIZONTAL);
+        for (int i = 0; i < Math.min(6, colors.length); i++) {
+            row1.addView(makeColorButton(colors[i][0], safeColor(colors[i][1])));
+        }
+        colorGrid.addView(row1);
+        // Row 2
+        if (colors.length > 6) {
+            LinearLayout row2 = new LinearLayout(this);
+            row2.setOrientation(LinearLayout.HORIZONTAL);
+            for (int i = 6; i < colors.length; i++) {
+                row2.addView(makeColorButton(colors[i][0], safeColor(colors[i][1])));
+            }
+            colorGrid.addView(row2);
+        }
+    }
 
-        for (String[] color : colors) {
-            LinearLayout item = new LinearLayout(this);
-            item.setOrientation(LinearLayout.VERTICAL);
-            item.setGravity(Gravity.CENTER);
-            item.setPadding(4, 4, 4, 4);
-
-            TextView circle = new TextView(this);
-            circle.setText("\u25CF");
-            circle.setTextSize(32);
-            circle.setTextColor(safeColor(color[1]));
-            circle.setGravity(Gravity.CENTER);
-            item.addView(circle);
-
-            TextView label = new TextView(this);
-            label.setText(color[0]);
-            label.setTextColor(0xFF94a3b8);
-            label.setTextSize(9);
-            label.setGravity(Gravity.CENTER);
-            item.addView(label);
-
-            final String colorName = color[0];
-            final int curColor = safeColor(color[1]);
-            item.setOnClickListener(v -> showBuiltInColorPicker(colorName, curColor, newColor -> {
-                applyColor(colorName, newColor);
+    private LinearLayout makeColorButton(String name, int color) {
+        LinearLayout item = new LinearLayout(this);
+        item.setOrientation(LinearLayout.VERTICAL);
+        item.setGravity(Gravity.CENTER);
+        item.setPadding(6, 6, 6, 6);
+        TextView circle = new TextView(this);
+        circle.setText("\u25CF");
+        circle.setTextSize(28);
+        circle.setTextColor(color);
+        circle.setGravity(Gravity.CENTER);
+        item.addView(circle);
+        TextView label = new TextView(this);
+        label.setText(name);
+        label.setTextColor(0xFF94a3b8);
+        label.setTextSize(9);
+        label.setGravity(Gravity.CENTER);
+        item.addView(label);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0,
+                LinearLayout.LayoutParams.WRAP_CONTENT, 1);
+        item.setLayoutParams(params);
+        item.setOnClickListener(v -> {
+            showBuiltInColorPicker(name, color, newColor -> {
+                applyColor(name, newColor);
                 setupColorButtons();
                 updatePreview();
-            }));
-
-            GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-            params.width = 0;
-            params.columnSpec = GridLayout.spec(0, 1f);
-            item.setLayoutParams(params);
-            colorGrid.addView(item);
-        }
+            });
+        });
+        return item;
     }
 
     private void applyColor(String name, String hex) {
@@ -410,7 +396,7 @@ public class AdminCustomizerActivity extends AppCompatActivity {
             case "Input": current.setInputColor(hex); break;
             case "Nav Bar": current.setNavBarColor(hex); break;
             case "Text": current.setTextColor(hex); break;
-            case "Muted Text": current.setSecondaryTextColor(hex); break;
+            case "Muted": current.setSecondaryTextColor(hex); break;
             case "Danger": current.setDangerColor(hex); break;
             case "Warning": current.setWarningColor(hex); break;
             case "Border": current.setBorderColor(hex); break;
@@ -432,26 +418,9 @@ public class AdminCustomizerActivity extends AppCompatActivity {
         preview.setGravity(Gravity.CENTER);
         layout.addView(preview);
 
-        // R slider
-        layout.addView(createSlider("Red", rgb[0], (progress, fromUser) -> {
-            rgb[0] = progress;
-            selectedColor[0] = Color.rgb(rgb[0], rgb[1], rgb[2]);
-            preview.setTextColor(selectedColor[0]);
-        }));
-
-        // G slider
-        layout.addView(createSlider("Green", rgb[1], (progress, fromUser) -> {
-            rgb[1] = progress;
-            selectedColor[0] = Color.rgb(rgb[0], rgb[1], rgb[2]);
-            preview.setTextColor(selectedColor[0]);
-        }));
-
-        // B slider
-        layout.addView(createSlider("Blue", rgb[2], (progress, fromUser) -> {
-            rgb[2] = progress;
-            selectedColor[0] = Color.rgb(rgb[0], rgb[1], rgb[2]);
-            preview.setTextColor(selectedColor[0]);
-        }));
+        layout.addView(makeSlider("Red", rgb[0], p -> { rgb[0] = p; selectedColor[0] = Color.rgb(rgb[0], rgb[1], rgb[2]); preview.setTextColor(selectedColor[0]); }));
+        layout.addView(makeSlider("Green", rgb[1], p -> { rgb[1] = p; selectedColor[0] = Color.rgb(rgb[0], rgb[1], rgb[2]); preview.setTextColor(selectedColor[0]); }));
+        layout.addView(makeSlider("Blue", rgb[2], p -> { rgb[2] = p; selectedColor[0] = Color.rgb(rgb[0], rgb[1], rgb[2]); preview.setTextColor(selectedColor[0]); }));
 
         TextView hexTv = new TextView(this);
         hexTv.setText(String.format("#%06X", 0xFFFFFF & selectedColor[0]));
@@ -460,7 +429,6 @@ public class AdminCustomizerActivity extends AppCompatActivity {
         hexTv.setPadding(0, 8, 0, 0);
         layout.addView(hexTv);
 
-        // Quick presets
         LinearLayout presets = new LinearLayout(this);
         presets.setOrientation(LinearLayout.HORIZONTAL);
         presets.setGravity(Gravity.CENTER);
@@ -494,53 +462,41 @@ public class AdminCustomizerActivity extends AppCompatActivity {
             .show();
     }
 
-    private LinearLayout createSlider(String label, int value, SliderListener listener) {
+    interface SliderListener { void onChanged(int progress); }
+    interface ColorPickedListener { void onColorPicked(String hex); }
+
+    private LinearLayout makeSlider(String label, int value, SliderListener listener) {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.VERTICAL);
         row.setPadding(0, 8, 0, 8);
-
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
-
         TextView name = new TextView(this);
         name.setText(label);
         name.setTextColor(0xFF94a3b8);
         name.setTextSize(12);
-        name.setLayoutParams(new LinearLayout.LayoutParams(0,
-                LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+        name.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
         header.addView(name);
-
         TextView val = new TextView(this);
         val.setText(String.valueOf(value));
         val.setTextColor(0xFF38bdf8);
         val.setTextSize(12);
         header.addView(val);
-
         row.addView(header);
-
         SeekBar seek = new SeekBar(this);
         seek.setMax(255);
         seek.setProgress(value);
         seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar sb, int p, boolean fromUser) {
-                listener.onChanged(p, fromUser);
+            @Override public void onProgressChanged(SeekBar sb, int p, boolean f) {
+                listener.onChanged(p);
                 val.setText(String.valueOf(p));
             }
             @Override public void onStartTrackingTouch(SeekBar sb) {}
             @Override public void onStopTrackingTouch(SeekBar sb) {}
         });
         row.addView(seek);
-
         return row;
-    }
-
-    interface SliderListener {
-        void onChanged(int progress, boolean fromUser);
-    }
-
-    interface ColorPickedListener {
-        void onColorPicked(String hex);
     }
 
     private void setupListeners() {
@@ -586,17 +542,13 @@ public class AdminCustomizerActivity extends AppCompatActivity {
         });
     }
 
-    // ==================== LIVE PREVIEW ====================
-
     private void updatePreview() {
         try {
             previewContainer.removeAllViews();
             previewContainer.setBackgroundColor(safeColor(current.getCardColor()));
-
             int pad = Math.max(current.getCardPadding(), 8);
             int radius = Math.max(current.getCardCornerRadius(), 4);
 
-            // Header
             LinearLayout header = new LinearLayout(this);
             header.setOrientation(LinearLayout.VERTICAL);
             header.setPadding(pad, pad, pad, pad);
@@ -607,38 +559,32 @@ public class AdminCustomizerActivity extends AppCompatActivity {
                 bg.setCornerRadius(radius * 2f);
                 header.setBackground(bg);
             }
-
             TextView headerText = new TextView(this);
             headerText.setText(nvl(current.getAppName(), "Zero Stress"));
             headerText.setTextColor(safeColor(current.getBackgroundColor()));
             headerText.setTextSize(Math.max(current.getHeaderTextSize(), 14));
             headerText.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
             header.addView(headerText);
-
             TextView subtitle = new TextView(this);
             subtitle.setText(nvl(current.getWelcomeMessage(), "Welcome!"));
             subtitle.setTextColor(safeColor(current.getBackgroundColor()));
             subtitle.setTextSize(12);
             subtitle.setAlpha(0.8f);
             header.addView(subtitle);
-
             previewContainer.addView(header);
 
-            // Nav bar
             TextView navBar = new TextView(this);
-            navBar.setText("   \u2302 Home    \uD83D\uDCCA Stats    \uD83D\uDCAC Chat    \u2699\uFE0F More   ");
+            navBar.setText("   Home    Stats    Chat    More   ");
             navBar.setTextColor(safeColor(current.getTextColor()));
             navBar.setTextSize(10);
             navBar.setGravity(Gravity.CENTER);
             navBar.setPadding(pad, 8, pad, 8);
             navBar.setBackgroundColor(safeColor(current.getNavBarColor()));
             LinearLayout.LayoutParams navParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    Math.max(current.getNavBarHeight(), 40));
+                    LinearLayout.LayoutParams.MATCH_PARENT, Math.max(current.getNavBarHeight(), 40));
             navBar.setLayoutParams(navParams);
             previewContainer.addView(navBar);
 
-            // Card
             LinearLayout card = new LinearLayout(this);
             card.setOrientation(LinearLayout.VERTICAL);
             card.setPadding(pad, pad, pad, pad);
@@ -656,32 +602,11 @@ public class AdminCustomizerActivity extends AppCompatActivity {
             card.setLayoutParams(cardParams);
 
             TextView player = new TextView(this);
-            player.setText("\uD83D\uDC64 Player Name  \uD83D\uDD34 Offline");
+            player.setText("Player Name - Offline");
             player.setTextColor(safeColor(current.getTextColor()));
             player.setTextSize(Math.max(current.getBodyTextSize(), 12));
             card.addView(player);
 
-            TextView stats = new TextView(this);
-            stats.setText("Kills: 45 | Wins: 12 | Damage: 8500");
-            stats.setTextColor(safeColor(current.getSecondaryTextColor()));
-            stats.setTextSize(12);
-            stats.setPadding(0, 4, 0, 4);
-            card.addView(stats);
-
-            // Input preview
-            EditText inputPreview = new EditText(this);
-            inputPreview.setHint("Input field preview");
-            inputPreview.setTextSize(Math.max(current.getButtonTextSize(), 12));
-            inputPreview.setTextColor(safeColor(current.getTextColor()));
-            inputPreview.setBackgroundColor(safeColor(current.getInputColor()));
-            LinearLayout.LayoutParams inputParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    Math.max(current.getInputHeight(), 32));
-            inputParams.setMargins(0, 0, 0, 8);
-            inputPreview.setLayoutParams(inputParams);
-            card.addView(inputPreview);
-
-            // Button row
             LinearLayout btnRow = new LinearLayout(this);
             btnRow.setOrientation(LinearLayout.HORIZONTAL);
             btnRow.setPadding(0, 8, 0, 0);
@@ -696,8 +621,7 @@ public class AdminCustomizerActivity extends AppCompatActivity {
             btnBg.setCornerRadius(Math.max(current.getButtonCornerRadius(), 4));
             primaryBtn.setBackground(btnBg);
             LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    Math.max(current.getButtonHeight(), 32));
+                    LinearLayout.LayoutParams.WRAP_CONTENT, Math.max(current.getButtonHeight(), 32));
             primaryBtn.setLayoutParams(btnParams);
             btnRow.addView(primaryBtn);
 
@@ -710,66 +634,38 @@ public class AdminCustomizerActivity extends AppCompatActivity {
             dangerBg.setCornerRadius(Math.max(current.getButtonCornerRadius(), 4));
             dangerBtn.setBackground(dangerBg);
             LinearLayout.LayoutParams dangerParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    Math.max(current.getButtonHeight(), 32));
+                    LinearLayout.LayoutParams.WRAP_CONTENT, Math.max(current.getButtonHeight(), 32));
             dangerParams.setMarginStart(8);
             dangerBtn.setLayoutParams(dangerParams);
             btnRow.addView(dangerBtn);
 
             card.addView(btnRow);
             previewContainer.addView(card);
-
-        } catch (Exception e) {
-            // Preview error — don't crash the activity
-        }
+        } catch (Exception ignored) {}
     }
-
-    // ==================== SAVE ====================
 
     private void saveTheme() {
         current.setAppName(inputAppName.getText().toString().trim());
         current.setWelcomeMessage(inputWelcomeMsg.getText().toString().trim());
-
         String[] fonts = {"sans-serif", "serif", "monospace"};
         current.setFontFamily(fonts[spinnerFont.getSelectedItemPosition()]);
         current.setCardCornerRadius(seekRadius.getProgress());
         current.setCardPadding(seekPadding.getProgress());
-
         themeManager.saveToFirestore(current, new ThemeManager.OnSaveCallback() {
-            @Override
-            public void onSuccess() {
+            @Override public void onSuccess() {
                 runOnUiThread(() -> {
-                    Toast.makeText(AdminCustomizerActivity.this,
-                            "\u2705 Theme saved! Changes apply to all users.",
-                            Toast.LENGTH_LONG).show();
+                    Toast.makeText(AdminCustomizerActivity.this, "Theme saved!", Toast.LENGTH_LONG).show();
                     finish();
                 });
             }
-
-            @Override
-            public void onFailure(String error) {
-                runOnUiThread(() -> {
-                    Toast.makeText(AdminCustomizerActivity.this,
-                            "Failed to save: " + error,
-                            Toast.LENGTH_SHORT).show();
-                });
+            @Override public void onFailure(String error) {
+                runOnUiThread(() -> Toast.makeText(AdminCustomizerActivity.this, "Failed: " + error, Toast.LENGTH_SHORT).show());
             }
         });
     }
 
-    // ==================== HELPERS ====================
-
     private int safeColor(String hex) {
-        try {
-            return Color.parseColor(hex);
-        } catch (Exception e) {
-            return Color.GRAY;
-        }
-    }
-
-    private int safeProgress(int value, int max, int def) {
-        if (value < 0 || value > max) return def;
-        return value;
+        try { return Color.parseColor(hex); } catch (Exception e) { return Color.GRAY; }
     }
 
     private int clamp(int value, int min, int max) {

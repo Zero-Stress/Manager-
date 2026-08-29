@@ -67,7 +67,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- SECTION: PRESET THEMES -->
+            <!-- PRESET THEMES -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -84,7 +84,7 @@
                 android:orientation="horizontal"
                 android:paddingBottom="16dp" />
 
-            <!-- SECTION: APP SETTINGS -->
+            <!-- APP SETTINGS -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -151,7 +151,7 @@
                 android:background="#1e3a5f"
                 android:layout_marginBottom="16dp" />
 
-            <!-- SECTION: COLORS -->
+            <!-- COLORS -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -161,15 +161,14 @@
                 android:textStyle="bold"
                 android:paddingBottom="8dp" />
 
-            <GridLayout
+            <LinearLayout
                 android:id="@+id/color_grid"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:columnCount="3"
-                android:useDefaultMargins="true"
-                android:layout_marginBottom="16dp" />
+                android:orientation="horizontal"
+                android:paddingBottom="16dp" />
 
-            <!-- SECTION: UI SIZE -->
+            <!-- UI SIZE -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -245,7 +244,7 @@
                     android:max="10" android:progress="4" />
             </LinearLayout>
 
-            <!-- Input Field Height -->
+            <!-- Input Height -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
                 <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
@@ -267,7 +266,7 @@
                     android:max="40" android:progress="16" />
             </LinearLayout>
 
-            <!-- SECTION: LAYOUT -->
+            <!-- LAYOUT -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -325,7 +324,7 @@
                 android:checked="true"
                 android:layout_marginBottom="16dp" />
 
-            <!-- SECTION: FEATURE TOGGLES -->
+            <!-- FEATURES -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -385,7 +384,7 @@
                 android:text="Show Attendance" android:textColor="#f1f5f9"
                 android:checked="true" android:layout_marginBottom="16dp" />
 
-            <!-- SECTION: LIVE PREVIEW -->
+            <!-- LIVE PREVIEW -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
