@@ -19,6 +19,7 @@ public class Player implements Serializable {
 
     private long lastSeen;
     private String fcmToken;
+    private boolean voiceChatAllowed;
 
     public Player() {}
 
@@ -33,6 +34,7 @@ public class Player implements Serializable {
         this.playerRole = "fragger";
         this.rewardPoints = 0;
         this.totalRewardPoints = 0;
+        this.voiceChatAllowed = false;
     }
 
     public String getPhone() { return phone; }
@@ -62,6 +64,8 @@ public class Player implements Serializable {
     public void setLastSeen(long lastSeen) { this.lastSeen = lastSeen; }
     public String getFcmToken() { return fcmToken; }
     public void setFcmToken(String fcmToken) { this.fcmToken = fcmToken; }
+    public boolean isVoiceChatAllowed() { return voiceChatAllowed; }
+    public void setVoiceChatAllowed(boolean voiceChatAllowed) { this.voiceChatAllowed = voiceChatAllowed; }
 
     public boolean isCurrentlyOnline() {
         if (isOnline) return true;

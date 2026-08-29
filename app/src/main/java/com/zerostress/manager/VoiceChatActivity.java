@@ -32,6 +32,8 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.zerostress.manager.FirestoreRepository;
+
 /**
  * Real-time Voice Chat using Jitsi Meet Web Client via WebView
  *
@@ -93,13 +95,23 @@ public class VoiceChatActivity extends AppCompatActivity {
         // Leave button
         findViewById(R.id.btn_leave).setOnClickListener(v -> leaveChannel());
 
-        // Check network
-        if (checkNetwork()) {
-            setupWebView();
-            registerInChannel();
-            listenChannelParticipants();
-            startTimer();
-        }
+        // Check voice chat permission first
+        FirestoreRepository repo = new FirestoreRepository();
+        repo.checkVoiceChatPermission(userPhone, allowed -> {
+            runOnUiThread(() -> {
+                if (!allowed) {
+                    showError("Voice chat not permitted. Ask admin to grant access.");
+                    return;
+                }
+                // Check network and join
+                if (checkNetwork()) {
+                    setupWebView();
+                    registerInChannel();
+                    listenChannelParticipants();
+                    startTimer();
+                }
+            });
+        });
     }
 
     private boolean checkNetwork() {

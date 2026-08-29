@@ -152,6 +152,35 @@ public class FirestoreRepository {
         usersRef.document(phone).update("playerRole", playerRole);
     }
 
+    // ==================== VOICE CHAT PERMISSIONS ====================
+
+    public void setVoiceChatPermission(String phone, boolean allowed) {
+        usersRef.document(phone).update("voiceChatAllowed", allowed);
+    }
+
+    public void checkVoiceChatPermission(String phone, VoicePermissionCallback callback) {
+        usersRef.document(phone).get()
+            .addOnSuccessListener(doc -> {
+                if (doc.exists()) {
+                    Boolean allowed = doc.getBoolean("voiceChatAllowed");
+                    String role = doc.getString("role");
+                    // Admin always has permission
+                    if ("admin".equals(role)) {
+                        callback.onResult(true);
+                    } else {
+                        callback.onResult(allowed != null && allowed);
+                    }
+                } else {
+                    callback.onResult(false);
+                }
+            })
+            .addOnFailureListener(e -> callback.onResult(false));
+    }
+
+    public interface VoicePermissionCallback {
+        void onResult(boolean allowed);
+    }
+
     public void deletePlayer(String phone) {
         usersRef.document(phone).delete();
     }

@@ -23,6 +23,7 @@ import com.zerostress.manager.R;
 import com.zerostress.manager.VoiceChatActivity;
 import com.zerostress.manager.models.Player;
 import com.zerostress.manager.models.Squad;
+import android.widget.Switch;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -129,8 +130,18 @@ public class SquadFragment extends Fragment {
             voiceBtnParams.setMargins(0, 8, 0, 0);
             card.addView(voiceBtn, voiceBtnParams);
 
-            // Assign player button (admin only)
+            // Admin controls
             if ("admin".equals(userRole)) {
+                // Voice Permission button
+                Button voicePermBtn = new Button(getContext());
+                voicePermBtn.setText("🔒 Voice Permissions");
+                voicePermBtn.setTextSize(11);
+                voicePermBtn.setBackgroundColor(Color.parseColor("#8b5cf6"));
+                voicePermBtn.setTextColor(Color.WHITE);
+                voicePermBtn.setOnClickListener(v -> showVoicePermissionDialog(squad));
+                card.addView(voicePermBtn);
+
+                // Assign player button
                 Button assignBtn = new Button(getContext());
                 assignBtn.setText("+ Add Player");
                 assignBtn.setTextSize(11);
@@ -194,12 +205,62 @@ public class SquadFragment extends Fragment {
             return;
         }
 
-        String channelName = "squad_" + squad.getId();
-        Intent intent = new Intent(getActivity(), VoiceChatActivity.class);
-        intent.putExtra("channelName", channelName);
-        intent.putExtra("userName", userName);
-        intent.putExtra("userPhone", userPhone);
-        startActivity(intent);
+        // Check permission before joining
+        repo.checkVoiceChatPermission(userPhone, allowed -> {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    if (!allowed) {
+                        Toast.makeText(getContext(), "Voice chat not permitted. Ask admin to grant access.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    String channelName = "squad_" + squad.getId();
+                    Intent intent = new Intent(getActivity(), VoiceChatActivity.class);
+                    intent.putExtra("channelName", channelName);
+                    intent.putExtra("userName", userName);
+                    intent.putExtra("userPhone", userPhone);
+                    startActivity(intent);
+                });
+            }
+        });
+    }
+
+    private void showVoicePermissionDialog(Squad squad) {
+        if (!isAdded() || getContext() == null) return;
+
+        repo.listenUsers(players -> {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    List<Player> members = new ArrayList<>();
+                    for (Player p : players) {
+                        if (squad.getMemberPhones().contains(p.getPhone())) {
+                            members.add(p);
+                        }
+                    }
+
+                    if (members.isEmpty()) {
+                        Toast.makeText(getContext(), "No squad members", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    String[] names = new String[members.size()];
+                    boolean[] allowed = new boolean[members.size()];
+                    for (int i = 0; i < members.size(); i++) {
+                        names[i] = members.get(i).getName();
+                        allowed[i] = members.get(i).isVoiceChatAllowed();
+                    }
+
+                    android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
+                    builder.setTitle("Voice Chat Permissions - " + squad.getName());
+                    builder.setMultiChoiceItems(names, allowed, (d, which, isChecked) -> {
+                        Player p = members.get(which);
+                        repo.setVoiceChatPermission(p.getPhone(), isChecked);
+                        Toast.makeText(getContext(), p.getName() + (isChecked ? " can now use voice" : " removed from voice"), Toast.LENGTH_SHORT).show();
+                    });
+                    builder.setPositiveButton("Done", null);
+                    builder.show();
+                });
+            }
+        });
     }
 
     private void showCreateSquadDialog() {
