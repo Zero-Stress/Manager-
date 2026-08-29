@@ -12,14 +12,14 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingBottom="12dp">
+        android:paddingBottom="8dp">
 
         <TextView
             android:id="@+id/voice_channel_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="🎤 Voice Channel"
+            android:text="\ud83c\udfa4 Voice Channel"
             android:textColor="#38bdf8"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -39,23 +39,55 @@
         android:id="@+id/voice_status"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="🟢 Connected"
+        android:text="\ud83d\udfe1 Connecting..."
         android:textColor="#10b981"
         android:textSize="12sp"
         android:paddingBottom="8dp" />
 
-    <!-- Divider -->
+    <!-- Info text -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#0f1729"
+        android:padding="12dp"
+        android:layout_marginBottom="12dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="\ud83d\udca1 Jitsi Meet voice chat is opening in a moment..."
+            android:textColor="#f59e0b"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="\u2022 Built-in noise cancellation \u2022 Echo cancellation \u2022 Auto gain control"
+            android:textColor="#94a3b8"
+            android:textSize="11sp"
+            android:paddingTop="4dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="\u2022 Tap mic icon in Jitsi to mute/unmute \u2022 Use speaker icon for audio output"
+            android:textColor="#94a3b8"
+            android:textSize="11sp"
+            android:paddingTop="2dp" />
+    </LinearLayout>
+
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="#1e3a5f"
         android:layout_marginBottom="8dp" />
 
-    <!-- Participants Grid -->
+    <!-- Participants -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="👥 In Voice"
+        android:text="\ud83d\udc65 In Voice"
         android:textColor="#94a3b8"
         android:textSize="12sp"
         android:paddingBottom="8dp" />
@@ -72,124 +104,27 @@
             android:orientation="vertical" />
     </ScrollView>
 
-    <!-- Noise Cancellation Toggle -->
-    <LinearLayout
+    <!-- Leave Button -->
+    <Button
+        android:id="@+id/btn_leave"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingTop="8dp"
-        android:paddingBottom="4dp">
+        android:layout_height="48dp"
+        android:text="\ud83d\udcde Leave Voice"
+        android:backgroundTint="#ef4444"
+        android:textColor="#ffffff"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp" />
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="🔇 Noise Cancellation"
-            android:textColor="#f1f5f9"
-            android:textSize="14sp" />
-
-        <androidx.appcompat.widget.SwitchCompat
-            android:id="@+id/noise_cancel_switch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:checked="true"
-            android:thumbTint="#38bdf8"
-            android:trackTint="#1e3a5f" />
-    </LinearLayout>
-
-    <!-- Bottom Controls -->
+    <!-- Hidden buttons (needed by Java but not shown) -->
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:paddingTop="12dp"
-        android:paddingBottom="8dp">
+        android:id="@+id/btn_mute"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
 
-        <!-- Mute Button -->
-        <LinearLayout
-            android:id="@+id/btn_mute"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="12dp"
-            android:background="@drawable/bg_circle_dark"
-            android:layout_margin="8dp">
-
-            <TextView
-                android:id="@+id/mute_icon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🎤"
-                android:textSize="24sp" />
-
-            <TextView
-                android:id="@+id/mute_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Mute"
-                android:textColor="#94a3b8"
-                android:textSize="11sp"
-                android:paddingTop="4dp" />
-        </LinearLayout>
-
-        <!-- Speaker Button -->
-        <LinearLayout
-            android:id="@+id/btn_speaker"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="12dp"
-            android:background="@drawable/bg_circle_dark"
-            android:layout_margin="8dp">
-
-            <TextView
-                android:id="@+id/speaker_icon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🔊"
-                android:textSize="24sp" />
-
-            <TextView
-                android:id="@+id/speaker_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Speaker"
-                android:textColor="#94a3b8"
-                android:textSize="11sp"
-                android:paddingTop="4dp" />
-        </LinearLayout>
-
-        <!-- Leave Button -->
-        <LinearLayout
-            android:id="@+id/btn_leave"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="12dp"
-            android:background="@drawable/bg_circle_dark"
-            android:layout_margin="8dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="📞"
-                android:textSize="24sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Leave"
-                android:textColor="#ef4444"
-                android:textSize="11sp"
-                android:paddingTop="4dp" />
-        </LinearLayout>
-    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/btn_speaker"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
 </LinearLayout>

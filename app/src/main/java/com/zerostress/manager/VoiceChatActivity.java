@@ -1,7 +1,9 @@
 package com.zerostress.manager;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -22,53 +24,51 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import org.jitsi.meet.sdk.JitsiMeetActivity;
+import org.jitsi.meet.sdk.JitsiMeetConferenceOptions;
+import org.jitsi.meet.sdk.JitsiMeetUserInfo;
+
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
-import io.agora.rtc.IRtcEngineEventHandler;
-import io.agora.rtc.RtcEngine;
-import io.agora.rtc.audio.AudioParams;
-import io.agora.rtc.models.AudioVolumeInfo;
-
+/**
+ * Voice Chat Activity using Jitsi Meet SDK
+ *
+ * ✅ 100% FREE — No API key, no sign-up, no usage limits
+ * ✅ Built-in noise cancellation, echo cancellation, AGC
+ * ✅ Works with meet.jit.si public server
+ * ✅ Can self-host for private server
+ */
 public class VoiceChatActivity extends AppCompatActivity {
     private static final String TAG = "VoiceChat";
-    private static final int PERMISSION_REQUEST_CODE = 200;
-
-    // =====================================================
-    // 🔑 AGORA APP ID — Replace with your own from agora.io
-    // Sign up free at https://console.agora.io
-    // Free tier: 10,000 minutes/month
-    // =====================================================
-    private static final String AGORA_APP_ID = "YOUR_AGORA_APP_ID_HERE";
-
-    private RtcEngine agoraEngine;
-    private IRtcEngineEventHandler rtcEventHandler;
+    private static final String JITSI_SERVER_URL = "https://meet.jit.si";
 
     private String channelName = "";
     private String userName = "";
     private String userPhone = "";
-    private boolean isMuted = false;
-    private boolean isSpeakerOn = true;
-    private boolean isNoiseCancellationOn = true;
     private long startTime = 0;
 
     private LinearLayout participantsContainer;
     private TextView channelNameTv;
     private TextView voiceTimerTv;
     private TextView voiceStatusTv;
-    private TextView muteIconTv;
-    private TextView muteLabelTv;
-    private TextView speakerIconTv;
-    private TextView speakerLabelTv;
-    private SwitchCompat noiseCancelSwitch;
 
     private FirebaseFirestore db;
     private ListenerRegistration channelListener;
-    private Handler timerHandler;
-    private Runnable timerRunnable;
+    private Timer timer;
+    private boolean isActive = false;
 
-    // Track online users in channel
-    private final Map<String, String> channelUsers = new HashMap<>();
+    // Listen for Jitsi broadcast events
+    private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            handleJitsiEvent(intent);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +80,7 @@ public class VoiceChatActivity extends AppCompatActivity {
         userName = getIntent().getStringExtra("userName");
         userPhone = getIntent().getStringExtra("userPhone");
 
-        if (channelName == null) channelName = "default";
+        if (channelName == null) channelName = "zerostress-default";
         if (userName == null) userName = "Unknown";
         if (userPhone == null) userPhone = "";
 
@@ -91,232 +91,105 @@ public class VoiceChatActivity extends AppCompatActivity {
         channelNameTv = findViewById(R.id.voice_channel_name);
         voiceTimerTv = findViewById(R.id.voice_timer);
         voiceStatusTv = findViewById(R.id.voice_status);
-        muteIconTv = findViewById(R.id.mute_icon);
-        muteLabelTv = findViewById(R.id.mute_label);
-        speakerIconTv = findViewById(R.id.speaker_icon);
-        speakerLabelTv = findViewById(R.id.speaker_label);
-        noiseCancelSwitch = findViewById(R.id.noise_cancel_switch);
 
-        channelNameTv.setText("🎤 " + channelName);
+        channelNameTv.setText("\ud83c\udfa4 " + channelName.replace("squad_", "").toUpperCase());
 
-        // Control buttons
-        findViewById(R.id.btn_mute).setOnClickListener(v -> toggleMute());
-        findViewById(R.id.btn_speaker).setOnClickListener(v -> toggleSpeaker());
+        // Leave button
         findViewById(R.id.btn_leave).setOnClickListener(v -> leaveChannel());
-        noiseCancelSwitch.setOnCheckedChangeListener((btn, checked) -> {
-            isNoiseCancellationOn = checked;
-            applyNoiseCancellation();
-        });
 
-        // Check permissions and init
-        if (checkAudioPermission()) {
-            initAgoraEngine();
-            joinChannel();
-        }
+        // Hide mute/speaker/jitsi handles (Jitsi handles these itself)
+        findViewById(R.id.btn_mute).setVisibility(View.GONE);
+        findViewById(R.id.btn_speaker).setVisibility(View.GONE);
 
-        // Listen to channel participants
-        listenChannelParticipants();
+        // Register Jitsi broadcast receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("org.jitsi.meet.CONFERENCE_JOINED");
+        filter.addAction("org.jitsi.meet.CONFERENCE_LEFT");
+        filter.addAction("org.jitsi.meet.PARTICIPANT_JOINED");
+        filter.addAction("org.jitsi.meet.PARTICIPANT_LEFT");
+        filter.addAction("org.jitsi.meet.ENDPOINT_MESSAGES_RECEIVED");
+        filter.addAction("org.jitsi.meet.CONFERENCE_FAILED");
+        ContextCompat.registerReceiver(this, broadcastReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
 
-        // Start timer
+        // Register in Firestore and join Jitsi
+        registerInChannel();
+        joinJitsiChannel();
         startTimer();
     }
 
-    // ==================== PERMISSIONS ====================
+    // ==================== JITSI MEET ====================
 
-    private boolean checkAudioPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.RECORD_AUDIO}, PERMISSION_REQUEST_CODE);
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                initAgoraEngine();
-                joinChannel();
-            } else {
-                Toast.makeText(this, "Microphone permission required for voice chat", Toast.LENGTH_LONG).show();
-                finish();
-            }
-        }
-    }
-
-    // ==================== AGORA ENGINE ====================
-
-    private void initAgoraEngine() {
+    private void joinJitsiChannel() {
         try {
-            // Create Agora engine
-            agoraEngine = RtcEngine.create(getApplicationContext(), AGORA_APP_ID, new IRtcEngineEventHandler() {
-                @Override
-                public void onUserJoined(int uid, int elapsed) {
-                    Log.d(TAG, "User joined: " + uid);
-                    runOnUiThread(() -> updateParticipantsList());
-                }
+            // Create Jitsi Meet options — voice only, with all built-in features
+            JitsiMeetConferenceOptions options = new JitsiMeetConferenceOptions.Builder()
+                .setServerURL(new URL(JITSI_SERVER_URL))
+                .setRoom(channelName)
+                .setDisplayName(userName)
+                .setAudioOnly(true) // Voice only (no video)
+                .setAudioMuted(false)
+                .setVideoMuted(true) // Disable video
+                .setWelcomePageEnabled(false)
+                .setUserInfo(new JitsiMeetUserInfo.Builder()
+                    .setDisplayName(userName)
+                    .build())
+                // Enable built-in features:
+                // ✅ Noise suppression (built-in WebRTC)
+                // ✅ Echo cancellation (built-in)
+                // ✅ Automatic gain control (built-in)
+                // ✅ Comfort noise generation (built-in)
+                .build();
 
-                @Override
-                public void onUserOffline(int uid, int reason) {
-                    Log.d(TAG, "User left: " + uid);
-                    runOnUiThread(() -> updateParticipantsList());
-                }
+            // Launch Jitsi Meet — it handles EVERYTHING automatically
+            JitsiMeetActivity.launch(this, options);
 
-                @Override
-                public void onJoinChannelSuccess(String channel, int uid, int elapsed) {
-                    Log.d(TAG, "Joined channel: " + channel + " uid: " + uid);
-                    runOnUiThread(() -> {
-                        voiceStatusTv.setText("🟢 Connected to " + channelName);
-                        voiceStatusTv.setTextColor(Color.parseColor("#10b981"));
-                    });
-                }
+            isActive = true;
+            voiceStatusTv.setText("\ud83d\udfe2 Connecting to " + channelName + "...");
 
-                @Override
-                public void onLeaveChannel(IRtcEngineEventHandler.RtcStats stats) {
-                    Log.d(TAG, "Left channel");
-                    runOnUiThread(() -> {
-                        voiceStatusTv.setText("🔴 Disconnected");
-                        voiceStatusTv.setTextColor(Color.parseColor("#ef4444"));
-                    });
-                }
-
-                @Override
-                public void onActiveSpeaker(int uid) {
-                    // Highlight who's speaking
-                    runOnUiThread(() -> highlightSpeaker(uid));
-                }
-            });
-
-            // ========== AUDIO QUALITY SETTINGS ==========
-
-            // Set audio profile: High quality voice
-            agoraEngine.setAudioProfile(
-                io.agora.rtc.Constants.AUDIO_PROFILE_MUSIC_HIGH_QUALITY_STEREO,
-                io.agora.rtc.Constants.AUDIO_SCENARIO_GAME_STREAMING
-            );
-
-            // Enable AEC (Acoustic Echo Cancellation)
-            agoraEngine.setParameters("{\"che.audio.aec.enable\":true}");
-
-            // Enable AGC (Automatic Gain Control) - keeps volume consistent
-            agoraEngine.setParameters("{\"che.audio.agc.enable\":true}");
-
-            // Enable NS (Noise Suppression) - removes background noise
-            agoraEngine.setParameters("{\"che.audio.ns.enable\":true}");
-
-            // Enable AI Noise Cancellation (if available in SDK version)
-            try {
-                agoraEngine.setParameters("{\"che.audio.enable.aianc\":true}");
-                Log.d(TAG, "AI Noise Cancellation enabled");
-            } catch (Exception e) {
-                Log.d(TAG, "AI Noise Cancellation not available, using standard NS");
-            }
-
-            // Set channel profile to Communication (2-way voice)
-            agoraEngine.setChannelProfile(io.agora.rtc.Constants.CHANNEL_PROFILE_COMMUNICATION);
-
-            // Enable audio module
-            agoraEngine.enableAudio();
-
-            Log.d(TAG, "Agora engine initialized with noise cancellation");
-
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to init Agora engine: " + e.getMessage());
-            Toast.makeText(this, "Voice chat initialization failed", Toast.LENGTH_SHORT).show();
+        } catch (MalformedURLException e) {
+            Log.e(TAG, "Invalid Jitsi server URL: " + e.getMessage());
+            Toast.makeText(this, "Failed to connect to voice server", Toast.LENGTH_SHORT).show();
             finish();
         }
     }
 
-    // ==================== CHANNEL MANAGEMENT ====================
-
-    private void joinChannel() {
-        if (agoraEngine == null) return;
-
-        if (AGORA_APP_ID.equals("YOUR_AGORA_APP_ID_HERE")) {
-            Toast.makeText(this,
-                "⚠️ Add your Agora App ID first!\n\n1. Sign up at agora.io (free)\n2. Create a project\n3. Copy App ID\n4. Paste in VoiceChatActivity.java",
-                Toast.LENGTH_LONG).show();
-            voiceStatusTv.setText("⚠️ Need Agora App ID");
-            voiceStatusTv.setTextColor(Color.parseColor("#f59e0b"));
-            return;
-        }
-
-        try {
-            // Join channel with token (null for testing)
-            agoraEngine.joinChannel(null, channelName, "", 0);
-
-            // Register user in Firestore channel
-            registerInChannel();
-
-            startTime = System.currentTimeMillis();
-
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to join channel: " + e.getMessage());
-        }
-    }
-
     private void leaveChannel() {
-        // Unregister from Firestore
         unregisterFromChannel();
-
-        // Leave Agora channel
-        if (agoraEngine != null) {
-            agoraEngine.leaveChannel();
-        }
-
-        // Stop timer
-        if (timerHandler != null) timerHandler.removeCallbacks(timerRunnable);
-
+        if (timer != null) timer.cancel();
+        isActive = false;
         finish();
     }
 
-    // ==================== AUDIO CONTROLS ====================
+    // ==================== JITSI EVENTS ====================
 
-    private void toggleMute() {
-        isMuted = !isMuted;
-        if (agoraEngine != null) {
-            agoraEngine.muteLocalAudioStream(isMuted);
-        }
-        muteIconTv.setText(isMuted ? "🔇" : "🎤");
-        muteLabelTv.setText(isMuted ? "Unmute" : "Mute");
-        muteLabelTv.setTextColor(isMuted ? Color.parseColor("#ef4444") : Color.parseColor("#94a3b8"));
+    private void handleJitsiEvent(Intent intent) {
+        String action = intent.getAction();
+        if (action == null) return;
 
-        // Update in Firestore
-        updateMuteStatus(isMuted);
-    }
+        switch (action) {
+            case "org.jitsi.meet.CONFERENCE_JOINED":
+                runOnUiThread(() -> {
+                    voiceStatusTd("\ud83d\udfe2 Connected to voice channel");
+                    voiceStatusTv.setTextColor(Color.parseColor("#10b981"));
+                });
+                break;
 
-    private void toggleSpeaker() {
-        isSpeakerOn = !isSpeakerOn;
-        if (agoraEngine != null) {
-            agoraEngine.setEnableSpeakerphone(isSpeakerOn);
-        }
-        speakerIconTv.setText(isSpeakerOn ? "🔊" : "🔈");
-        speakerLabelTv.setText(isSpeakerOn ? "Speaker" : "Earpiece");
-        speakerLabelTv.setTextColor(isSpeakerOn ? Color.parseColor("#38bdf8") : Color.parseColor("#94a3b8"));
-    }
+            case "org.jitsi.meet.CONFERENCE_LEFT":
+            case "org.jitsi.meet.CONFERENCE_FAILED":
+                runOnUiThread(() -> {
+                    voiceStatusTd("\ud83d\udd34 Disconnected");
+                    voiceStatusTv.setTextColor(Color.parseColor("#ef4444"));
+                    unregisterFromChannel();
+                });
+                break;
 
-    private void applyNoiseCancellation() {
-        if (agoraEngine == null) return;
+            case "org.jitsi.meet.PARTICIPANT_JOINED":
+                updateParticipantsList();
+                break;
 
-        if (isNoiseCancellationOn) {
-            // Enable full noise cancellation
-            agoraEngine.setParameters("{\"che.audio.ns.enable\":true}");
-            agoraEngine.setParameters("{\"che.audio.aec.enable\":true}");
-            agoraEngine.setParameters("{\"che.audio.agc.enable\":true}");
-            try {
-                agoraEngine.setParameters("{\"che.audio.enable.aianc\":true}");
-            } catch (Exception ignored) {}
-            Toast.makeText(this, "🔇 Noise cancellation ON", Toast.LENGTH_SHORT).show();
-        } else {
-            // Disable noise cancellation
-            agoraEngine.setParameters("{\"che.audio.ns.enable\":false}");
-            try {
-                agoraEngine.setParameters("{\"che.audio.enable.aianc\":false}");
-            } catch (Exception ignored) {}
-            Toast.makeText(this, "🎤 Noise cancellation OFF", Toast.LENGTH_SHORT).show();
+            case "org.jitsi.meet.PARTICIPANT_LEFT":
+                updateParticipantsList();
+                break;
         }
     }
 
@@ -340,120 +213,97 @@ public class VoiceChatActivity extends AppCompatActivity {
             .delete();
     }
 
-    private void updateMuteStatus(boolean muted) {
-        Map<String, Object> update = new HashMap<>();
-        update.put("muted", muted);
-
-        db.collection("voiceChannels").document(channelName)
-            .collection("participants").document(userPhone)
-            .update(update);
-    }
-
     private void listenChannelParticipants() {
         channelListener = db.collection("voiceChannels").document(channelName)
             .collection("participants")
             .addSnapshotListener((snapshots, error) -> {
                 if (error != null || snapshots == null) return;
 
-                channelUsers.clear();
-                for (QueryDocumentSnapshot doc : snapshots) {
-                    String name = doc.getString("name");
-                    Boolean muted = doc.getBoolean("muted");
-                    if (name != null) {
-                        channelUsers.put(doc.getId(), name + "|" + (muted != null && muted));
+                runOnUiThread(() -> {
+                    participantsContainer.removeAllViews();
+
+                    int count = 0;
+                    for (QueryDocumentSnapshot doc : snapshots) {
+                        count++;
+                        String name = doc.getString("name");
+                        if (name == null) name = "Unknown";
+                        boolean muted = Boolean.TRUE.equals(doc.getBoolean("muted"));
+                        boolean isMe = doc.getId().equals(userPhone);
+
+                        LinearLayout row = new LinearLayout(this);
+                        row.setOrientation(LinearLayout.HORIZONTAL);
+                        row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+                        row.setPadding(12, 8, 12, 8);
+
+                        // Avatar
+                        TextView avatar = new TextView(this);
+                        String initial = name.length() > 0 ? name.substring(0, 1).toUpperCase() : "?";
+                        avatar.setText(initial);
+                        avatar.setTextSize(16);
+                        avatar.setTextColor(Color.WHITE);
+                        avatar.setGravity(android.view.Gravity.CENTER);
+                        avatar.setMinimumWidth(80);
+                        avatar.setMinimumHeight(80);
+                        avatar.setBackgroundColor(Color.parseColor("#1e3a5f"));
+                        row.addView(avatar);
+
+                        // Name
+                        TextView nameTv = new TextView(this);
+                        nameTv.setText(name + (isMe ? " (You)" : ""));
+                        nameTv.setTextColor(Color.parseColor("#f1f5f9"));
+                        nameTv.setTextSize(14);
+                        LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
+                            0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
+                        nameParams.setMarginStart(12);
+                        nameTv.setLayoutParams(nameParams);
+                        row.addView(nameTv);
+
+                        // Status icon
+                        TextView status = new TextView(this);
+                        status.setText(muted ? "\ud83d\udd07" : "\ud83d\udd0a");
+                        status.setTextSize(14);
+                        row.addView(status);
+
+                        participantsContainer.addView(row);
+
+                        // Divider
+                        View divider = new View(this);
+                        divider.setLayoutParams(new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT, 1));
+                        divider.setBackgroundColor(Color.parseColor("#1e3a5f"));
+                        participantsContainer.addView(divider);
                     }
-                }
-                updateParticipantsList();
+
+                    // Update header count
+                    channelNameTv.setText("\ud83c\udfa4 " + channelName.replace("squad_", "").toUpperCase()
+                        + " (" + count + ")");
+                });
             });
     }
 
     private void updateParticipantsList() {
-        participantsContainer.removeAllViews();
-
-        if (channelUsers.isEmpty()) {
-            TextView empty = new TextView(this);
-            empty.setText("Waiting for others to join...");
-            empty.setTextColor(Color.parseColor("#94a3b8"));
-            empty.setTextSize(14);
-            empty.setPadding(16, 32, 16, 32);
-            participantsContainer.addView(empty);
-            return;
-        }
-
-        for (Map.Entry<String, String> entry : channelUsers.entrySet()) {
-            String[] parts = entry.getValue().split("\\|");
-            String name = parts[0];
-            boolean muted = parts.length > 1 && Boolean.parseBoolean(parts[1]);
-            boolean isMe = entry.getKey().equals(userPhone);
-
-            LinearLayout row = new LinearLayout(this);
-            row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setGravity(android.view.Gravity.CENTER_VERTICAL);
-            row.setPadding(12, 8, 12, 8);
-
-            // Avatar circle
-            TextView avatar = new TextView(this);
-            String initial = name.length() > 0 ? name.substring(0, 1).toUpperCase() : "?";
-            avatar.setText(initial);
-            avatar.setTextSize(16);
-            avatar.setTextColor(Color.WHITE);
-            avatar.setGravity(android.view.Gravity.CENTER);
-            avatar.setWidth(100);
-            avatar.setHeight(100);
-            avatar.setBackgroundColor(Color.parseColor("#1e3a5f"));
-            row.addView(avatar);
-
-            LinearLayout.LayoutParams avatarParams = (LinearLayout.LayoutParams) avatar.getLayoutParams();
-            avatarParams.setMargins(0, 0, 12, 0);
-
-            // Name
-            TextView nameTv = new TextView(this);
-            nameTv.setText(name + (isMe ? " (You)" : ""));
-            nameTv.setTextColor(Color.parseColor("#f1f5f9"));
-            nameTv.setTextSize(14);
-            LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
-            nameTv.setLayoutParams(nameParams);
-            row.addView(nameTv);
-
-            // Speaking indicator
-            TextView speakIndicator = new TextView(this);
-            speakIndicator.setText(muted ? "🔇" : "🔊");
-            speakIndicator.setTextSize(14);
-            row.addView(speakIndicator);
-
-            participantsContainer.addView(row);
-
-            // Divider
-            View divider = new View(this);
-            divider.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, 1));
-            divider.setBackgroundColor(Color.parseColor("#1e3a5f"));
-            participantsContainer.addView(divider);
-        }
+        // Already handled by Firestore listener
     }
 
-    private void highlightSpeaker(int uid) {
-        // Update visual feedback for active speaker
-        updateParticipantsList();
-    }
+
 
     // ==================== TIMER ====================
 
     private void startTimer() {
-        timerHandler = new Handler(Looper.getMainLooper());
-        timerRunnable = new Runnable() {
+        startTime = System.currentTimeMillis();
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                if (startTime > 0) {
-                    long elapsed = (System.currentTimeMillis() - startTime) / 1000;
-                    long minutes = elapsed / 60;
-                    long seconds = elapsed % 60;
-                    voiceTimerTv.setText(String.format("%02d:%02d", minutes, seconds));
-                }
-                timerHandler.postDelayed(this, 1000);
+                if (!isActive) return;
+                long elapsed = (System.currentTimeMillis() - startTime) / 1000;
+                long minutes = elapsed / 60;
+                long seconds = elapsed % 60;
+                runOnUiThread(() ->
+                    voiceTimerTv.setText(String.format("%02d:%02d", minutes, seconds))
+                );
             }
-        };
-        timerHandler.postDelayed(timerRunnable, 1000);
+        }, 0, 1000);
     }
 
     // ==================== CLEANUP ====================
@@ -461,30 +311,17 @@ public class VoiceChatActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        leaveChannel();
-        if (agoraEngine != null) {
-            RtcEngine.destroy();
-            agoraEngine = null;
-        }
+        unregisterFromChannel();
+        if (timer != null) timer.cancel();
+        try {
+            unregisterReceiver(broadcastReceiver);
+        } catch (Exception ignored) {}
         if (channelListener != null) channelListener.remove();
-        if (timerHandler != null) timerHandler.removeCallbacks(timerRunnable);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        // Mute self when app goes to background
-        if (agoraEngine != null && !isMuted) {
-            agoraEngine.muteLocalAudioStream(true);
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // Unmute when coming back
-        if (agoraEngine != null && !isMuted) {
-            agoraEngine.muteLocalAudioStream(false);
-        }
+        // Don't unregister — user may be multitasking
     }
 }
