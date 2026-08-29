@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#090d16">
+
+    <!-- Top Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="#0f1729"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp"
+        android:elevation="4dp">
+
+        <TextView
+            android:id="@+id/back_btn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="\u2190"
+            android:textColor="#38bdf8"
+            android:textSize="24sp"
+            android:gravity="center"
+            android:layout_marginEnd="8dp" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="\u2699\ufe0f App Customizer"
+                android:textColor="#f1f5f9"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Admin Only"
+                android:textColor="#94a3b8"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/save_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="Save"
+            android:backgroundTint="#10b981"
+            android:textColor="#ffffff"
+            android:textAllCaps="false"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- Scrollable Content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- ===== SECTION: PRESET THEMES ===== -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="\uD83C\uDFA8 Quick Themes"
+                android:textColor="#38bdf8"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <LinearLayout
+                android:id="@+id/preset_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingBottom="16dp" />
+
+            <!-- ===== SECTION: APP SETTINGS ===== -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="\uD83D\uDCDD App Settings"
+                android:textColor="#38bdf8"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <!-- App Name -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="App Name"
+                android:textColor="#94a3b8"
+                android:textSize="12sp"
+                android:paddingBottom="4dp" />
+
+            <EditText
+                android:id="@+id/input_app_name"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:background="#1e3a5f"
+                android:textColor="#f1f5f9"
+                android:textSize="14sp"
+                android:paddingHorizontal="12dp"
+                android:hint="App Name"
+                android:textColorHint="#64748b"
+                android:singleLine="true"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Welcome Message -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Welcome Message"
+                android:textColor="#94a3b8"
+                android:textSize="12sp"
+                android:paddingBottom="4dp" />
+
+            <EditText
+                android:id="@+id/input_welcome_msg"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:background="#1e3a5f"
+                android:textColor="#f1f5f9"
+                android:textSize="14sp"
+                android:paddingHorizontal="12dp"
+                android:hint="Welcome message"
+                android:textColorHint="#64748b"
+                android:singleLine="true"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Font Family -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Font Style"
+                android:textColor="#94a3b8"
+                android:textSize="12sp"
+                android:paddingBottom="4dp" />
+
+            <Spinner
+                android:id="@+id/spinner_font"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:background="#1e3a5f"
+                android:layout_marginBottom="16dp" />
+
+            <!-- ===== SECTION: COLORS ===== -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="\uD83C\uDF08 Colors"
+                android:textColor="#38bdf8"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <GridLayout
+                android:id="@+id/color_grid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="3"
+                android:useDefaultMargins="true"
+                android:layout_marginBottom="16dp" />
+
+            <!-- ===== SECTION: LAYOUT ===== -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="\uD83D\uDCD0 Layout"
+                android:textColor="#38bdf8"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <!-- Card Corner Radius -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Card Corner Radius"
+                    android:textColor="#f1f5f9"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/radius_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="16dp"
+                    android:textColor="#38bdf8"
+                    android:textSize="14sp"
+                    android:layout_marginEnd="8dp" />
+
+                <SeekBar
+                    android:id="@+id/seek_radius"
+                    android:layout_width="120dp"
+                    android:layout_height="wrap_content"
+                    android:max="32"
+                    android:progress="16"
+                    android:thumbTint="#38bdf8"
+                    android:progressTint="#38bdf8" />
+            </LinearLayout>
+
+            <!-- Card Padding -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Card Padding"
+                    android:textColor="#f1f5f9"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/padding_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="16dp"
+                    android:textColor="#38bdf8"
+                    android:textSize="14sp"
+                    android:layout_marginEnd="8dp" />
+
+                <SeekBar
+                    android:id="@+id/seek_padding"
+                    android:layout_width="120dp"
+                    android:layout_height="wrap_content"
+                    android:max="32"
+                    android:progress="16"
+                    android:thumbTint="#38bdf8"
+                    android:progressTint="#38bdf8" />
+            </LinearLayout>
+
+            <SwitchCompat
+                android:id="@+id/switch_rounded"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Rounded Cards"
+                android:textColor="#f1f5f9"
+                android:textSize="14sp"
+                android:checked="true"
+                android:thumbTint="#38bdf8"
+                android:trackTint="#1e3a5f"
+                android:layout_marginBottom="8dp" />
+
+            <SwitchCompat
+                android:id="@+id/switch_gradient"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Gradient Headers"
+                android:textColor="#f1f5f9"
+                android:textSize="14sp"
+                android:checked="true"
+                android:thumbTint="#38bdf8"
+                android:trackTint="#1e3a5f"
+                android:layout_marginBottom="16dp" />
+
+            <!-- ===== SECTION: FEATURE TOGGLES ===== -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="\uD83D\uDD27 Features"
+                android:textColor="#38bdf8"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <SwitchCompat
+                android:id="@+id/switch_online_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Show Online Status"
+                android:textColor="#f1f5f9"
+                android:checked="true"
+                android:thumbTint="#38bdf8"
+                android:layout_marginBottom="4dp" />
+
+            <SwitchCompat
+                android:id="@+id/switch_achievements"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Show Achievements"
+                android:textColor="#f1f5f9"
+                android:checked="true"
+                android:thumbTint="#38bdf8"
+                android:layout_marginBottom="4dp" />
+
+            <SwitchCompat
+                android:id="@+id/switch_rewards"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Show Reward Points"
+                android:textColor="#f1f5f9"
+                android:checked="true"
+                android:thumbTint="#38bdf8"
+                android:layout_marginBottom="4dp" />
+
+            <SwitchCompat
+                android:id="@+id/switch_analytics"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Show Analytics Tab"
+                android:textColor="#f1f5f9"
+                android:checked="true"
+                android:thumbTint="#38bdf8"
+                android:layout_marginBottom="4dp" />
+
+            <SwitchCompat
+                android:id="@+id/switch_squads"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Show Squads"
+                android:textColor="#f1f5f9"
+                android:checked="true"
+                android:thumbTint="#38bdf8"
+                android:layout_marginBottom="4dp" />
+
+            <SwitchCompat
+                android:id="@+id/switch_tournaments"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Show Tournaments"
+                android:textColor="#f1f5f9"
+                android:checked="true"
+                android:thumbTint="#38bdf8"
+                android:layout_marginBottom="4dp" />
+
+            <SwitchCompat
+                android:id="@+id/switch_schedule"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Show Schedule"
+                android:textColor="#f1f5f9"
+                android:checked="true"
+                android:thumbTint="#38bdf8"
+                android:layout_marginBottom="4dp" />
+
+            <SwitchCompat
+                android:id="@+id/switch_chat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Show Chat"
+                android:textColor="#f1f5f9"
+                android:checked="true"
+                android:thumbTint="#38bdf8"
+                android:layout_marginBottom="4dp" />
+
+            <SwitchCompat
+                android:id="@+id/switch_voice_chat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Show Voice Chat"
+                android:textColor="#f1f5f9"
+                android:checked="true"
+                android:thumbTint="#38bdf8"
+                android:layout_marginBottom="4dp" />
+
+            <SwitchCompat
+                android:id="@+id/switch_attendance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Show Attendance"
+                android:textColor="#f1f5f9"
+                android:checked="true"
+                android:thumbTint="#38bdf8"
+                android:layout_marginBottom="16dp" />
+
+            <!-- ===== SECTION: LIVE PREVIEW ===== -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="\uD83D\uDC41 Live Preview"
+                android:textColor="#38bdf8"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <LinearLayout
+                android:id="@+id/preview_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="#0f1729" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="32dp" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

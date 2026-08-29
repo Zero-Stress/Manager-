@@ -71,4 +71,7 @@ dependencies {
 
     // Firebase Auth (Jitsi needs it for user identity)
     implementation 'com.google.firebase:firebase-auth'
+
+    // Color picker for admin customizer
+    implementation 'com.github.yukuku:ambilwarna:2.0.1'
 }

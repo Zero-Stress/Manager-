@@ -128,6 +128,7 @@ public class MainActivity extends AppCompatActivity {
             popup.getMenu().add(0, 6, 5, "\uD83C\uDFC6 Tournaments");
             popup.getMenu().add(0, 7, 6, "\u23F0 Attendance");
             popup.getMenu().add(0, 8, 7, "\u2694\uFE0F Squad Manager");
+            popup.getMenu().add(0, 9, 8, "\u2699\uFE0F App Customizer");
         }
 
         popup.setOnMenuItemClickListener(item -> {
@@ -141,6 +142,10 @@ public class MainActivity extends AppCompatActivity {
             else if (id == 6) fragment = new TournamentFragment();
             else if (id == 7) fragment = new AttendanceFragment();
             else if (id == 8) fragment = new SquadFragment();
+            else if (id == 9) {
+                startActivity(new Intent(MainActivity.this, AdminCustomizerActivity.class));
+                return true;
+            }
 
             if (fragment != null) loadFragment(fragment, currentUser);
             return true;
