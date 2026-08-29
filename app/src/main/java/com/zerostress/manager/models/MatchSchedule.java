@@ -14,10 +14,15 @@ public class MatchSchedule implements Serializable {
     private long scheduledTime;
     private String mapName;
     private String gameMode;
+    private String gameType; // "pubg", "freefire", "cod"
+    private String squadId;
+    private String squadName;
+    private int minutesBeforeLaunch; // Auto-launch game N minutes before
     private String status; // "scheduled", "ongoing", "completed", "cancelled"
     private List<String> confirmedPlayers;
     private String createdBy;
     private long createdAt;
+    private boolean gameLaunched; // Track if game was already auto-launched
 
     public MatchSchedule() {
         confirmedPlayers = new ArrayList<>();
@@ -44,7 +49,20 @@ public class MatchSchedule implements Serializable {
     public String getMapName() { return mapName; }
     public void setMapName(String mapName) { this.mapName = mapName; }
     public String getGameMode() { return gameMode; }
-    public void setGameMode(String gameMode) { this.gameMode = gameMode; }
+    public void setGameMode(String gameMode) {        this.gameMode = gameMode;
+    }
+
+    public String getGameType() { return gameType; }
+    public void setGameType(String gameType) { this.gameType = gameType; }
+    public String getSquadId() { return squadId; }
+    public void setSquadId(String squadId) { this.squadId = squadId; }
+    public String getSquadName() { return squadName; }
+    public void setSquadName(String squadName) { this.squadName = squadName; }
+    public int getMinutesBeforeLaunch() { return minutesBeforeLaunch; }
+    public void setMinutesBeforeLaunch(int minutesBeforeLaunch) { this.minutesBeforeLaunch = minutesBeforeLaunch; }
+    public boolean isGameLaunched() { return gameLaunched; }
+    public void setGameLaunched(boolean gameLaunched) { this.gameLaunched = gameLaunched; }
+
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public List<String> getConfirmedPlayers() { return confirmedPlayers; }
