@@ -4,14 +4,9 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
-import android.text.TextPaint;
 import android.text.TextWatcher;
-import android.text.style.ClickableSpan;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,11 +15,13 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.google.firebase.firestore.ListenerRegistration;
 import com.zerostress.manager.FirestoreRepository;
 import com.zerostress.manager.R;
 import com.zerostress.manager.models.ChatMessage;
@@ -32,9 +29,11 @@ import com.zerostress.manager.models.Player;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ChatFragment extends Fragment {
     private FirestoreRepository repo;
@@ -45,8 +44,14 @@ public class ChatFragment extends Fragment {
     private String userName = "";
     private String userPhone = "";
     private boolean isUserAdmin = false;
-    private List<Player> allPlayers = new ArrayList<>();
+
+    // Thread-safe list for players (accessed from multiple threads)
+    private final CopyOnWriteArrayList<Player> allPlayers = new CopyOnWriteArrayList<>();
     private boolean showingMentions = false;
+
+    // Listener registrations for cleanup
+    private ListenerRegistration chatListener;
+    private ListenerRegistration usersListener;
 
     @Nullable
     @Override
@@ -78,20 +83,26 @@ public class ChatFragment extends Fragment {
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override
             public void afterTextChanged(Editable s) {
-                checkForMention(s.toString());
+                if (isAdded()) {
+                    checkForMention(s.toString());
+                }
             }
         });
 
-        // Load players for mention list
-        repo.listenUsers(players -> {
+        // Load players for mention list (thread-safe)
+        usersListener = repo.listenUsers(players -> {
+            if (!isAdded()) return;
             allPlayers.clear();
             for (Player p : players) {
-                if ("confirmed".equals(p.getStatus())) allPlayers.add(p);
+                if ("confirmed".equals(p.getStatus())) {
+                    allPlayers.add(p);
+                }
             }
         });
 
-        repo.listenChat(messages -> {
-            if (getActivity() != null) {
+        // Listen for chat messages
+        chatListener = repo.listenChat(messages -> {
+            if (getActivity() != null && isAdded()) {
                 getActivity().runOnUiThread(() -> renderChat(messages));
             }
         });
@@ -100,13 +111,18 @@ public class ChatFragment extends Fragment {
     private void checkForMention(String text) {
         if (!isAdded() || getContext() == null) return;
 
-        // Find @ symbol - check if user is typing a mention
+        // Find last @ symbol that's either at start or after a space
         int atIndex = text.lastIndexOf('@');
-        if (atIndex >= 0 && (atIndex == 0 || text.charAt(atIndex - 1) == ' ')) {
-            String query = text.substring(atIndex + 1).toLowerCase();
-            if (!query.contains(" ")) {
-                showMentionSuggestions(query);
-                return;
+        if (atIndex >= 0) {
+            // Check if @ is at start or preceded by space (not in middle of word)
+            boolean validMention = (atIndex == 0) || (atIndex > 0 && text.charAt(atIndex - 1) == ' ');
+            if (validMention) {
+                String query = text.substring(atIndex + 1).toLowerCase();
+                // Only show suggestions if query doesn't contain spaces (still typing name)
+                if (!query.contains(" ") && !query.isEmpty()) {
+                    showMentionSuggestions(query);
+                    return;
+                }
             }
         }
         hideMentionSuggestions();
@@ -125,10 +141,11 @@ public class ChatFragment extends Fragment {
             if (name != null && name.toLowerCase().contains(query)) {
                 found = true;
                 TextView item = new TextView(getContext());
-                item.setText((p.isCurrentlyOnline() ? "\uD83D\uDFE2 " : "") + name);
+                String onlineStatus = p.isCurrentlyOnline() ? "\uD83D\uDFE2 " : "";
+                item.setText(onlineStatus + name + " (" + p.getRoleLabel() + ")");
                 item.setTextColor(Color.WHITE);
                 item.setTextSize(14);
-                item.setPadding(24, 12, 24, 12);
+                item.setPadding(24, 14, 24, 14);
                 item.setBackgroundColor(Color.parseColor("#1e3a5f"));
 
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
@@ -136,7 +153,9 @@ public class ChatFragment extends Fragment {
                 params.setMargins(0, 0, 0, 2);
                 item.setLayoutParams(params);
 
-                item.setOnClickListener(v -> insertMention(name));
+                // Store name for click
+                final String playerName = name;
+                item.setOnClickListener(v -> insertMention(playerName));
                 mentionSuggestions.addView(item);
             }
         }
@@ -146,13 +165,13 @@ public class ChatFragment extends Fragment {
             noResult.setText("No players found");
             noResult.setTextColor(Color.parseColor("#64748b"));
             noResult.setTextSize(12);
-            noResult.setPadding(24, 8, 24, 8);
+            noResult.setPadding(24, 12, 24, 12);
             mentionSuggestions.addView(noResult);
         }
     }
 
     private void hideMentionSuggestions() {
-        if (mentionSuggestions != null) {
+        if (mentionSuggestions != null && isAdded()) {
             mentionSuggestions.setVisibility(View.GONE);
             mentionSuggestions.removeAllViews();
         }
@@ -160,6 +179,8 @@ public class ChatFragment extends Fragment {
     }
 
     private void insertMention(String name) {
+        if (!isAdded()) return;
+
         String text = messageInput.getText().toString();
         int atIndex = text.lastIndexOf('@');
         if (atIndex >= 0) {
@@ -177,14 +198,29 @@ public class ChatFragment extends Fragment {
         String text = messageInput.getText().toString().trim();
         if (text.isEmpty()) return;
 
+        // Validate user info
+        if (userName.isEmpty() || userPhone.isEmpty()) {
+            Toast.makeText(getContext(), "User info not loaded. Please restart the app.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         ChatMessage msg = new ChatMessage(userName, userPhone, text);
         repo.sendChatMessage(msg, new FirestoreRepository.OnResultCallback() {
             @Override public void onSuccess() {
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> messageInput.setText(""));
+                if (getActivity() != null && isAdded()) {
+                    getActivity().runOnUiThread(() -> {
+                        messageInput.setText("");
+                        hideMentionSuggestions();
+                    });
                 }
             }
-            @Override public void onFailure(String e) {}
+            @Override public void onFailure(String e) {
+                if (isAdded() && getContext() != null) {
+                    getActivity().runOnUiThread(() ->
+                        Toast.makeText(getContext(), "Failed to send: " + e, Toast.LENGTH_SHORT).show()
+                    );
+                }
+            }
         });
     }
 
@@ -193,6 +229,18 @@ public class ChatFragment extends Fragment {
 
         chatContainer.removeAllViews();
         SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+
+        // Show empty state if no messages
+        if (messages.isEmpty()) {
+            TextView emptyTv = new TextView(getContext());
+            emptyTv.setText("\uD83D\uDCAC No messages yet\n\nStart the conversation!");
+            emptyTv.setTextColor(Color.parseColor("#64748b"));
+            emptyTv.setTextSize(14);
+            emptyTv.setPadding(32, 48, 32, 48);
+            emptyTv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+            chatContainer.addView(emptyTv);
+            return;
+        }
 
         for (ChatMessage msg : messages) {
             boolean isOwn = msg.getSenderPhone() != null && msg.getSenderPhone().equals(userPhone);
@@ -207,8 +255,9 @@ public class ChatFragment extends Fragment {
             bubble.setLayoutParams(params);
 
             if (isSystem) {
+                // System message (centered, muted)
                 bubble.setBackgroundColor(Color.parseColor("#1a2535"));
-                bubble.setPadding(12, 8, 12, 8);
+                bubble.setPadding(12, 10, 12, 10);
 
                 TextView sysTv = new TextView(getContext());
                 sysTv.setText("\uD83D\uDCE2 " + msg.getMessage());
@@ -217,55 +266,108 @@ public class ChatFragment extends Fragment {
                 sysTv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 bubble.addView(sysTv);
             } else {
+                // Regular message
                 bubble.setBackgroundColor(isOwn ? Color.parseColor("#1e3a5f") : Color.parseColor("#0f1729"));
-                bubble.setPadding(12, 8, 12, 8);
+                bubble.setPadding(14, 10, 14, 10);
 
+                // Sender name (only for others' messages)
                 if (!isOwn) {
                     TextView nameTv = new TextView(getContext());
-                    nameTv.setText(msg.getSenderName() + (isUserAdmin ? " \u2B50" : ""));
+                    String adminBadge = isUserAdmin ? " ⭐" : "";
+                    nameTv.setText(msg.getSenderName() + adminBadge);
                     nameTv.setTextColor(Color.parseColor("#38bdf8"));
                     nameTv.setTextSize(11);
                     nameTv.setTypeface(null, Typeface.BOLD);
                     bubble.addView(nameTv);
                 }
 
-                // Render message with @mention highlighting
+                // Message text with @mention highlighting
                 TextView msgTv = new TextView(getContext());
-                SpannableStringBuilder spannable = new SpannableStringBuilder(msg.getMessage());
-                highlightMentions(spannable, msg.getMessage());
-                msgTv.setText(spannable);
+                String messageText = msg.getMessage();
+                if (messageText != null && !messageText.isEmpty()) {
+                    SpannableStringBuilder spannable = new SpannableStringBuilder(messageText);
+                    highlightMentions(spannable, messageText);
+                    msgTv.setText(spannable);
+                } else {
+                    msgTv.setText("");
+                }
                 msgTv.setTextColor(Color.WHITE);
                 msgTv.setTextSize(14);
                 bubble.addView(msgTv);
 
+                // Timestamp
                 TextView timeTv = new TextView(getContext());
-                timeTv.setText(sdf.format(new Date(msg.getTimestamp())));
+                long ts = msg.getTimestamp();
+                if (ts > 0) {
+                    timeTv.setText(sdf.format(new Date(ts)));
+                } else {
+                    timeTv.setText("Just now");
+                }
                 timeTv.setTextColor(Color.parseColor("#64748b"));
                 timeTv.setTextSize(10);
                 bubble.addView(timeTv);
+
+                // Long press to delete (admin only)
+                if (isUserAdmin) {
+                    final String msgId = msg.getId();
+                    final String senderName = msg.getSenderName();
+                    bubble.setOnLongClickListener(v -> {
+                        showDeleteMessageDialog(msgId, senderName);
+                        return true;
+                    });
+                }
             }
 
             chatContainer.addView(bubble);
         }
 
+        // Auto-scroll to bottom
         chatScroll.post(() -> chatScroll.fullScroll(View.FOCUS_DOWN));
     }
 
+    private void showDeleteMessageDialog(String msgId, String senderName) {
+        if (!isAdded() || getContext() == null || msgId == null) return;
+
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
+        builder.setTitle("Delete Message");
+        builder.setMessage("Delete message from " + senderName + "?");
+
+        builder.setPositiveButton("Delete", (d, w) -> {
+            // Delete from Firestore using the ID
+            com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("chat").document(msgId)
+                .delete()
+                .addOnSuccessListener(a -> {
+                    if (isAdded() && getContext() != null) {
+                        Toast.makeText(getContext(), "Message deleted", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (isAdded() && getContext() != null) {
+                        Toast.makeText(getContext(), "Failed to delete", Toast.LENGTH_SHORT).show();
+                    }
+                });
+        });
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
+    }
+
     private void highlightMentions(SpannableStringBuilder builder, String text) {
-        // Find all @mentions in the message
+        if (text == null || text.isEmpty()) return;
+
         int i = 0;
         while (i < text.length()) {
             int atIndex = text.indexOf('@', i);
             if (atIndex < 0) break;
 
-            // Find the end of the mention (space or end of string)
+            // Find the end of the mention (space, or end of string)
             int endIndex = text.indexOf(' ', atIndex + 1);
             if (endIndex < 0) endIndex = text.length();
 
             String mention = text.substring(atIndex + 1, endIndex);
-            if (!mention.isEmpty()) {
-                // Highlight the @mention in cyan/bold
-                builder.setSpan(new ForegroundColorSpan(Color.parseColor("#38bdf8")),
+            // Only highlight if mention looks like a name (letters, not empty)
+            if (!mention.isEmpty() && mention.matches("[a-zA-Z\\s]+")) {
+                builder.setSpan(new android.text.style.ForegroundColorSpan(Color.parseColor("#38bdf8")),
                     atIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 builder.setSpan(new StyleSpan(Typeface.BOLD),
                     atIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -273,5 +375,22 @@ public class ChatFragment extends Fragment {
 
             i = endIndex;
         }
+    }
+
+    // ==================== CLEANUP ====================
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Remove listeners to prevent memory leaks
+        if (chatListener != null) {
+            chatListener.remove();
+            chatListener = null;
+        }
+        if (usersListener != null) {
+            usersListener.remove();
+            usersListener = null;
+        }
+        allPlayers.clear();
     }
 }
