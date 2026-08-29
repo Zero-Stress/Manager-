@@ -47,6 +47,16 @@ public class AppCustomizer implements Serializable {
     private int cardPadding = 16;
     private boolean darkMode = true;
 
+    // ========== UI SIZE ==========
+    private int buttonHeight = 40;           // Button height in dp
+    private int buttonCornerRadius = 12;      // Button corner radius in dp
+    private float buttonTextSize = 14f;       // Button text size in sp
+    private int iconSize = 24;                // Icon size in dp
+    private float headerTextSize = 20f;       // Header text size in sp
+    private float bodyTextSize = 14f;         // Body text size in sp
+    private int inputHeight = 44;             // Input field height in dp
+    private int navBarHeight = 56;            // Bottom nav bar height in dp
+
     // Default constructor
     public AppCustomizer() {}
 
@@ -143,6 +153,25 @@ public class AppCustomizer implements Serializable {
 
     public boolean isDarkMode() { return darkMode; }
     public void setDarkMode(boolean b) { this.darkMode = b; }
+
+    // ========== UI SIZE GETTERS/SETTERS ==========
+    public int getButtonHeight() { return buttonHeight; }
+    public void setButtonHeight(int v) { this.buttonHeight = v; }
+
+    public int getButtonCornerRadius() { return buttonCornerRadius; }
+    public void setButtonCornerRadius(int v) { this.buttonCornerRadius = v; }
+
+    public float getButtonTextSize() { return buttonTextSize; }
+    public void setButtonTextSize(float v) { this.buttonTextSize = v; }
+
+    public int getIconSize() { return iconSize; }
+    public void setIconSize(int v) { this.iconSize = v; }
+
+    public int getInputHeight() { return inputHeight; }
+    public void setInputHeight(int v) { this.inputHeight = v; }
+
+    public int getNavBarHeight() { return navBarHeight; }
+    public void setNavBarHeight(int v) { this.navBarHeight = v; }
 
     // ========== PRESET THEMES ==========
 

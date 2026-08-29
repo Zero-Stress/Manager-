@@ -95,7 +95,6 @@
                 android:textStyle="bold"
                 android:paddingBottom="8dp" />
 
-            <!-- App Name -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -117,7 +116,6 @@
                 android:singleLine="true"
                 android:layout_marginBottom="8dp" />
 
-            <!-- Welcome Message -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -139,7 +137,6 @@
                 android:singleLine="true"
                 android:layout_marginBottom="8dp" />
 
-            <!-- Font Family -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -173,6 +170,104 @@
                 android:useDefaultMargins="true"
                 android:layout_marginBottom="16dp" />
 
+            <!-- ===== SECTION: UI SIZE ===== -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="\uD83D\uDD22 UI & Button Size"
+                android:textColor="#38bdf8"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <!-- Button Height -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:text="Button Height" android:textColor="#f1f5f9" android:textSize="14sp" />
+                <TextView android:id="@+id/btn_height_val" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="40dp" android:textColor="#38bdf8" android:textSize="14sp" android:layout_marginEnd="8dp" />
+                <SeekBar android:id="@+id/seek_btn_height" android:layout_width="120dp" android:layout_height="wrap_content"
+                    android:max="60" android:progress="20" android:thumbTint="#38bdf8" android:progressTint="#38bdf8" />
+            </LinearLayout>
+
+            <!-- Button Corner Radius -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:text="Button Corners" android:textColor="#f1f5f9" android:textSize="14sp" />
+                <TextView android:id="@+id/btn_radius_val" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="12dp" android:textColor="#38bdf8" android:textSize="14sp" android:layout_marginEnd="8dp" />
+                <SeekBar android:id="@+id/seek_btn_radius" android:layout_width="120dp" android:layout_height="wrap_content"
+                    android:max="30" android:progress="12" android:thumbTint="#38bdf8" android:progressTint="#38bdf8" />
+            </LinearLayout>
+
+            <!-- Button Text Size -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:text="Button Text Size" android:textColor="#f1f5f9" android:textSize="14sp" />
+                <TextView android:id="@+id/btn_text_size_val" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="14sp" android:textColor="#38bdf8" android:textSize="14sp" android:layout_marginEnd="8dp" />
+                <SeekBar android:id="@+id/seek_btn_text_size" android:layout_width="120dp" android:layout_height="wrap_content"
+                    android:max="10" android:progress="4" android:thumbTint="#38bdf8" android:progressTint="#38bdf8" />
+            </LinearLayout>
+
+            <!-- Icon Size -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:text="Icon Size" android:textColor="#f1f5f9" android:textSize="14sp" />
+                <TextView android:id="@+id/icon_size_val" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="24dp" android:textColor="#38bdf8" android:textSize="14sp" android:layout_marginEnd="8dp" />
+                <SeekBar android:id="@+id/seek_icon_size" android:layout_width="120dp" android:layout_height="wrap_content"
+                    android:max="28" android:progress="12" android:thumbTint="#38bdf8" android:progressTint="#38bdf8" />
+            </LinearLayout>
+
+            <!-- Header Text Size -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:text="Header Text Size" android:textColor="#f1f5f9" android:textSize="14sp" />
+                <TextView android:id="@+id/header_text_size_val" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="20sp" android:textColor="#38bdf8" android:textSize="14sp" android:layout_marginEnd="8dp" />
+                <SeekBar android:id="@+id/seek_header_text_size" android:layout_width="120dp" android:layout_height="wrap_content"
+                    android:max="14" android:progress="6" android:thumbTint="#38bdf8" android:progressTint="#38bdf8" />
+            </LinearLayout>
+
+            <!-- Body Text Size -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:text="Body Text Size" android:textColor="#f1f5f9" android:textSize="14sp" />
+                <TextView android:id="@+id/body_text_size_val" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="14sp" android:textColor="#38bdf8" android:textSize="14sp" android:layout_marginEnd="8dp" />
+                <SeekBar android:id="@+id/seek_body_text_size" android:layout_width="120dp" android:layout_height="wrap_content"
+                    android:max="10" android:progress="4" android:thumbTint="#38bdf8" android:progressTint="#38bdf8" />
+            </LinearLayout>
+
+            <!-- Input Field Height -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:text="Input Field Height" android:textColor="#f1f5f9" android:textSize="14sp" />
+                <TextView android:id="@+id/input_height_val" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="44dp" android:textColor="#38bdf8" android:textSize="14sp" android:layout_marginEnd="8dp" />
+                <SeekBar android:id="@+id/seek_input_height" android:layout_width="120dp" android:layout_height="wrap_content"
+                    android:max="40" android:progress="12" android:thumbTint="#38bdf8" android:progressTint="#38bdf8" />
+            </LinearLayout>
+
+            <!-- Nav Bar Height -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="12dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:text="Nav Bar Height" android:textColor="#f1f5f9" android:textSize="14sp" />
+                <TextView android:id="@+id/navbar_height_val" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="56dp" android:textColor="#38bdf8" android:textSize="14sp" android:layout_marginEnd="8dp" />
+                <SeekBar android:id="@+id/seek_navbar_height" android:layout_width="120dp" android:layout_height="wrap_content"
+                    android:max="40" android:progress="16" android:thumbTint="#38bdf8" android:progressTint="#38bdf8" />
+            </LinearLayout>
+
             <!-- ===== SECTION: LAYOUT ===== -->
             <TextView
                 android:layout_width="match_parent"
@@ -183,74 +278,32 @@
                 android:textStyle="bold"
                 android:paddingBottom="8dp" />
 
-            <!-- Card Corner Radius -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Card Corner Radius"
-                    android:textColor="#f1f5f9"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/radius_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="16dp"
-                    android:textColor="#38bdf8"
-                    android:textSize="14sp"
-                    android:layout_marginEnd="8dp" />
-
-                <SeekBar
-                    android:id="@+id/seek_radius"
-                    android:layout_width="120dp"
-                    android:layout_height="wrap_content"
-                    android:max="32"
-                    android:progress="16"
-                    android:thumbTint="#38bdf8"
-                    android:progressTint="#38bdf8" />
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:text="Card Corner Radius" android:textColor="#f1f5f9" android:textSize="14sp" />
+                <TextView android:id="@+id/radius_value" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="16dp" android:textColor="#38bdf8" android:textSize="14sp" android:layout_marginEnd="8dp" />
+                <SeekBar android:id="@+id/seek_radius" android:layout_width="120dp" android:layout_height="wrap_content"
+                    android:max="32" android:progress="16" android:thumbTint="#38bdf8" android:progressTint="#38bdf8" />
             </LinearLayout>
 
-            <!-- Card Padding -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Card Padding"
-                    android:textColor="#f1f5f9"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/padding_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="16dp"
-                    android:textColor="#38bdf8"
-                    android:textSize="14sp"
-                    android:layout_marginEnd="8dp" />
-
-                <SeekBar
-                    android:id="@+id/seek_padding"
-                    android:layout_width="120dp"
-                    android:layout_height="wrap_content"
-                    android:max="32"
-                    android:progress="16"
-                    android:thumbTint="#38bdf8"
-                    android:progressTint="#38bdf8" />
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                    android:text="Card Padding" android:textColor="#f1f5f9" android:textSize="14sp" />
+                <TextView android:id="@+id/padding_value" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="16dp" android:textColor="#38bdf8" android:textSize="14sp" android:layout_marginEnd="8dp" />
+                <SeekBar android:id="@+id/seek_padding" android:layout_width="120dp" android:layout_height="wrap_content"
+                    android:max="32" android:progress="16" android:thumbTint="#38bdf8" android:progressTint="#38bdf8" />
             </LinearLayout>
 
             <SwitchCompat
@@ -287,105 +340,55 @@
                 android:textStyle="bold"
                 android:paddingBottom="8dp" />
 
-            <SwitchCompat
-                android:id="@+id/switch_online_status"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Show Online Status"
-                android:textColor="#f1f5f9"
-                android:checked="true"
-                android:thumbTint="#38bdf8"
-                android:layout_marginBottom="4dp" />
+            <SwitchCompat android:id="@+id/switch_online_status"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Show Online Status" android:textColor="#f1f5f9"
+                android:checked="true" android:thumbTint="#38bdf8" android:layout_marginBottom="4dp" />
 
-            <SwitchCompat
-                android:id="@+id/switch_achievements"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Show Achievements"
-                android:textColor="#f1f5f9"
-                android:checked="true"
-                android:thumbTint="#38bdf8"
-                android:layout_marginBottom="4dp" />
+            <SwitchCompat android:id="@+id/switch_achievements"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Show Achievements" android:textColor="#f1f5f9"
+                android:checked="true" android:thumbTint="#38bdf8" android:layout_marginBottom="4dp" />
 
-            <SwitchCompat
-                android:id="@+id/switch_rewards"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Show Reward Points"
-                android:textColor="#f1f5f9"
-                android:checked="true"
-                android:thumbTint="#38bdf8"
-                android:layout_marginBottom="4dp" />
+            <SwitchCompat android:id="@+id/switch_rewards"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Show Reward Points" android:textColor="#f1f5f9"
+                android:checked="true" android:thumbTint="#38bdf8" android:layout_marginBottom="4dp" />
 
-            <SwitchCompat
-                android:id="@+id/switch_analytics"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Show Analytics Tab"
-                android:textColor="#f1f5f9"
-                android:checked="true"
-                android:thumbTint="#38bdf8"
-                android:layout_marginBottom="4dp" />
+            <SwitchCompat android:id="@+id/switch_analytics"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Show Analytics Tab" android:textColor="#f1f5f9"
+                android:checked="true" android:thumbTint="#38bdf8" android:layout_marginBottom="4dp" />
 
-            <SwitchCompat
-                android:id="@+id/switch_squads"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Show Squads"
-                android:textColor="#f1f5f9"
-                android:checked="true"
-                android:thumbTint="#38bdf8"
-                android:layout_marginBottom="4dp" />
+            <SwitchCompat android:id="@+id/switch_squads"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Show Squads" android:textColor="#f1f5f9"
+                android:checked="true" android:thumbTint="#38bdf8" android:layout_marginBottom="4dp" />
 
-            <SwitchCompat
-                android:id="@+id/switch_tournaments"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Show Tournaments"
-                android:textColor="#f1f5f9"
-                android:checked="true"
-                android:thumbTint="#38bdf8"
-                android:layout_marginBottom="4dp" />
+            <SwitchCompat android:id="@+id/switch_tournaments"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Show Tournaments" android:textColor="#f1f5f9"
+                android:checked="true" android:thumbTint="#38bdf8" android:layout_marginBottom="4dp" />
 
-            <SwitchCompat
-                android:id="@+id/switch_schedule"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Show Schedule"
-                android:textColor="#f1f5f9"
-                android:checked="true"
-                android:thumbTint="#38bdf8"
-                android:layout_marginBottom="4dp" />
+            <SwitchCompat android:id="@+id/switch_schedule"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Show Schedule" android:textColor="#f1f5f9"
+                android:checked="true" android:thumbTint="#38bdf8" android:layout_marginBottom="4dp" />
 
-            <SwitchCompat
-                android:id="@+id/switch_chat"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Show Chat"
-                android:textColor="#f1f5f9"
-                android:checked="true"
-                android:thumbTint="#38bdf8"
-                android:layout_marginBottom="4dp" />
+            <SwitchCompat android:id="@+id/switch_chat"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Show Chat" android:textColor="#f1f5f9"
+                android:checked="true" android:thumbTint="#38bdf8" android:layout_marginBottom="4dp" />
 
-            <SwitchCompat
-                android:id="@+id/switch_voice_chat"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Show Voice Chat"
-                android:textColor="#f1f5f9"
-                android:checked="true"
-                android:thumbTint="#38bdf8"
-                android:layout_marginBottom="4dp" />
+            <SwitchCompat android:id="@+id/switch_voice_chat"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Show Voice Chat" android:textColor="#f1f5f9"
+                android:checked="true" android:thumbTint="#38bdf8" android:layout_marginBottom="4dp" />
 
-            <SwitchCompat
-                android:id="@+id/switch_attendance"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Show Attendance"
-                android:textColor="#f1f5f9"
-                android:checked="true"
-                android:thumbTint="#38bdf8"
-                android:layout_marginBottom="16dp" />
+            <SwitchCompat android:id="@+id/switch_attendance"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Show Attendance" android:textColor="#f1f5f9"
+                android:checked="true" android:thumbTint="#38bdf8" android:layout_marginBottom="16dp" />
 
             <!-- ===== SECTION: LIVE PREVIEW ===== -->
             <TextView
