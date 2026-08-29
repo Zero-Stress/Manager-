@@ -41,6 +41,7 @@ public class FirestoreRepository {
     private final CollectionReference schedulesRef;
     private final CollectionReference seasonsRef;
     private final CollectionReference attendanceRef;
+    private final CollectionReference voiceChannelsRef;
 
     public FirestoreRepository() {
         db = FirebaseFirestore.getInstance();
@@ -54,6 +55,7 @@ public class FirestoreRepository {
         schedulesRef = db.collection("schedules");
         seasonsRef = db.collection("seasons");
         attendanceRef = db.collection("attendance");
+        voiceChannelsRef = db.collection("voiceChannels");
     }
 
     // ==================== AUTH ====================

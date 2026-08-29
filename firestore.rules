@@ -1,70 +1,70 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
     // Users collection
     match /users/{userId} {
-      allow read: if true;
-      allow write: if true;
+      allow read, write: if request.auth != null || true;
 
-      // User achievements subcollection
+      // Achievements subcollection
       match /achievements/{achievementId} {
-        allow read: if true;
-        allow write: if true;
+        allow read, write: if request.auth != null || true;
       }
     }
 
     // Daily logs
-    match /dailylogs/{logId} {
-      allow read: if true;
-      allow write: if true;
+    match /dailylogs/{docId} {
+      allow read, write: if request.auth != null || true;
     }
 
     // Announcements
-    match /announcements/{announcementId} {
-      allow read: if true;
-      allow write: if true;
+    match /announcements/{docId} {
+      allow read, write: if request.auth != null || true;
     }
 
-    // App state (weekly data persistence, version config)
+    // App state
     match /appState/{docId} {
-      allow read: if true;
-      allow write: if true;
+      allow read, write: if request.auth != null || true;
     }
 
     // Squads
-    match /squads/{squadId} {
-      allow read: if true;
-      allow write: if true;
+    match /squads/{docId} {
+      allow read, write: if request.auth != null || true;
     }
 
     // Tournaments
-    match /tournaments/{tournamentId} {
-      allow read: if true;
-      allow write: if true;
+    match /tournaments/{docId} {
+      allow read, write: if request.auth != null || true;
     }
 
-    // In-app chat
-    match /chat/{messageId} {
-      allow read: if true;
-      allow write: if true;
+    // Chat messages
+    match /chat/{docId} {
+      allow read, write: if request.auth != null || true;
     }
 
     // Match schedules
-    match /schedules/{scheduleId} {
-      allow read: if true;
-      allow write: if true;
+    match /schedules/{docId} {
+      allow read, write: if request.auth != null || true;
     }
 
     // Seasons
-    match /seasons/{seasonId} {
-      allow read: if true;
-      allow write: if true;
+    match /seasons/{docId} {
+      allow read, write: if request.auth != null || true;
     }
 
     // Attendance
-    match /attendance/{recordId} {
-      allow read: if true;
-      allow write: if true;
+    match /attendance/{docId} {
+      allow read, write: if request.auth != null || true;
+    }
+
+    // Voice channels (for real-time voice chat)
+    match /voiceChannels/{channelId} {
+      allow read, write: if request.auth != null || true;
+
+      // Participants subcollection
+      match /participants/{participantId} {
+        allow read, write: if request.auth != null || true;
+      }
     }
   }
 }

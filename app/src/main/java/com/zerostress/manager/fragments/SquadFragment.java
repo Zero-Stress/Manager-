@@ -1,5 +1,6 @@
 package com.zerostress.manager.fragments;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -15,18 +16,26 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.zerostress.manager.FirestoreRepository;
 import com.zerostress.manager.R;
+import com.zerostress.manager.VoiceChatActivity;
 import com.zerostress.manager.models.Player;
 import com.zerostress.manager.models.Squad;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SquadFragment extends Fragment {
     private FirestoreRepository repo;
     private LinearLayout squadContainer;
     private String userRole = "player";
+    private String userName = "";
+    private String userPhone = "";
+    private FirebaseFirestore db;
 
     private static final String[] SQUAD_COLORS = {"#38bdf8", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"};
 
@@ -40,10 +49,13 @@ public class SquadFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         repo = new FirestoreRepository();
+        db = FirebaseFirestore.getInstance();
         squadContainer = view.findViewById(R.id.squad_container);
 
         if (getArguments() != null) {
             userRole = getArguments().getString("userRole", "player");
+            userName = getArguments().getString("userName", "");
+            userPhone = getArguments().getString("userPhone", "");
         }
 
         Button createSquadBtn = view.findViewById(R.id.create_squad_btn);
@@ -87,7 +99,7 @@ public class SquadFragment extends Fragment {
 
             // Squad name with color
             TextView nameTv = new TextView(getContext());
-            nameTv.setText("⚔️ " + squad.getName() + " (" + squad.getMemberCount() + " members)");
+            nameTv.setText("\u2694\ufe0f " + squad.getName() + " (" + squad.getMemberCount() + " members)");
             nameTv.setTextColor(Color.parseColor(squad.getColor() != null ? squad.getColor() : "#38bdf8"));
             nameTv.setTextSize(16);
             nameTv.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -100,6 +112,22 @@ public class SquadFragment extends Fragment {
             statsTv.setTextSize(12);
             statsTv.setPadding(0, 8, 0, 0);
             card.addView(statsTv);
+
+            // Check voice channel participants count
+            String channelName = "squad_" + squad.getId();
+            checkVoiceParticipants(channelName, card, squad);
+
+            // Join Voice Button
+            Button voiceBtn = new Button(getContext());
+            voiceBtn.setText("\ud83c\udfa4 Join Voice Chat");
+            voiceBtn.setTextSize(12);
+            voiceBtn.setBackgroundColor(Color.parseColor("#10b981"));
+            voiceBtn.setTextColor(Color.WHITE);
+            voiceBtn.setOnClickListener(v -> joinVoiceChat(squad));
+            LinearLayout.LayoutParams voiceBtnParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 44);
+            voiceBtnParams.setMargins(0, 8, 0, 0);
+            card.addView(voiceBtn, voiceBtnParams);
 
             // Assign player button (admin only)
             if ("admin".equals(userRole)) {
@@ -114,6 +142,64 @@ public class SquadFragment extends Fragment {
 
             squadContainer.addView(card);
         }
+    }
+
+    private void checkVoiceParticipants(String channelName, LinearLayout card, Squad squad) {
+        db.collection("voiceChannels").document(channelName)
+            .collection("participants")
+            .get()
+            .addOnSuccessListener(docs -> {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        int count = docs.size();
+                        TextView voiceStatus = new TextView(getContext());
+                        if (count > 0) {
+                            List<String> names = new ArrayList<>();
+                            for (QueryDocumentSnapshot doc : docs) {
+                                String name = doc.getString("name");
+                                if (name != null) names.add(name);
+                            }
+                            voiceStatus.setText("\ud83d\udfe2 " + count + " in voice: " + joinNames(names));
+                            voiceStatus.setTextColor(Color.parseColor("#10b981"));
+                        } else {
+                            voiceStatus.setText("\ud83d\udd34 No one in voice");
+                            voiceStatus.setTextColor(Color.parseColor("#94a3b8"));
+                        }
+                        voiceStatus.setTextSize(11);
+                        voiceStatus.setPadding(0, 4, 0, 0);
+                        card.addView(voiceStatus, 1); // Insert after stats
+                    });
+                }
+            });
+    }
+
+    private String joinNames(List<String> names) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < names.size(); i++) {
+            if (i > 0) sb.append(", ");
+            sb.append(names.get(i));
+            if (i >= 2) {
+                sb.append(" +").append(names.size() - 3).append(" more");
+                break;
+            }
+        }
+        return sb.toString();
+    }
+
+    private void joinVoiceChat(Squad squad) {
+        if (getActivity() == null) return;
+
+        if (userName.isEmpty() || userPhone.isEmpty()) {
+            Toast.makeText(getContext(), "User info not loaded. Please restart the app.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String channelName = "squad_" + squad.getId();
+        Intent intent = new Intent(getActivity(), VoiceChatActivity.class);
+        intent.putExtra("channelName", channelName);
+        intent.putExtra("userName", userName);
+        intent.putExtra("userPhone", userPhone);
+        startActivity(intent);
     }
 
     private void showCreateSquadDialog() {

@@ -65,4 +65,7 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:32.7.0')
     implementation 'com.google.firebase:firebase-firestore'
     implementation 'com.google.firebase:firebase-messaging'
+
+    // Agora RTC SDK for voice chat with noise cancellation
+    implementation 'io.agora.rtc:full-sdk:4.3.0'
 }
