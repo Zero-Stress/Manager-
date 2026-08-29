@@ -68,11 +68,18 @@ public class ChatFragment extends Fragment {
         messageInput = view.findViewById(R.id.message_input);
         mentionSuggestions = view.findViewById(R.id.mention_suggestions);
         Button sendBtn = view.findViewById(R.id.send_btn);
+        View clearChatBtn = view.findViewById(R.id.clear_chat_btn);
 
         if (getArguments() != null) {
             userName = getArguments().getString("userName", "");
             userPhone = getArguments().getString("userPhone", "");
             isUserAdmin = "admin".equals(getArguments().getString("userRole", "player"));
+        }
+
+        // Show clear chat button only for admin
+        if (isUserAdmin && clearChatBtn != null) {
+            clearChatBtn.setVisibility(View.VISIBLE);
+            clearChatBtn.setOnClickListener(v -> showClearChatDialog());
         }
 
         sendBtn.setOnClickListener(v -> sendMessage());
@@ -347,6 +354,38 @@ public class ChatFragment extends Fragment {
                         Toast.makeText(getContext(), "Failed to delete", Toast.LENGTH_SHORT).show();
                     }
                 });
+        });
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
+    }
+
+    private void showClearChatDialog() {
+        if (!isAdded() || getContext() == null) return;
+
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
+        builder.setTitle("🗑️ Clear All Chat");
+        builder.setMessage("This will permanently delete ALL chat messages. This cannot be undone.\n\nAre you sure?");
+
+        builder.setPositiveButton("Clear All", (d, w) -> {
+            repo.clearAllChat(new FirestoreRepository.OnResultCallback() {
+                @Override public void onSuccess() {
+                    if (isAdded() && getContext() != null) {
+                        Toast.makeText(getContext(), "All chat messages cleared!", Toast.LENGTH_SHORT).show();
+                        // Post a system message
+                        ChatMessage sysMsg = new ChatMessage("System", "system", "Chat has been cleared by admin");
+                        sysMsg.setType("system");
+                        repo.sendChatMessage(sysMsg, new FirestoreRepository.OnResultCallback() {
+                            @Override public void onSuccess() {}
+                            @Override public void onFailure(String e) {}
+                        });
+                    }
+                }
+                @Override public void onFailure(String e) {
+                    if (isAdded() && getContext() != null) {
+                        Toast.makeText(getContext(), "Failed to clear chat: " + e, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
         });
         builder.setNegativeButton("Cancel", null);
         builder.show();

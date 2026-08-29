@@ -583,6 +583,26 @@ public class FirestoreRepository {
             .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
     }
 
+    public void clearAllChat(OnResultCallback callback) {
+        chatRef.get().addOnSuccessListener(snapshot -> {
+            int total = snapshot.size();
+            if (total == 0) { callback.onSuccess(); return; }
+
+            int[] done = {0};
+            for (QueryDocumentSnapshot doc : snapshot) {
+                doc.getReference().delete()
+                    .addOnSuccessListener(a -> {
+                        done[0]++;
+                        if (done[0] == total) callback.onSuccess();
+                    })
+                    .addOnFailureListener(e -> {
+                        done[0]++;
+                        if (done[0] == total) callback.onSuccess();
+                    });
+            }
+        }).addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
     // ==================== MATCH SCHEDULE ====================
 
     public ListenerRegistration listenSchedules(SchedulesCallback callback) {
