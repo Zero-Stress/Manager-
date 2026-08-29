@@ -7,6 +7,10 @@ android {
     namespace 'com.zerostress.manager'
     compileSdk 34
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId "com.zerostress.manager"
         minSdk 24
