@@ -246,7 +246,6 @@ public class MainActivity extends AppCompatActivity {
             popup.getMenu().add(0, 6, 5, "Tournaments");
             popup.getMenu().add(0, 7, 6, "Attendance");
             popup.getMenu().add(0, 8, 7, "Squad Manager");
-            popup.getMenu().add(0, 9, 8, "App Customizer");
             popup.getMenu().add(0, 11, 9, "Push Update");
         }
 
@@ -261,14 +260,7 @@ public class MainActivity extends AppCompatActivity {
             else if (id == 6) fragment = new TournamentFragment();
             else if (id == 7) fragment = new AttendanceFragment();
             else if (id == 8) fragment = new SquadFragment();
-            else if (id == 9) {
-                try {
-                    startActivity(new Intent(MainActivity.this, AdminCustomizerActivity.class));
-                } catch (Throwable e) {
-                    Toast.makeText(this, "Failed to open customizer", Toast.LENGTH_SHORT).show();
-                }
-                return true;
-            } else if (id == 11) {
+            else if (id == 11) {
                 showPushUpdateDialog();
                 return true;
             }

@@ -33,12 +33,6 @@
         </activity>
 
         <activity
-            android:name=".AdminCustomizerActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.ZeroStressManager" />
-
-        <activity
             android:name=".VoiceChatActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden"
