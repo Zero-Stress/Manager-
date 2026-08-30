@@ -3,6 +3,7 @@ package com.zerostress.manager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,38 +17,33 @@ import com.google.gson.Gson;
 import com.zerostress.manager.models.Player;
 
 public class LoginActivity extends AppCompatActivity {
+    private static final String TAG = "ZeroStressLogin";
     private EditText phoneInput, passwordInput, regNameInput, regPhoneInput, regPasswordInput;
     private Button loginBtn, registerBtn;
     private TextView toggleText;
     private ProgressBar progressBar;
     private boolean isLoginMode = true;
-    private FirestoreRepository repo;
     private SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
-            setContentView(R.layout.activity_login);
-        } catch (Exception e) {
-            Toast.makeText(this, "Layout error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
 
-        try {
-            repo = new FirestoreRepository();
-        } catch (Exception e) {
-            Toast.makeText(this, "Firebase error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
         prefs = getSharedPreferences("zerostress_prefs", MODE_PRIVATE);
 
         // Check if already logged in
         String savedUser = prefs.getString("current_user", null);
         if (savedUser != null) {
             navigateToMain();
+            return;
+        }
+
+        try {
+            setContentView(R.layout.activity_login);
+        } catch (Throwable t) {
+            Log.e(TAG, "Login layout failed", t);
+            Toast.makeText(this, "App error. Please reinstall.", Toast.LENGTH_LONG).show();
+            finish();
             return;
         }
 
@@ -61,7 +57,6 @@ public class LoginActivity extends AppCompatActivity {
         toggleText = findViewById(R.id.toggle_auth_mode);
         progressBar = findViewById(R.id.progress_bar);
 
-        // Login form views
         View loginForm = findViewById(R.id.login_form);
         View registerForm = findViewById(R.id.register_form);
 
@@ -77,27 +72,35 @@ public class LoginActivity extends AppCompatActivity {
             progressBar.setVisibility(View.VISIBLE);
             loginBtn.setEnabled(false);
 
-            repo.login(phone, password, new FirestoreRepository.AuthCallback() {
-                @Override
-                public void onSuccess(Player player) {
-                    runOnUiThread(() -> {
-                        saveSession(player);
-                        progressBar.setVisibility(View.GONE);
-                        loginBtn.setEnabled(true);
-                        Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
-                        navigateToMain();
-                    });
-                }
+            try {
+                FirestoreRepository repo = new FirestoreRepository();
+                repo.login(phone, password, new FirestoreRepository.AuthCallback() {
+                    @Override
+                    public void onSuccess(Player player) {
+                        runOnUiThread(() -> {
+                            saveSession(player);
+                            progressBar.setVisibility(View.GONE);
+                            loginBtn.setEnabled(true);
+                            Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
+                            navigateToMain();
+                        });
+                    }
 
-                @Override
-                public void onFailure(String error) {
-                    runOnUiThread(() -> {
-                        progressBar.setVisibility(View.GONE);
-                        loginBtn.setEnabled(true);
-                        Toast.makeText(LoginActivity.this, error, Toast.LENGTH_LONG).show();
-                    });
-                }
-            });
+                    @Override
+                    public void onFailure(String error) {
+                        runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+                            loginBtn.setEnabled(true);
+                            Toast.makeText(LoginActivity.this, error, Toast.LENGTH_LONG).show();
+                        });
+                    }
+                });
+            } catch (Throwable t) {
+                progressBar.setVisibility(View.GONE);
+                loginBtn.setEnabled(true);
+                Toast.makeText(this, "Firebase not configured. Check google-services.json", Toast.LENGTH_LONG).show();
+                Log.e(TAG, "Firestore init failed", t);
+            }
         });
 
         registerBtn.setOnClickListener(v -> {
@@ -118,26 +121,34 @@ public class LoginActivity extends AppCompatActivity {
             progressBar.setVisibility(View.VISIBLE);
             registerBtn.setEnabled(false);
 
-            repo.register(name, phone, password, new FirestoreRepository.AuthCallback() {
-                @Override
-                public void onSuccess(Player player) {
-                    runOnUiThread(() -> {
-                        progressBar.setVisibility(View.GONE);
-                        registerBtn.setEnabled(true);
-                        Toast.makeText(LoginActivity.this, "Registration successful! Waiting for admin approval.", Toast.LENGTH_LONG).show();
-                        toggleToLogin();
-                    });
-                }
+            try {
+                FirestoreRepository repo = new FirestoreRepository();
+                repo.register(name, phone, password, new FirestoreRepository.AuthCallback() {
+                    @Override
+                    public void onSuccess(Player player) {
+                        runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+                            registerBtn.setEnabled(true);
+                            Toast.makeText(LoginActivity.this, "Registration successful! Waiting for admin approval.", Toast.LENGTH_LONG).show();
+                            toggleToLogin();
+                        });
+                    }
 
-                @Override
-                public void onFailure(String error) {
-                    runOnUiThread(() -> {
-                        progressBar.setVisibility(View.GONE);
-                        registerBtn.setEnabled(true);
-                        Toast.makeText(LoginActivity.this, error, Toast.LENGTH_LONG).show();
-                    });
-                }
-            });
+                    @Override
+                    public void onFailure(String error) {
+                        runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+                            registerBtn.setEnabled(true);
+                            Toast.makeText(LoginActivity.this, error, Toast.LENGTH_LONG).show();
+                        });
+                    }
+                });
+            } catch (Throwable t) {
+                progressBar.setVisibility(View.GONE);
+                registerBtn.setEnabled(true);
+                Toast.makeText(this, "Firebase not configured", Toast.LENGTH_LONG).show();
+                Log.e(TAG, "Firestore init failed", t);
+            }
         });
 
         toggleText.setOnClickListener(v -> {
@@ -160,7 +171,7 @@ public class LoginActivity extends AppCompatActivity {
         isLoginMode = true;
         loginForm.setVisibility(View.VISIBLE);
         registerForm.setVisibility(View.GONE);
-        toggleText.setText("Don't have an account? Register");
+        toggleText.setText("New player? Register here");
         loginBtn.setVisibility(View.VISIBLE);
         registerBtn.setVisibility(View.GONE);
     }
