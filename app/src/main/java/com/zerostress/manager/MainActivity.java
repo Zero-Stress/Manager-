@@ -49,30 +49,43 @@ public class MainActivity extends AppCompatActivity {
         String userJson = prefs.getString("current_user", null);
         if (userJson == null) { navigateToLogin(); return; }
 
-        try { currentUser = new Gson().fromJson(userJson, Player.class); }
-        catch (Exception e) { navigateToLogin(); return; }
+        try {
+            currentUser = new Gson().fromJson(userJson, Player.class);
+        } catch (Exception e) {
+            navigateToLogin(); return;
+        }
         if (currentUser == null) { navigateToLogin(); return; }
 
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Zero Stress");
-            getSupportActionBar().setSubtitle(currentUser.getRole().toUpperCase() +
-                ("admin".equals(currentUser.getRole()) ? "" : " \u2022 " + currentUser.getRoleLabel()));
-        }
+        try {
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setTitle("Zero Stress");
+                getSupportActionBar().setSubtitle(currentUser.getRole().toUpperCase() +
+                    ("admin".equals(currentUser.getRole()) ? "" : " \u2022 " + currentUser.getRoleLabel()));
+            }
+        } catch (Exception ignored) {}
 
         // Setup presence
-        repo.updatePresence(currentUser.getPhone(), true);
+        try {
+            repo.updatePresence(currentUser.getPhone(), true);
+        } catch (Exception ignored) {}
 
-        // Setup notification polling - monitors all Firestore changes
-        setupNotifications();
+        // Setup notification polling
+        try {
+            setupNotifications();
+        } catch (Exception ignored) {}
 
         // Check for app updates
-        updateManager = new AppUpdateManager(this);
-        boolean isAdmin = "admin".equals(currentUser.getRole());
-        updateManager.checkForUpdates(com.zerostress.manager.BuildConfig.VERSION_CODE, isAdmin);
+        try {
+            updateManager = new AppUpdateManager(this);
+            boolean isAdmin = "admin".equals(currentUser.getRole());
+            updateManager.checkForUpdates(com.zerostress.manager.BuildConfig.VERSION_CODE, isAdmin);
+        } catch (Exception ignored) {}
 
         // Setup bottom navigation
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
-        setupNavigation(bottomNav);
+        try {
+            BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
+            setupNavigation(bottomNav);
+        } catch (Exception ignored) {}
 
         if (savedInstanceState == null) {
             loadFragment(new LeaderboardFragment(), currentUser);
@@ -263,7 +276,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu, menu);
+        try {
+            getMenuInflater().inflate(R.menu.main_menu, menu);
+        } catch (Exception e) {
+            // Menu resource may not exist
+        }
         return true;
     }
 

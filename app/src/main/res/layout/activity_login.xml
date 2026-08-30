@@ -118,7 +118,6 @@
                 android:textStyle="bold"
                 android:textSize="15sp"
                 android:letterSpacing="0.1"
-                android:background="@drawable/btn_gaming_primary"
                 android:backgroundTint="#38bdf8"
                 android:layout_marginBottom="8dp"
                 app:cornerRadius="12dp" />
@@ -221,7 +220,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:visibility="gone"
-            android:indeterminateTint="#38bdf8" />
+            android:visibility="gone" />
     </LinearLayout>
 </ScrollView>
