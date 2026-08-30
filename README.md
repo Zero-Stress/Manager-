@@ -111,12 +111,6 @@ Then copy your `google-services.json` into `app/` and build.
 4. Download `google-services.json`
 5. Put it in the `app/` folder
 
----
-
-## 🔐 Admin Access
-
-- **Phone:** `1757261781`
-- **Password:** `adminpassword123`
 
 ---
 
