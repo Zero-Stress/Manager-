@@ -48,49 +48,42 @@ public class MainActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences("zerostress_prefs", MODE_PRIVATE);
 
-        // Crash loop prevention: if we crashed 3 times in a row, clear session
-        int crashCount = prefs.getInt("crash_count", 0);
-        if (crashCount >= 3) {
-            prefs.edit().remove("current_user").putInt("crash_count", 0).apply();
-            Toast.makeText(this, "App had issues. Session cleared.", Toast.LENGTH_LONG).show();
-            navigateToLogin();
-            return;
-        }
-
-        try {
-            setContentView(R.layout.activity_main);
-        } catch (Exception e) {
-            Log.e(TAG, "Layout crash", e);
-            prefs.edit().putInt("crash_count", crashCount + 1).apply();
-            navigateToLogin();
-            return;
-        }
-
-        // Increment crash count - will be cleared in onResume
-        prefs.edit().putInt("crash_count", crashCount + 1).apply();
-
-        try {
-            repo = new FirestoreRepository();
-        } catch (Exception e) {
-            Log.e(TAG, "Firestore init crash", e);
-            repoFailed = true;
-            // Continue anyway - app can work without Firestore for basic UI
-        }
-
+        // Check if user is logged in
         String userJson = prefs.getString("current_user", null);
         if (userJson == null) {
             navigateToLogin();
             return;
         }
 
+        // Try to inflate the layout
+        try {
+            setContentView(R.layout.activity_main);
+        } catch (Exception e) {
+            Log.e(TAG, "Layout inflate crash", e);
+            Toast.makeText(this, "Layout error, please reinstall", Toast.LENGTH_LONG).show();
+            navigateToLogin();
+            return;
+        }
+
+        // Initialize Firestore - optional, app works without it for basic UI
+        try {
+            repo = new FirestoreRepository();
+        } catch (Exception e) {
+            Log.e(TAG, "Firestore init failed (non-fatal)", e);
+            repoFailed = true;
+        }
+
+        // Parse user
         try {
             currentUser = new Gson().fromJson(userJson, Player.class);
         } catch (Exception e) {
-            Log.e(TAG, "Gson crash", e);
+            Log.e(TAG, "Gson parse crash", e);
+            prefs.edit().remove("current_user").apply();
             navigateToLogin();
             return;
         }
         if (currentUser == null) {
+            prefs.edit().remove("current_user").apply();
             navigateToLogin();
             return;
         }
@@ -103,21 +96,23 @@ public class MainActivity extends AppCompatActivity {
                 getSupportActionBar().setSubtitle(roleLabel);
             }
         } catch (Exception e) {
-            Log.e(TAG, "Action bar crash", e);
+            Log.e(TAG, "Action bar crash (non-fatal)", e);
         }
 
         // Presence
         try {
-            if (repo != null) repo.updatePresence(currentUser.getPhone(), true);
+            if (repo != null && !repoFailed) {
+                repo.updatePresence(currentUser.getPhone(), true);
+            }
         } catch (Exception e) {
-            Log.e(TAG, "Presence crash", e);
+            Log.e(TAG, "Presence crash (non-fatal)", e);
         }
 
         // Notifications
         try {
             setupNotifications();
         } catch (Exception e) {
-            Log.e(TAG, "Notification crash", e);
+            Log.e(TAG, "Notification crash (non-fatal)", e);
         }
 
         // App updates
@@ -126,15 +121,17 @@ public class MainActivity extends AppCompatActivity {
             boolean isAdmin = "admin".equals(currentUser.getRole());
             updateManager.checkForUpdates(com.zerostress.manager.BuildConfig.VERSION_CODE, isAdmin);
         } catch (Exception e) {
-            Log.e(TAG, "Update manager crash", e);
+            Log.e(TAG, "Update manager crash (non-fatal)", e);
         }
 
         // Bottom navigation
         try {
             BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
-            setupNavigation(bottomNav);
+            if (bottomNav != null) {
+                setupNavigation(bottomNav);
+            }
         } catch (Exception e) {
-            Log.e(TAG, "Navigation crash", e);
+            Log.e(TAG, "Navigation crash (non-fatal)", e);
         }
 
         // Load default fragment
@@ -142,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 loadFragment(new LeaderboardFragment(), currentUser);
             } catch (Exception e) {
-                Log.e(TAG, "Fragment load crash", e);
+                Log.e(TAG, "Fragment load crash (non-fatal)", e);
             }
         }
     }
@@ -150,8 +147,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Clear crash count - app survived onCreate successfully
-        prefs.edit().putInt("crash_count", 0).apply();
     }
 
     private void setupNotifications() {
@@ -160,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
             notificationHelper.saveUserPhone(currentUser.getPhone());
             notificationHelper.setLeaderboardUpdateCallback((type, message) -> {
                 runOnUiThread(() -> {
-                    Toast.makeText(this, "\uD83D\uDD14 " + message, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
                 });
             });
 
@@ -172,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
 
             notificationHelper.startLeaderboardListener();
         } catch (Exception e) {
-            Log.e(TAG, "Notification setup crash", e);
+            Log.e(TAG, "Notification setup crash (non-fatal)", e);
         }
     }
 
@@ -366,13 +361,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void logout() {
-        if (currentUser != null && !repoFailed) {
+        if (currentUser != null && !repoFailed && repo != null) {
             try { repo.updatePresence(currentUser.getPhone(), false); } catch (Exception ignored) {}
         }
         if (notificationHelper != null) {
             try { notificationHelper.cleanup(); } catch (Exception ignored) {}
         }
-        prefs.edit().remove("current_user").putInt("crash_count", 0).apply();
+        prefs.edit().remove("current_user").apply();
         navigateToLogin();
     }
 
@@ -386,7 +381,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (currentUser != null && !repoFailed) {
+        if (currentUser != null && !repoFailed && repo != null) {
             try { repo.updatePresence(currentUser.getPhone(), false); } catch (Exception ignored) {}
         }
         if (notificationHelper != null) {

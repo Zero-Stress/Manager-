@@ -38,7 +38,12 @@ public class AnnouncementsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        repo = new FirestoreRepository();
+        try {
+            repo = new FirestoreRepository();
+        } catch (Exception e) {
+            android.util.Log.e(getClass().getSimpleName(), "Firestore init failed", e);
+            return;
+        }
         announcementInput = view.findViewById(R.id.announcement_input);
         announcementList = view.findViewById(R.id.announcement_list);
         Button postBtn = view.findViewById(R.id.post_announcement_btn);

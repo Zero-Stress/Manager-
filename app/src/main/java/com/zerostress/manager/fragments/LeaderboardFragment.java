@@ -39,7 +39,13 @@ public class LeaderboardFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        repo = new FirestoreRepository();
+
+        try {
+            repo = new FirestoreRepository();
+        } catch (Exception e) {
+            android.util.Log.e("LeaderboardFragment", "Firestore init failed", e);
+            return;
+        }
 
         dailyTable = view.findViewById(R.id.daily_leaderboard_table);
         weeklyTable = view.findViewById(R.id.weekly_leaderboard_table);
@@ -51,31 +57,48 @@ public class LeaderboardFragment extends Fragment {
         }
 
         // Listen to daily logs
-        repo.listenDailyLogs(records -> {
-            allDailyLogs = records;
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(this::updateLeaderboards);
-            }
-        });
+        try {
+            repo.listenDailyLogs(records -> {
+                allDailyLogs = records;
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(this::updateLeaderboards);
+                }
+            });
+        } catch (Exception e) {
+            android.util.Log.e("LeaderboardFragment", "listenDailyLogs failed", e);
+        }
 
         // Listen to users for online status
-        repo.listenUsers(players -> {
-            allPlayers = players;
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(this::updateLeaderboards);
-            }
-        });
+        try {
+            repo.listenUsers(players -> {
+                allPlayers = players;
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(this::updateLeaderboards);
+                }
+            });
+        } catch (Exception e) {
+            android.util.Log.e("LeaderboardFragment", "listenUsers failed", e);
+        }
 
         // Load weekly data from Firestore
-        loadWeeklyData();
+        try {
+            loadWeeklyData();
+        } catch (Exception e) {
+            android.util.Log.e("LeaderboardFragment", "loadWeeklyData failed", e);
+        }
     }
 
     private void loadWeeklyData() {
-        repo.loadWeeklyData(weeklyData -> {
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(this::updateLeaderboards);
-            }
-        });
+        if (repo == null) return;
+        try {
+            repo.loadWeeklyData(weeklyData -> {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(this::updateLeaderboards);
+                }
+            });
+        } catch (Exception e) {
+            android.util.Log.e("LeaderboardFragment", "loadWeeklyData failed", e);
+        }
     }
 
     private void updateLeaderboards() {
