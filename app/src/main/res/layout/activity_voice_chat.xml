@@ -5,12 +5,12 @@
     android:orientation="vertical"
     android:background="#090d16">
 
-    <!-- Status bar -->
+    <!-- Top Bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="12dp"
+        android:padding="16dp"
         android:gravity="center_vertical"
         android:background="#0f1729">
 
@@ -19,56 +19,70 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="🎤 Voice Channel"
+            android:text="VOICE CHANNEL"
             android:textColor="#f1f5f9"
             android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:letterSpacing="0.1" />
 
         <TextView
             android:id="@+id/voice_timer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="00:00"
-            android:textColor="#38bdf8"
-            android:textSize="14sp"
-            android:fontFamily="monospace" />
+            android:textColor="#10b981"
+            android:textSize="16sp"
+            android:fontFamily="monospace"
+            android:textStyle="bold" />
     </LinearLayout>
+
+    <!-- Neon accent line -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@drawable/bg_gaming_gradient" />
 
     <!-- Connection status -->
     <TextView
         android:id="@+id/voice_status"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="🟡 Connecting..."
+        android:text="Connecting..."
         android:textColor="#f59e0b"
         android:textSize="12sp"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="6dp"
+        android:letterSpacing="0.05"
+        android:padding="12dp"
         android:background="#0f1729" />
 
-    <!-- Participants list (scrollable) -->
+    <!-- Participants list -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="#090d16">
+        android:background="#090d16"
+        android:scrollbars="none">
 
         <LinearLayout
             android:id="@+id/participants_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="8dp" />
+            android:padding="12dp" />
     </ScrollView>
 
-    <!-- WebView for Jitsi Meet (hidden, handles voice in background) -->
+    <!-- WebView for Jitsi (hidden, handles voice in background) -->
     <WebView
         android:id="@+id/webview"
         android:layout_width="1dp"
         android:layout_height="1dp"
         android:visibility="visible" />
 
-    <!-- Bottom controls -->
+    <!-- Bottom Controls -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@drawable/bg_gaming_gradient" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -81,12 +95,12 @@
             android:id="@+id/btn_leave"
             android:layout_width="200dp"
             android:layout_height="52dp"
-            android:background="@drawable/btn_danger"
+            android:background="@drawable/btn_gaming_danger"
             android:gravity="center"
-            android:text="📞 Leave Voice"
+            android:text="LEAVE VOICE"
             android:textColor="#ffffff"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textStyle="bold"
-            android:padding="8dp" />
+            android:letterSpacing="0.1" />
     </LinearLayout>
 </LinearLayout>

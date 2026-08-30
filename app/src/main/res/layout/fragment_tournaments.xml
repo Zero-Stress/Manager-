@@ -6,29 +6,47 @@
     android:background="#090d16"
     android:padding="16dp">
 
-    <TextView
+    <!-- Gaming Header -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="🏆 Tournaments"
-        android:textColor="#38bdf8"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:paddingBottom="8dp" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="12dp">
 
-    <Button
-        android:id="@+id/create_tournament_btn"
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="TOURNAMENTS"
+            android:textColor="#f1f5f9"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1" />
+
+        <Button
+            android:id="@+id/create_tournament_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="+ NEW"
+            android:background="@drawable/btn_gaming_primary"
+            android:textColor="#090d16"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:textAllCaps="false"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <View
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:text="+ Create Tournament"
-        android:backgroundTint="#38bdf8"
-        android:textColor="#090d16"
-        android:textStyle="bold"
-        android:visibility="gone"
+        android:layout_height="2dp"
+        android:background="@drawable/bg_gaming_gradient"
         android:layout_marginBottom="12dp" />
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:scrollbars="none">
 
         <LinearLayout
             android:id="@+id/tournament_container"

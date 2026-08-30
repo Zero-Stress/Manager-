@@ -10,14 +10,44 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <!-- Gaming Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_gaming_gradient">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LEADERBOARD"
+                android:textColor="#ffffff"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.2" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Daily &amp; Weekly Rankings"
+                android:textColor="#e0f2fe"
+                android:textSize="12sp"
+                android:letterSpacing="0.1"
+                android:paddingTop="4dp" />
+        </LinearLayout>
+
+        <!-- Daily Section -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="🏆 Daily Leaderboard"
+            android:text="DAILY RANKINGS"
             android:textColor="#38bdf8"
-            android:textSize="18sp"
+            android:textSize="14sp"
             android:textStyle="bold"
-            android:gravity="center"
+            android:letterSpacing="0.15"
             android:padding="12dp" />
 
         <TextView
@@ -25,15 +55,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="No daily data yet"
-            android:textColor="#94a3b8"
+            android:textColor="#64748b"
             android:gravity="center"
-            android:padding="24dp"
+            android:padding="32dp"
             android:visibility="visible" />
 
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp">
+            android:layout_marginBottom="24dp"
+            android:scrollbars="none">
 
             <TableLayout
                 android:id="@+id/daily_leaderboard_table"
@@ -42,14 +73,15 @@
                 android:visibility="gone" />
         </HorizontalScrollView>
 
+        <!-- Weekly Section -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="📊 Weekly Leaderboard"
-            android:textColor="#38bdf8"
-            android:textSize="18sp"
+            android:text="WEEKLY RANKINGS"
+            android:textColor="#a855f7"
+            android:textSize="14sp"
             android:textStyle="bold"
-            android:gravity="center"
+            android:letterSpacing="0.15"
             android:padding="12dp" />
 
         <TextView
@@ -57,14 +89,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="No weekly data yet"
-            android:textColor="#94a3b8"
+            android:textColor="#64748b"
             android:gravity="center"
-            android:padding="24dp"
+            android:padding="32dp"
             android:visibility="visible" />
 
         <HorizontalScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:scrollbars="none">
 
             <TableLayout
                 android:id="@+id/weekly_leaderboard_table"

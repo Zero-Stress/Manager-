@@ -48,6 +48,7 @@ public class VoiceChatActivity extends AppCompatActivity {
     private String channelName = "";
     private String userName = "";
     private String userPhone = "";
+    private String userRole = "player";
     private long startTime = 0;
     private boolean isInCall = false;
 
@@ -72,10 +73,12 @@ public class VoiceChatActivity extends AppCompatActivity {
         channelName = getIntent().getStringExtra("channelName");
         userName = getIntent().getStringExtra("userName");
         userPhone = getIntent().getStringExtra("userPhone");
+        userRole = getIntent().getStringExtra("userRole");
 
         if (channelName == null) channelName = "zerostress-default";
         if (userName == null) userName = "Unknown";
         if (userPhone == null) userPhone = "";
+        if (userRole == null) userRole = "player";
 
         // Sanitize channel name for Jitsi (only alphanumeric, hyphens, underscores)
         channelName = channelName.replaceAll("[^a-zA-Z0-9_-]", "-");
@@ -95,23 +98,33 @@ public class VoiceChatActivity extends AppCompatActivity {
         // Leave button
         findViewById(R.id.btn_leave).setOnClickListener(v -> leaveChannel());
 
-        // Check voice chat permission first
-        FirestoreRepository repo = new FirestoreRepository();
-        repo.checkVoiceChatPermission(userPhone, allowed -> {
-            runOnUiThread(() -> {
-                if (!allowed) {
-                    showError("Voice chat not permitted. Ask admin to grant access.");
-                    return;
-                }
-                // Check network and join
-                if (checkNetwork()) {
-                    setupWebView();
-                    registerInChannel();
-                    listenChannelParticipants();
-                    startTimer();
-                }
+        // Admin bypasses permission check
+        if ("admin".equals(userRole)) {
+            if (checkNetwork()) {
+                setupWebView();
+                registerInChannel();
+                listenChannelParticipants();
+                startTimer();
+            }
+        } else {
+            // Check voice chat permission first
+            FirestoreRepository repo = new FirestoreRepository();
+            repo.checkVoiceChatPermission(userPhone, allowed -> {
+                runOnUiThread(() -> {
+                    if (!allowed) {
+                        showError("Voice chat not permitted. Ask admin to grant access.");
+                        return;
+                    }
+                    // Check network and join
+                    if (checkNetwork()) {
+                        setupWebView();
+                        registerInChannel();
+                        listenChannelParticipants();
+                        startTimer();
+                    }
+                });
             });
-        });
+        }
     }
 
     private boolean checkNetwork() {

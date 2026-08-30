@@ -5,26 +5,49 @@
     android:orientation="vertical"
     android:background="#090d16">
 
-    <TextView
+    <!-- Chat Header -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="💬 Team Chat"
-        android:textColor="#38bdf8"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:padding="16dp" />
+        android:padding="16dp"
+        android:background="#0f1729"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="TEAM CHAT"
+            android:textColor="#f1f5f9"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1" />
+
+        <View
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:background="@drawable/bg_circle_dark"
+            android:layout_marginEnd="8dp" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@drawable/bg_gaming_gradient" />
 
     <ScrollView
         android:id="@+id/chat_scroll"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:scrollbars="none">
 
         <LinearLayout
             android:id="@+id/chat_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:padding="12dp"
             android:paddingBottom="8dp" />
     </ScrollView>
 
@@ -34,8 +57,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="#131c31"
-        android:padding="4dp"
+        android:background="#0f1729"
+        android:padding="8dp"
         android:visibility="gone" />
 
     <!-- Admin clear chat button (hidden by default) -->
@@ -43,43 +66,49 @@
         android:id="@+id/clear_chat_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="🗑️ Clear All Chat"
+        android:text="CLEAR ALL CHAT"
         android:textColor="#ef4444"
-        android:textSize="13sp"
+        android:textSize="12sp"
         android:textStyle="bold"
+        android:letterSpacing="0.1"
         android:padding="10dp"
         android:background="#1a0a0a"
         android:gravity="center"
         android:visibility="gone" />
 
+    <!-- Input area -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="8dp"
-        android:background="#131c31">
+        android:padding="12dp"
+        android:background="#0f1729"
+        android:gravity="center_vertical">
 
         <EditText
             android:id="@+id/message_input"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
-            android:hint="Type @ to mention a player..."
+            android:hint="Type @ to mention..."
             android:textColor="#f1f5f9"
-            android:textColorHint="#64748b"
-            android:background="#1e3a5f"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:singleLine="true" />
+            android:textColorHint="#475569"
+            android:background="@drawable/bg_gaming_input"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:singleLine="true"
+            android:textSize="14sp" />
 
-        <Button
+        <TextView
             android:id="@+id/send_btn"
-            android:layout_width="60dp"
+            android:layout_width="48dp"
             android:layout_height="48dp"
-            android:text="➤"
-            android:backgroundTint="#38bdf8"
+            android:text=">"
+            android:background="@drawable/btn_gaming_primary"
+            android:gravity="center"
             android:textColor="#090d16"
-            android:textSize="18sp"
+            android:textSize="20sp"
+            android:textStyle="bold"
             android:layout_marginStart="8dp" />
     </LinearLayout>
 </LinearLayout>

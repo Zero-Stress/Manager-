@@ -1,40 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.ZeroStressManager" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Primary -->
+        <!-- Primary neon blue -->
         <item name="colorPrimary">#38bdf8</item>
-        <item name="colorPrimaryVariant">#0284c7</item>
-        <item name="colorOnPrimary">#ffffff</item>
+        <item name="colorPrimaryVariant">#0ea5e9</item>
+        <item name="colorOnPrimary">#090d16</item>
         <item name="colorPrimaryDark">#0284c7</item>
 
-        <!-- Secondary -->
-        <item name="colorSecondary">#38bdf8</item>
-        <item name="colorSecondaryVariant">#0284c7</item>
+        <!-- Secondary neon purple -->
+        <item name="colorSecondary">#a855f7</item>
+        <item name="colorSecondaryVariant">#7c3aed</item>
         <item name="colorOnSecondary">#ffffff</item>
 
-        <!-- Surface (required for SwitchCompat, SeekBar) -->
+        <!-- Surface — deep gaming dark -->
         <item name="colorSurface">#0f1729</item>
         <item name="colorOnSurface">#f1f5f9</item>
 
-        <!-- Error -->
+        <!-- Error neon red -->
         <item name="colorError">#ef4444</item>
         <item name="colorOnError">#ffffff</item>
 
-        <!-- Background -->
+        <!-- Background — deep space -->
         <item name="android:colorBackground">#090d16</item>
         <item name="android:windowBackground">#090d16</item>
 
         <!-- Status bar -->
-        <item name="android:statusBarColor">#0f1729</item>
-        <item name="android:navigationBarColor">#0f1729</item>
+        <item name="android:statusBarColor">#090d16</item>
+        <item name="android:navigationBarColor">#090d16</item>
         <item name="android:windowLightStatusBar">false</item>
 
         <!-- Text -->
         <item name="android:textColorPrimary">#f1f5f9</item>
         <item name="android:textColorSecondary">#94a3b8</item>
-        <item name="android:textColorHint">#64748b</item>
+        <item name="android:textColorHint">#475569</item>
 
-        <!-- Accent -->
+        <!-- Accent neon -->
         <item name="colorAccent">#38bdf8</item>
     </style>
 </resources>

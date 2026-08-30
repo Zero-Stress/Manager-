@@ -90,7 +90,7 @@ public class SquadFragment extends Fragment {
         for (Squad squad : squads) {
             LinearLayout card = new LinearLayout(getContext());
             card.setOrientation(LinearLayout.VERTICAL);
-            card.setBackgroundColor(Color.parseColor("#0f1729"));
+            card.setBackgroundResource(R.drawable.card_gaming);
             card.setPadding(20, 16, 20, 16);
 
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
@@ -100,17 +100,19 @@ public class SquadFragment extends Fragment {
 
             // Squad name with color
             TextView nameTv = new TextView(getContext());
-            nameTv.setText("\u2694\ufe0f " + squad.getName() + " (" + squad.getMemberCount() + " members)");
+            nameTv.setText(squad.getName().toUpperCase() + " (" + squad.getMemberCount() + ")");
             nameTv.setTextColor(Color.parseColor(squad.getColor() != null ? squad.getColor() : "#38bdf8"));
             nameTv.setTextSize(16);
             nameTv.setTypeface(null, android.graphics.Typeface.BOLD);
+            nameTv.setLetterSpacing(0.1f);
             card.addView(nameTv);
 
             // Stats
             TextView statsTv = new TextView(getContext());
-            statsTv.setText("Matches: " + squad.getTotalMatches() + " | Wins: " + squad.getTotalWins() + " | Kills: " + squad.getTotalKills());
-            statsTv.setTextColor(Color.parseColor("#94a3b8"));
-            statsTv.setTextSize(12);
+            statsTv.setText("MATCHES: " + squad.getTotalMatches() + "  |  WINS: " + squad.getTotalWins() + "  |  KILLS: " + squad.getTotalKills());
+            statsTv.setTextColor(Color.parseColor("#64748b"));
+            statsTv.setTextSize(11);
+            statsTv.setLetterSpacing(0.05f);
             statsTv.setPadding(0, 8, 0, 0);
             card.addView(statsTv);
 
@@ -122,12 +124,14 @@ public class SquadFragment extends Fragment {
             Button voiceBtn = new Button(getContext());
             voiceBtn.setText("\ud83c\udfa4 Join Voice Chat");
             voiceBtn.setTextSize(12);
-            voiceBtn.setBackgroundColor(Color.parseColor("#10b981"));
+            voiceBtn.setBackgroundResource(R.drawable.btn_gaming_success);
+            voiceBtn.setLetterSpacing(0.1f);
+            
             voiceBtn.setTextColor(Color.WHITE);
             voiceBtn.setOnClickListener(v -> joinVoiceChat(squad));
             LinearLayout.LayoutParams voiceBtnParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 44);
-            voiceBtnParams.setMargins(0, 8, 0, 0);
+            voiceBtnParams.setMargins(0, 12, 0, 0);
             card.addView(voiceBtn, voiceBtnParams);
 
             // Admin controls
@@ -136,16 +140,20 @@ public class SquadFragment extends Fragment {
                 Button voicePermBtn = new Button(getContext());
                 voicePermBtn.setText("🔒 Voice Permissions");
                 voicePermBtn.setTextSize(11);
-                voicePermBtn.setBackgroundColor(Color.parseColor("#8b5cf6"));
+                voicePermBtn.setBackgroundResource(R.drawable.btn_gaming_primary);
+                voicePermBtn.setLetterSpacing(0.05f);
+                
                 voicePermBtn.setTextColor(Color.WHITE);
                 voicePermBtn.setOnClickListener(v -> showVoicePermissionDialog(squad));
                 card.addView(voicePermBtn);
 
                 // Assign player button
                 Button assignBtn = new Button(getContext());
-                assignBtn.setText("+ Add Player");
+                assignBtn.setText("+ ADD PLAYER");
                 assignBtn.setTextSize(11);
-                assignBtn.setBackgroundColor(Color.parseColor("#38bdf8"));
+                assignBtn.setBackgroundResource(R.drawable.btn_gaming_primary);
+                assignBtn.setLetterSpacing(0.05f);
+                
                 assignBtn.setTextColor(Color.WHITE);
                 assignBtn.setOnClickListener(v -> showAssignPlayerDialog(squad));
                 card.addView(assignBtn);
@@ -205,23 +213,30 @@ public class SquadFragment extends Fragment {
             return;
         }
 
-        // Check permission before joining
-        repo.checkVoiceChatPermission(userPhone, allowed -> {
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    if (!allowed) {
-                        Toast.makeText(getContext(), "Voice chat not permitted. Ask admin to grant access.", Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                    String channelName = "squad_" + squad.getId();
-                    Intent intent = new Intent(getActivity(), VoiceChatActivity.class);
-                    intent.putExtra("channelName", channelName);
-                    intent.putExtra("userName", userName);
-                    intent.putExtra("userPhone", userPhone);
-                    startActivity(intent);
-                });
-            }
-        });
+        String channelName = "squad_" + squad.getId();
+        Intent intent = new Intent(getActivity(), VoiceChatActivity.class);
+        intent.putExtra("channelName", channelName);
+        intent.putExtra("userName", userName);
+        intent.putExtra("userPhone", userPhone);
+        intent.putExtra("userRole", userRole);
+
+        // Admin bypasses permission check
+        if ("admin".equals(userRole)) {
+            startActivity(intent);
+        } else {
+            // Check permission before joining
+            repo.checkVoiceChatPermission(userPhone, allowed -> {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        if (!allowed) {
+                            Toast.makeText(getContext(), "Voice chat not permitted. Ask admin to grant access.", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        startActivity(intent);
+                    });
+                }
+            });
+        }
     }
 
     private void showVoicePermissionDialog(Squad squad) {

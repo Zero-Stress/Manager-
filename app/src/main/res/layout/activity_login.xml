@@ -13,22 +13,51 @@
         android:orientation="vertical"
         android:padding="32dp">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <!-- Gaming Logo Area -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="ZERO STRESS"
-            android:textColor="#38bdf8"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="24dp"
+            android:layout_marginBottom="32dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Performance &amp; Leaderboard Manager"
-            android:textColor="#94a3b8"
-            android:textSize="13sp"
-            android:layout_marginBottom="40dp" />
+            <!-- Glow ring avatar -->
+            <TextView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:gravity="center"
+                android:text="ZS"
+                android:textColor="#090d16"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:background="@drawable/bg_gaming_avatar"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ZERO STRESS"
+                android:textColor="#f1f5f9"
+                android:textSize="32sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.15"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="G A M I N G   M A N A G E R"
+                android:textColor="#38bdf8"
+                android:textSize="11sp"
+                android:letterSpacing="0.3" />
+
+            <View
+                android:layout_width="120dp"
+                android:layout_height="3dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_gaming_gradient" />
+        </LinearLayout>
 
         <!-- Login Form -->
         <LinearLayout
@@ -41,9 +70,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:hint="Phone Number (e.g. 1712345678)"
-                android:textColorHint="#94a3b8"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                android:hint="Phone Number"
+                android:textColorHint="#64748b"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:boxStrokeColor="#38bdf8"
+                app:boxBackgroundColor="#0f1729"
+                app:hintTextColor="#38bdf8">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/phone_input"
@@ -52,7 +84,7 @@
                     android:inputType="phone"
                     android:textColor="#f1f5f9"
                     android:textColorHint="#64748b"
-                    android:backgroundTint="#38bdf8" />
+                    android:textSize="15sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -60,9 +92,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
                 android:hint="Password"
-                android:textColorHint="#94a3b8"
                 app:passwordToggleEnabled="true"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                app:passwordToggleTint="#38bdf8"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:boxStrokeColor="#38bdf8"
+                app:boxBackgroundColor="#0f1729"
+                app:hintTextColor="#38bdf8">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/password_input"
@@ -71,19 +106,22 @@
                     android:inputType="textPassword"
                     android:textColor="#f1f5f9"
                     android:textColorHint="#64748b"
-                    android:backgroundTint="#38bdf8" />
+                    android:textSize="15sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/login_btn"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="LOGIN"
+                android:text="ENTER ARENA"
                 android:textColor="#090d16"
                 android:textStyle="bold"
                 android:textSize="15sp"
+                android:letterSpacing="0.1"
+                android:background="@drawable/btn_gaming_primary"
                 android:backgroundTint="#38bdf8"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="8dp"
+                app:cornerRadius="12dp" />
         </LinearLayout>
 
         <!-- Register Form (hidden by default) -->
@@ -99,14 +137,17 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 android:hint="Player Name"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:boxStrokeColor="#38bdf8"
+                app:boxBackgroundColor="#0f1729"
+                app:hintTextColor="#38bdf8">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/reg_name_input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="#f1f5f9"
-                    android:backgroundTint="#38bdf8" />
+                    android:textSize="15sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -114,7 +155,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 android:hint="Phone Number"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:boxStrokeColor="#38bdf8"
+                app:boxBackgroundColor="#0f1729"
+                app:hintTextColor="#38bdf8">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/reg_phone_input"
@@ -122,7 +166,7 @@
                     android:layout_height="wrap_content"
                     android:inputType="phone"
                     android:textColor="#f1f5f9"
-                    android:backgroundTint="#38bdf8" />
+                    android:textSize="15sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -131,7 +175,11 @@
                 android:layout_marginBottom="20dp"
                 android:hint="Password"
                 app:passwordToggleEnabled="true"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                app:passwordToggleTint="#38bdf8"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:boxStrokeColor="#38bdf8"
+                app:boxBackgroundColor="#0f1729"
+                app:hintTextColor="#38bdf8">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/reg_password_input"
@@ -139,28 +187,31 @@
                     android:layout_height="wrap_content"
                     android:inputType="textPassword"
                     android:textColor="#f1f5f9"
-                    android:backgroundTint="#38bdf8" />
+                    android:textSize="15sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/register_btn"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="REGISTER"
+                android:text="JOIN SQUAD"
                 android:textColor="#090d16"
                 android:textStyle="bold"
-                android:backgroundTint="#38bdf8"
+                android:textSize="15sp"
+                android:letterSpacing="0.1"
+                android:backgroundTint="#a855f7"
                 android:visibility="gone"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="8dp"
+                app:cornerRadius="12dp" />
         </LinearLayout>
 
         <TextView
             android:id="@+id/toggle_auth_mode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Don't have an account? Register"
+            android:text="New player? Register here"
             android:textColor="#38bdf8"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:padding="12dp"
             android:clickable="true"
             android:focusable="true" />

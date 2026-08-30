@@ -12,14 +12,20 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#1e3a5f" />
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#131c31"
-        app:itemTextColor="#94a3b8"
-        app:itemIconTint="#94a3b8"
+        android:background="#0a0f1c"
+        app:itemTextColor="@color/nav_item_color"
+        app:itemIconTint="@color/nav_item_color"
         app:itemActiveIndicatorStyle="@null"
         app:labelVisibilityMode="labeled"
+        app:itemTextAppearanceActive="@style/BottomNavActiveText"
         app:menu="@menu/bottom_nav_menu" />
 </LinearLayout>
