@@ -27,9 +27,21 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        try {
+            setContentView(R.layout.activity_login);
+        } catch (Exception e) {
+            Toast.makeText(this, "Layout error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
 
-        repo = new FirestoreRepository();
+        try {
+            repo = new FirestoreRepository();
+        } catch (Exception e) {
+            Toast.makeText(this, "Firebase error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
         prefs = getSharedPreferences("zerostress_prefs", MODE_PRIVATE);
 
         // Check if already logged in

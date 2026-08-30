@@ -11,7 +11,7 @@ import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -68,7 +68,7 @@ public class ChatFragment extends Fragment {
         chatScroll = view.findViewById(R.id.chat_scroll);
         messageInput = view.findViewById(R.id.message_input);
         mentionSuggestions = view.findViewById(R.id.mention_suggestions);
-        Button sendBtn = view.findViewById(R.id.send_btn);
+        TextView sendBtn = view.findViewById(R.id.send_btn);
         View clearChatBtn = view.findViewById(R.id.clear_chat_btn);
 
         if (getArguments() != null) {
