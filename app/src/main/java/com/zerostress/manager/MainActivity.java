@@ -4,10 +4,15 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
@@ -18,7 +23,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.zerostress.manager.fragments.AnnouncementsFragment;
 import com.zerostress.manager.fragments.AttendanceFragment;
@@ -39,6 +43,11 @@ public class MainActivity extends AppCompatActivity {
     private Player currentUser;
     private SharedPreferences prefs;
     private boolean repoFailed = false;
+    private int selectedTab = 0;
+
+    // Navigation buttons
+    private TextView tabRanks, tabAnalytics, tabChat, tabSchedule, tabMore;
+    private TextView[] tabs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // Parse user FIRST (before layout) to validate session
         try {
             currentUser = new Gson().fromJson(userJson, Player.class);
         } catch (Throwable t) {
@@ -72,13 +80,13 @@ public class MainActivity extends AppCompatActivity {
             setContentView(R.layout.activity_main);
         } catch (Throwable t) {
             Log.e(TAG, "Layout inflate FAILED", t);
-            Toast.makeText(this, "Layout error. Please reinstall the app.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "App error. Please reinstall.", Toast.LENGTH_LONG).show();
             prefs.edit().remove("current_user").apply();
             goLogin();
             return;
         }
 
-        // Init Firestore (non-fatal if it fails)
+        // Init Firestore (non-fatal)
         try {
             repo = new FirestoreRepository();
         } catch (Throwable t) {
@@ -93,6 +101,13 @@ public class MainActivity extends AppCompatActivity {
                 getSupportActionBar().setSubtitle(currentUser.getRole() != null ? currentUser.getRole().toUpperCase() : "PLAYER");
             }
         } catch (Throwable ignored) {}
+
+        // Build bottom navigation bar programmatically (no XML inflation issues)
+        try {
+            buildBottomNav();
+        } catch (Throwable t) {
+            Log.e(TAG, "Bottom nav build failed (non-fatal)", t);
+        }
 
         // Notifications (non-fatal)
         try {
@@ -117,54 +132,111 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG, "Update manager failed (non-fatal)", t);
         }
 
-        // Bottom navigation (if present in layout)
-        try {
-            BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
-            if (bottomNav != null) {
-                setupNavigation(bottomNav);
-            }
-        } catch (Throwable t) {
-            Log.e(TAG, "Navigation setup failed (non-fatal)", t);
-        }
-
         // Load default fragment
         if (savedInstanceState == null) {
             try {
                 loadFragment(new LeaderboardFragment(), currentUser);
+                selectTab(0);
             } catch (Throwable t) {
                 Log.e(TAG, "Fragment load failed (non-fatal)", t);
             }
         }
     }
 
-    private void setupNavigation(BottomNavigationView bottomNav) {
-        bottomNav.setOnItemSelectedListener(item -> {
-            Fragment fragment = null;
-            int id = item.getItemId();
+    private void buildBottomNav() {
+        LinearLayout container = (LinearLayout) findViewById(R.id.fragment_container);
+        if (container == null) return;
+        LinearLayout root = (LinearLayout) container.getParent();
+        if (root == null) return;
 
-            if (id == R.id.nav_leaderboard) {
-                fragment = new LeaderboardFragment();
-            } else if (id == R.id.nav_analytics) {
-                fragment = new AnalyticsFragment();
-            } else if (id == R.id.nav_chat) {
-                fragment = new ChatFragment();
-            } else if (id == R.id.nav_schedule) {
-                fragment = new ScheduleFragment();
-            } else if (id == R.id.nav_more) {
-                showMoreMenu();
-                return true;
-            }
+        // Create bottom bar
+        LinearLayout bar = new LinearLayout(this);
+        bar.setOrientation(LinearLayout.HORIZONTAL);
+        bar.setGravity(Gravity.CENTER);
+        bar.setBackgroundColor(Color.parseColor("#0a0f1c"));
 
-            if (fragment != null) {
-                loadFragment(fragment, currentUser);
-                return true;
-            }
-            return false;
+        LinearLayout.LayoutParams barParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, dp(56));
+        bar.setLayoutParams(barParams);
+
+        // Divider line above bar
+        View divider = new View(this);
+        divider.setBackgroundColor(Color.parseColor("#1e3a5f"));
+        LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, dp(1));
+        root.addView(divider, dividerParams);
+
+        // Tab data
+        String[] labels = {"Ranks", "Analytics", "Chat", "Schedule", "More"};
+        tabRanks = createTab(labels[0], 0);
+        tabAnalytics = createTab(labels[1], 1);
+        tabChat = createTab(labels[2], 2);
+        tabSchedule = createTab(labels[3], 3);
+        tabMore = createTab(labels[4], 4);
+        tabs = new TextView[]{tabRanks, tabAnalytics, tabChat, tabSchedule, tabMore};
+
+        bar.addView(tabRanks);
+        bar.addView(tabAnalytics);
+        bar.addView(tabChat);
+        bar.addView(tabSchedule);
+        bar.addView(tabMore);
+
+        root.addView(bar);
+    }
+
+    private TextView createTab(String label, int index) {
+        TextView tv = new TextView(this);
+        tv.setText(label);
+        tv.setTextColor(Color.parseColor("#475569"));
+        tv.setTextSize(10);
+        tv.setGravity(Gravity.CENTER);
+        tv.setTypeface(null, Typeface.NORMAL);
+        tv.setPadding(dp(8), dp(10), dp(8), dp(10));
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+            0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        tv.setLayoutParams(params);
+
+        tv.setOnClickListener(v -> {
+            selectTab(index);
+            onTabClicked(index);
         });
+
+        return tv;
+    }
+
+    private void selectTab(int index) {
+        selectedTab = index;
+        for (int i = 0; i < tabs.length; i++) {
+            if (tabs[i] != null) {
+                if (i == index) {
+                    tabs[i].setTextColor(Color.parseColor("#38bdf8"));
+                    tabs[i].setTypeface(null, Typeface.BOLD);
+                } else {
+                    tabs[i].setTextColor(Color.parseColor("#475569"));
+                    tabs[i].setTypeface(null, Typeface.NORMAL);
+                }
+            }
+        }
+    }
+
+    private void onTabClicked(int index) {
+        Fragment fragment = null;
+
+        switch (index) {
+            case 0: fragment = new LeaderboardFragment(); break;
+            case 1: fragment = new AnalyticsFragment(); break;
+            case 2: fragment = new ChatFragment(); break;
+            case 3: fragment = new ScheduleFragment(); break;
+            case 4: showMoreMenu(); return;
+        }
+
+        if (fragment != null) {
+            loadFragment(fragment, currentUser);
+        }
     }
 
     private void showMoreMenu() {
-        PopupMenu popup = new PopupMenu(this, findViewById(R.id.nav_more));
+        PopupMenu popup = new PopupMenu(this, tabs[4]);
         popup.getMenu().add(0, 1, 0, "My Profile");
         popup.getMenu().add(0, 2, 1, "My Squad");
 
@@ -258,7 +330,7 @@ public class MainActivity extends AppCompatActivity {
             boolean force = forceSwitch.isChecked();
 
             if (vc.isEmpty() || vn.isEmpty() || url.isEmpty()) {
-                Toast.makeText(this, "Fill in version code, name, and URL", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Fill in all fields", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -332,6 +404,11 @@ public class MainActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    private int dp(int value) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+            value, getResources().getDisplayMetrics());
     }
 
     @Override
