@@ -24,8 +24,6 @@
         android:background="#0a0f1c"
         app:itemTextColor="@color/nav_item_color"
         app:itemIconTint="@color/nav_item_color"
-        app:itemActiveIndicatorStyle="@null"
         app:labelVisibilityMode="labeled"
-        app:itemTextAppearanceActive="@style/BottomNavActiveText"
         app:menu="@menu/bottom_nav_menu" />
 </LinearLayout>
