@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#090d16">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ZERO STRESS CUSTOMIZER"
+            android:textColor="#38bdf8"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Customize the look and feel of the main app"
+            android:textColor="#94a3b8"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:paddingBottom="24dp" />
+
+        <!-- App Name -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="App Name"
+            android:textColor="#38bdf8"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:paddingBottom="4dp" />
+
+        <EditText
+            android:id="@+id/input_app_name"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="#0f1729"
+            android:hint="App Name"
+            android:textColor="#f1f5f9"
+            android:textColorHint="#475569"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:singleLine="true"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Welcome Message -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Welcome Message"
+            android:textColor="#38bdf8"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:paddingBottom="4dp" />
+
+        <EditText
+            android:id="@+id/input_welcome_msg"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="#0f1729"
+            android:hint="Welcome message"
+            android:textColor="#f1f5f9"
+            android:textColorHint="#475569"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:singleLine="true"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Color Presets -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Quick Presets"
+            android:textColor="#38bdf8"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:paddingBottom="8dp" />
+
+        <LinearLayout
+            android:id="@+id/preset_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Colors Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Colors"
+            android:textColor="#38bdf8"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:paddingBottom="8dp" />
+
+        <LinearLayout
+            android:id="@+id/color_grid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Button Height -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Button Height"
+            android:textColor="#38bdf8"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:paddingBottom="4dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <SeekBar
+                android:id="@+id/seek_btn_height"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:min="32"
+                android:max="80"
+                android:progress="48" />
+
+            <TextView
+                android:id="@+id/btn_height_val"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:text="48dp"
+                android:textColor="#94a3b8"
+                android:textSize="12sp"
+                android:gravity="end"
+                android:paddingStart="8dp" />
+        </LinearLayout>
+
+        <!-- Button Corner Radius -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Button Corner Radius"
+            android:textColor="#38bdf8"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:paddingBottom="4dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <SeekBar
+                android:id="@+id/seek_btn_radius"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:min="0"
+                android:max="30"
+                android:progress="12" />
+
+            <TextView
+                android:id="@+id/btn_radius_val"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:text="12dp"
+                android:textColor="#94a3b8"
+                android:textSize="12sp"
+                android:gravity="end"
+                android:paddingStart="8dp" />
+        </LinearLayout>
+
+        <!-- Icon Size -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Icon Size"
+            android:textColor="#38bdf8"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:paddingBottom="4dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <SeekBar
+                android:id="@+id/seek_icon_size"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:min="12"
+                android:max="48"
+                android:progress="24" />
+
+            <TextView
+                android:id="@+id/icon_size_val"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:text="24dp"
+                android:textColor="#94a3b8"
+                android:textSize="12sp"
+                android:gravity="end"
+                android:paddingStart="8dp" />
+        </LinearLayout>
+
+        <!-- Header Text Size -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Header Text Size"
+            android:textColor="#38bdf8"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:paddingBottom="4dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <SeekBar
+                android:id="@+id/seek_header_text_size"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:min="14"
+                android:max="28"
+                android:progress="18" />
+
+            <TextView
+                android:id="@+id/header_text_size_val"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:text="18sp"
+                android:textColor="#94a3b8"
+                android:textSize="12sp"
+                android:gravity="end"
+                android:paddingStart="8dp" />
+        </LinearLayout>
+
+        <!-- Body Text Size -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Body Text Size"
+            android:textColor="#38bdf8"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:paddingBottom="4dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <SeekBar
+                android:id="@+id/seek_body_text_size"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:min="10"
+                android:max="24"
+                android:progress="14" />
+
+            <TextView
+                android:id="@+id/body_text_size_val"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:text="14sp"
+                android:textColor="#94a3b8"
+                android:textSize="12sp"
+                android:gravity="end"
+                android:paddingStart="8dp" />
+        </LinearLayout>
+
+        <!-- Input Height -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Input Field Height"
+            android:textColor="#38bdf8"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:paddingBottom="4dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <SeekBar
+                android:id="@+id/seek_input_height"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:min="36"
+                android:max="64"
+                android:progress="48" />
+
+            <TextView
+                android:id="@+id/input_height_val"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:text="48dp"
+                android:textColor="#94a3b8"
+                android:textSize="12sp"
+                android:gravity="end"
+                android:paddingStart="8dp" />
+        </LinearLayout>
+
+        <!-- Padding -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Content Padding"
+            android:textColor="#38bdf8"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:paddingBottom="4dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <SeekBar
+                android:id="@+id/seek_padding"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:min="8"
+                android:max="32"
+                android:progress="16" />
+
+            <TextView
+                android:id="@+id/padding_value"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:text="16dp"
+                android:textColor="#94a3b8"
+                android:textSize="12sp"
+                android:gravity="end"
+                android:paddingStart="8dp" />
+        </LinearLayout>
+
+        <!-- Save Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/save_btn"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="SAVE THEME"
+            android:textColor="#090d16"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:backgroundTint="#38bdf8"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="32dp" />
+
+    </LinearLayout>
+</ScrollView>
