@@ -26,9 +26,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minLines="3"
-            android:gravity="top"
-            android:textColor="#f1f5f9"
-            android:backgroundTint="#38bdf8" />
+            android:gravity="top"                android:textColor="#f1f5f9" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.button.MaterialButton

@@ -2,15 +2,17 @@ package com.zerostress.manager;
 
 import android.app.AlertDialog;
 import android.content.Intent;
-import android.graphics.Color;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
@@ -32,85 +34,146 @@ import com.zerostress.manager.fragments.AnalyticsFragment;
 import com.zerostress.manager.models.Player;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "ZeroStressMain";
     private FirestoreRepository repo;
     private Player currentUser;
     private SharedPreferences prefs;
     private NotificationHelper notificationHelper;
     private AppUpdateManager updateManager;
+    private boolean repoFailed = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-        repo = new FirestoreRepository();
         prefs = getSharedPreferences("zerostress_prefs", MODE_PRIVATE);
 
+        // Crash loop prevention: if we crashed 3 times in a row, clear session
+        int crashCount = prefs.getInt("crash_count", 0);
+        if (crashCount >= 3) {
+            prefs.edit().remove("current_user").putInt("crash_count", 0).apply();
+            Toast.makeText(this, "App had issues. Session cleared.", Toast.LENGTH_LONG).show();
+            navigateToLogin();
+            return;
+        }
+
+        try {
+            setContentView(R.layout.activity_main);
+        } catch (Exception e) {
+            Log.e(TAG, "Layout crash", e);
+            prefs.edit().putInt("crash_count", crashCount + 1).apply();
+            navigateToLogin();
+            return;
+        }
+
+        // Increment crash count - will be cleared in onResume
+        prefs.edit().putInt("crash_count", crashCount + 1).apply();
+
+        try {
+            repo = new FirestoreRepository();
+        } catch (Exception e) {
+            Log.e(TAG, "Firestore init crash", e);
+            repoFailed = true;
+            // Continue anyway - app can work without Firestore for basic UI
+        }
+
         String userJson = prefs.getString("current_user", null);
-        if (userJson == null) { navigateToLogin(); return; }
+        if (userJson == null) {
+            navigateToLogin();
+            return;
+        }
 
         try {
             currentUser = new Gson().fromJson(userJson, Player.class);
         } catch (Exception e) {
-            navigateToLogin(); return;
+            Log.e(TAG, "Gson crash", e);
+            navigateToLogin();
+            return;
         }
-        if (currentUser == null) { navigateToLogin(); return; }
+        if (currentUser == null) {
+            navigateToLogin();
+            return;
+        }
 
+        // Action bar
         try {
             if (getSupportActionBar() != null) {
                 getSupportActionBar().setTitle("Zero Stress");
-                getSupportActionBar().setSubtitle(currentUser.getRole().toUpperCase() +
-                    ("admin".equals(currentUser.getRole()) ? "" : " \u2022 " + currentUser.getRoleLabel()));
+                String roleLabel = currentUser.getRole() != null ? currentUser.getRole().toUpperCase() : "PLAYER";
+                getSupportActionBar().setSubtitle(roleLabel);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.e(TAG, "Action bar crash", e);
+        }
 
-        // Setup presence
+        // Presence
         try {
-            repo.updatePresence(currentUser.getPhone(), true);
-        } catch (Exception ignored) {}
+            if (repo != null) repo.updatePresence(currentUser.getPhone(), true);
+        } catch (Exception e) {
+            Log.e(TAG, "Presence crash", e);
+        }
 
-        // Setup notification polling
+        // Notifications
         try {
             setupNotifications();
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.e(TAG, "Notification crash", e);
+        }
 
-        // Check for app updates
+        // App updates
         try {
             updateManager = new AppUpdateManager(this);
             boolean isAdmin = "admin".equals(currentUser.getRole());
             updateManager.checkForUpdates(com.zerostress.manager.BuildConfig.VERSION_CODE, isAdmin);
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.e(TAG, "Update manager crash", e);
+        }
 
-        // Setup bottom navigation
+        // Bottom navigation
         try {
             BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
             setupNavigation(bottomNav);
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            Log.e(TAG, "Navigation crash", e);
+        }
 
+        // Load default fragment
         if (savedInstanceState == null) {
-            loadFragment(new LeaderboardFragment(), currentUser);
+            try {
+                loadFragment(new LeaderboardFragment(), currentUser);
+            } catch (Exception e) {
+                Log.e(TAG, "Fragment load crash", e);
+            }
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Clear crash count - app survived onCreate successfully
+        prefs.edit().putInt("crash_count", 0).apply();
+    }
+
     private void setupNotifications() {
-        notificationHelper = new NotificationHelper(this);
-        notificationHelper.saveUserPhone(currentUser.getPhone());
-        notificationHelper.setLeaderboardUpdateCallback((type, message) -> {
-            // Show in-app toast when data changes
-            runOnUiThread(() -> {
-                android.widget.Toast.makeText(this, "\uD83D\uDD14 " + message, android.widget.Toast.LENGTH_SHORT).show();
+        try {
+            notificationHelper = new NotificationHelper(this);
+            notificationHelper.saveUserPhone(currentUser.getPhone());
+            notificationHelper.setLeaderboardUpdateCallback((type, message) -> {
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "\uD83D\uDD14 " + message, Toast.LENGTH_SHORT).show();
+                });
             });
-        });
 
-        // Request notification permission on Android 13+
-        if (android.os.Build.VERSION.SDK_INT >= 33) {
-            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 100);
+            if (android.os.Build.VERSION.SDK_INT >= 33) {
+                if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 100);
+                }
             }
-        }
 
-        // Start polling - checks Firestore every 30 seconds
-        notificationHelper.startLeaderboardListener();
+            notificationHelper.startLeaderboardListener();
+        } catch (Exception e) {
+            Log.e(TAG, "Notification setup crash", e);
+        }
     }
 
     private void setupNavigation(BottomNavigationView bottomNav) {
@@ -141,19 +204,19 @@ public class MainActivity extends AppCompatActivity {
 
     private void showMoreMenu() {
         PopupMenu popup = new PopupMenu(this, findViewById(R.id.nav_more));
-        popup.getMenu().add(0, 1, 0, "\uD83D\uDC64 My Profile");
-        popup.getMenu().add(0, 2, 1, "\u2694\uFE0F My Squad");
+        popup.getMenu().add(0, 1, 0, "My Profile");
+        popup.getMenu().add(0, 2, 1, "My Squad");
 
         if ("admin".equals(currentUser.getRole())) {
-            popup.getMenu().add(0, 10, 10, "\u2500\u2500\u2500 ADMIN \u2500\u2500\u2500").setEnabled(false);
-            popup.getMenu().add(0, 3, 2, "\uD83D\uDCCB Players");
-            popup.getMenu().add(0, 4, 3, "\uD83D\uDCCA Daily Input");
-            popup.getMenu().add(0, 5, 4, "\uD83D\uDCE2 Announcements");
-            popup.getMenu().add(0, 6, 5, "\uD83C\uDFC6 Tournaments");
-            popup.getMenu().add(0, 7, 6, "\u23F0 Attendance");
-            popup.getMenu().add(0, 8, 7, "\u2694\uFE0F Squad Manager");
-            popup.getMenu().add(0, 9, 8, "\u2699\uFE0F App Customizer");
-            popup.getMenu().add(0, 11, 9, "\uD83D\uDCE6 Push Update");
+            popup.getMenu().add(0, 10, 10, "--- ADMIN ---").setEnabled(false);
+            popup.getMenu().add(0, 3, 2, "Players");
+            popup.getMenu().add(0, 4, 3, "Daily Input");
+            popup.getMenu().add(0, 5, 4, "Announcements");
+            popup.getMenu().add(0, 6, 5, "Tournaments");
+            popup.getMenu().add(0, 7, 6, "Attendance");
+            popup.getMenu().add(0, 8, 7, "Squad Manager");
+            popup.getMenu().add(0, 9, 8, "App Customizer");
+            popup.getMenu().add(0, 11, 9, "Push Update");
         }
 
         popup.setOnMenuItemClickListener(item -> {
@@ -168,7 +231,11 @@ public class MainActivity extends AppCompatActivity {
             else if (id == 7) fragment = new AttendanceFragment();
             else if (id == 8) fragment = new SquadFragment();
             else if (id == 9) {
-                startActivity(new Intent(MainActivity.this, AdminCustomizerActivity.class));
+                try {
+                    startActivity(new Intent(MainActivity.this, AdminCustomizerActivity.class));
+                } catch (Exception e) {
+                    Toast.makeText(this, "Failed to open customizer", Toast.LENGTH_SHORT).show();
+                }
                 return true;
             } else if (id == 11) {
                 showPushUpdateDialog();
@@ -183,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showPushUpdateDialog() {
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
-        builder.setTitle("📦 Push App Update");
+        builder.setTitle("Push App Update");
 
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
@@ -235,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
             boolean force = forceSwitch.isChecked();
 
             if (vc.isEmpty() || vn.isEmpty() || url.isEmpty()) {
-                android.widget.Toast.makeText(this, "Fill in version code, name, and URL", android.widget.Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Fill in version code, name, and URL", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -244,16 +311,16 @@ public class MainActivity extends AppCompatActivity {
                 AppUpdateManager.setUpdateInfo(versionCode, vn, url, cl.isEmpty() ? "Bug fixes" : cl, force,
                     new AppUpdateManager.OnUpdateSetCallback() {
                         @Override public void onSuccess() {
-                            runOnUiThread(() -> android.widget.Toast.makeText(MainActivity.this,
-                                "\u2705 Update pushed! Players will see it on next app open.", android.widget.Toast.LENGTH_LONG).show());
+                            runOnUiThread(() -> Toast.makeText(MainActivity.this,
+                                "Update pushed! Players will see it on next app open.", Toast.LENGTH_LONG).show());
                         }
                         @Override public void onFailure(String e) {
-                            runOnUiThread(() -> android.widget.Toast.makeText(MainActivity.this,
-                                "Failed: " + e, android.widget.Toast.LENGTH_SHORT).show());
+                            runOnUiThread(() -> Toast.makeText(MainActivity.this,
+                                "Failed: " + e, Toast.LENGTH_SHORT).show());
                         }
                     });
             } catch (NumberFormatException e) {
-                android.widget.Toast.makeText(this, "Version code must be a number", android.widget.Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Version code must be a number", Toast.LENGTH_SHORT).show();
             }
         });
         builder.setNegativeButton("Cancel", null);
@@ -271,7 +338,7 @@ public class MainActivity extends AppCompatActivity {
         getSupportFragmentManager()
             .beginTransaction()
             .replace(R.id.fragment_container, fragment)
-            .commit();
+            .commitAllowingStateLoss();
     }
 
     @Override
@@ -299,9 +366,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void logout() {
-        if (currentUser != null) repo.updatePresence(currentUser.getPhone(), false);
-        if (notificationHelper != null) notificationHelper.cleanup();
-        prefs.edit().remove("current_user").apply();
+        if (currentUser != null && !repoFailed) {
+            try { repo.updatePresence(currentUser.getPhone(), false); } catch (Exception ignored) {}
+        }
+        if (notificationHelper != null) {
+            try { notificationHelper.cleanup(); } catch (Exception ignored) {}
+        }
+        prefs.edit().remove("current_user").putInt("crash_count", 0).apply();
         navigateToLogin();
     }
 
@@ -315,7 +386,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (currentUser != null) repo.updatePresence(currentUser.getPhone(), false);
-        if (notificationHelper != null) notificationHelper.cleanup();
+        if (currentUser != null && !repoFailed) {
+            try { repo.updatePresence(currentUser.getPhone(), false); } catch (Exception ignored) {}
+        }
+        if (notificationHelper != null) {
+            try { notificationHelper.cleanup(); } catch (Exception ignored) {}
+        }
     }
 }
