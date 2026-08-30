@@ -144,9 +144,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void buildBottomNav() {
-        LinearLayout container = (LinearLayout) findViewById(R.id.fragment_container);
-        if (container == null) return;
-        LinearLayout root = (LinearLayout) container.getParent();
+        LinearLayout root = findViewById(R.id.root_layout);
         if (root == null) return;
 
         // Create bottom bar
