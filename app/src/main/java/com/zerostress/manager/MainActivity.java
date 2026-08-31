@@ -13,20 +13,27 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.gson.Gson;
+import com.zerostress.manager.fragments.AnnouncementsFragment;
+import com.zerostress.manager.fragments.AttendanceFragment;
 import com.zerostress.manager.fragments.ChatFragment;
+import com.zerostress.manager.fragments.DailyInputFragment;
 import com.zerostress.manager.fragments.LeaderboardFragment;
 import com.zerostress.manager.fragments.ProfileFragment;
+import com.zerostress.manager.fragments.RegistrationFragment;
 import com.zerostress.manager.fragments.ScheduleFragment;
 import com.zerostress.manager.fragments.SquadFragment;
+import com.zerostress.manager.fragments.TournamentFragment;
 import com.zerostress.manager.fragments.AnalyticsFragment;
 import com.zerostress.manager.models.Player;
 
@@ -95,13 +102,6 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (Throwable ignored) {}
 
-        // Apply theme colors
-        try {
-            applyTheme();
-        } catch (Throwable t) {
-            Log.e(TAG, "Theme apply failed (non-fatal)", t);
-        }
-
         // Build bottom navigation bar programmatically (no XML inflation issues)
         try {
             buildBottomNav();
@@ -143,23 +143,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void applyTheme() {
-        ThemeManager tm = ThemeManager.getInstance(this);
-        View root = findViewById(R.id.root_layout);
-        if (root != null) root.setBackgroundColor(tm.getBackgroundColorInt());
-    }
-
     private void buildBottomNav() {
         LinearLayout root = findViewById(R.id.root_layout);
         if (root == null) return;
-
-        ThemeManager tm = ThemeManager.getInstance(this);
 
         // Create bottom bar
         LinearLayout bar = new LinearLayout(this);
         bar.setOrientation(LinearLayout.HORIZONTAL);
         bar.setGravity(Gravity.CENTER);
-        bar.setBackgroundColor(tm.getNavBarColorInt());
+        bar.setBackgroundColor(Color.parseColor("#0a0f1c"));
 
         LinearLayout.LayoutParams barParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, dp(56));
@@ -167,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Divider line above bar
         View divider = new View(this);
-        divider.setBackgroundColor(tm.getBorderColorInt());
+        divider.setBackgroundColor(Color.parseColor("#1e3a5f"));
         LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, dp(1));
         root.addView(divider, dividerParams);
@@ -188,15 +180,6 @@ public class MainActivity extends AppCompatActivity {
         bar.addView(tabMore);
 
         root.addView(bar);
-
-        // Set theme change listener
-        tm.setThemeChangeListener(newTheme -> {
-            runOnUiThread(() -> {
-                applyTheme();
-                buildBottomNav();
-                selectTab(selectedTab);
-            });
-        });
     }
 
     private TextView createTab(String label, int index) {
@@ -221,11 +204,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void selectTab(int index) {
         selectedTab = index;
-        ThemeManager tm = ThemeManager.getInstance(this);
         for (int i = 0; i < tabs.length; i++) {
             if (tabs[i] != null) {
                 if (i == index) {
-                    tabs[i].setTextColor(tm.getPrimaryColorInt());
+                    tabs[i].setTextColor(Color.parseColor("#38bdf8"));
                     tabs[i].setTypeface(null, Typeface.BOLD);
                 } else {
                     tabs[i].setTextColor(Color.parseColor("#475569"));
@@ -256,18 +238,119 @@ public class MainActivity extends AppCompatActivity {
         popup.getMenu().add(0, 1, 0, "My Profile");
         popup.getMenu().add(0, 2, 1, "My Squad");
 
-        // Admin management features are now in the separate ZS Admin app
+        if ("admin".equals(currentUser.getRole())) {
+            popup.getMenu().add(0, 10, 10, "--- ADMIN ---").setEnabled(false);
+            popup.getMenu().add(0, 3, 2, "Players");
+            popup.getMenu().add(0, 4, 3, "Daily Input");
+            popup.getMenu().add(0, 5, 4, "Announcements");
+            popup.getMenu().add(0, 6, 5, "Tournaments");
+            popup.getMenu().add(0, 7, 6, "Attendance");
+            popup.getMenu().add(0, 8, 7, "Squad Manager");
+            popup.getMenu().add(0, 9, 8, "App Customizer");
+            popup.getMenu().add(0, 11, 9, "Push Update");
+        }
 
         popup.setOnMenuItemClickListener(item -> {
             Fragment fragment = null;
             int id = item.getItemId();
             if (id == 1) fragment = new ProfileFragment();
             else if (id == 2) fragment = new SquadFragment();
+            else if (id == 3) fragment = new RegistrationFragment();
+            else if (id == 4) fragment = new DailyInputFragment();
+            else if (id == 5) fragment = new AnnouncementsFragment();
+            else if (id == 6) fragment = new TournamentFragment();
+            else if (id == 7) fragment = new AttendanceFragment();
+            else if (id == 8) fragment = new SquadFragment();
+            else if (id == 9) {
+                try {
+                    startActivity(new Intent(MainActivity.this, AdminCustomizerActivity.class));
+                } catch (Throwable e) {
+                    Toast.makeText(this, "Failed to open customizer", Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            } else if (id == 11) {
+                showPushUpdateDialog();
+                return true;
+            }
 
             if (fragment != null) loadFragment(fragment, currentUser);
             return true;
         });
         popup.show();
+    }
+
+    private void showPushUpdateDialog() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        builder.setTitle("Push App Update");
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(40, 20, 40, 10);
+
+        TextView infoTv = new TextView(this);
+        infoTv.setText("Set a new version. All players will be prompted to update.");
+        infoTv.setTextColor(Color.parseColor("#94a3b8"));
+        infoTv.setTextSize(12);
+        layout.addView(infoTv);
+
+        EditText versionCodeInput = new EditText(this);
+        versionCodeInput.setHint("Version Code (number)");
+        versionCodeInput.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        layout.addView(versionCodeInput);
+
+        EditText versionNameInput = new EditText(this);
+        versionNameInput.setHint("Version Name");
+        layout.addView(versionNameInput);
+
+        EditText downloadUrlInput = new EditText(this);
+        downloadUrlInput.setHint("APK Download URL");
+        downloadUrlInput.setInputType(android.text.InputType.TYPE_TEXT_VARIATION_URI);
+        layout.addView(downloadUrlInput);
+
+        EditText changelogInput = new EditText(this);
+        changelogInput.setHint("Changelog");
+        changelogInput.setMinLines(3);
+        layout.addView(changelogInput);
+
+        SwitchCompat forceSwitch = new SwitchCompat(this);
+        forceSwitch.setText("Force Update");
+        forceSwitch.setTextColor(Color.parseColor("#f1f5f9"));
+        forceSwitch.setTextSize(13);
+        layout.addView(forceSwitch);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Push Update", (d, w) -> {
+            String vc = versionCodeInput.getText().toString().trim();
+            String vn = versionNameInput.getText().toString().trim();
+            String url = downloadUrlInput.getText().toString().trim();
+            String cl = changelogInput.getText().toString().trim();
+            boolean force = forceSwitch.isChecked();
+
+            if (vc.isEmpty() || vn.isEmpty() || url.isEmpty()) {
+                Toast.makeText(this, "Fill in all fields", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            try {
+                int versionCode = Integer.parseInt(vc);
+                AppUpdateManager.setUpdateInfo(versionCode, vn, url, cl.isEmpty() ? "Bug fixes" : cl, force,
+                    new AppUpdateManager.OnUpdateSetCallback() {
+                        @Override public void onSuccess() {
+                            runOnUiThread(() -> Toast.makeText(MainActivity.this,
+                                "Update pushed!", Toast.LENGTH_LONG).show());
+                        }
+                        @Override public void onFailure(String e) {
+                            runOnUiThread(() -> Toast.makeText(MainActivity.this,
+                                "Failed: " + e, Toast.LENGTH_SHORT).show());
+                        }
+                    });
+            } catch (NumberFormatException e) {
+                Toast.makeText(this, "Version code must be a number", Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
     }
 
     private void loadFragment(Fragment fragment, Player user) {

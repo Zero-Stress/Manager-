@@ -743,14 +743,17 @@
 
         <!-- NAVIGATION BAR (Updated with distinct URL routing) -->
         <div class="tabs" id="navTabsContainer">
-            <button class="tab-btn" id="btn-dailyLb" onclick="navigateTo('dailyLb')">Daily Leaderboard</button>
-            <button class="tab-btn" id="btn-leaderboard" onclick="navigateTo('leaderboard')">Weekly Leaderboard</button>
+            <button class="tab-btn admin-only" id="btn-register" onclick="navigateTo('register')">Manage Registrations</button>
+            <button class="tab-btn admin-only" id="btn-daily" onclick="navigateTo('daily')">Daily Input</button>
+            <button class="tab-btn player-nav-btn" id="btn-dailyLb" onclick="navigateTo('dailyLb')">Daily Leaderboard</button>
+            <button class="tab-btn admin-only" id="btn-weekly" onclick="navigateTo('weekly')">Weekly Summary</button>
+            <button class="tab-btn player-nav-btn" id="btn-leaderboard" onclick="navigateTo('leaderboard')">Weekly Leaderboard</button>
             <button class="tab-btn" id="btn-myProfile" onclick="navigateTo('myProfile')">My Profile</button>
-            <a href="admin.html" class="tab-btn" style="text-decoration:none;">Admin Panel</a>
+            <button class="tab-btn admin-only" id="btn-announcements" onclick="navigateTo('announcements')">Announcements</button>
         </div>
 
-        <!-- (Admin features moved to admin.html) -->
-        <div id="register" class="section hidden" style="display:none;">
+        <!-- REGISTRATION APPROVAL & EDIT SECTION -->
+        <div id="register" class="section admin-only">
             <h2>Player Registration Requests & Approvals</h2>
             <div style="margin-bottom: 18px;">
                 <button class="btn-success" onclick="openAddPlayerModal()">+ Add Player Manually (Admin)</button>
@@ -771,7 +774,8 @@
             </div>
         </div>
 
-        <div id="daily" class="section hidden" style="display:none;">
+        <!-- DAILY REPORT SECTION -->
+        <div id="daily" class="section admin-only">
             <div class="action-container">
                 <h2>Add Today's Player Match Data</h2>
                 <button class="btn-secondary" onclick="resetDailyOnly()">Reset Daily Log</button>
@@ -845,6 +849,7 @@
             <div class="action-container">
                 <h2>Today's Top Player Leaderboard (Excludes Assists)</h2>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn-secondary admin-only" onclick="resetDailyOnly()">Reset Daily Log</button>
                     <button class="btn-pdf" onclick="exportScorecard('dailyLb')">📷 Share Scorecard</button>
                     <button class="btn-pdf" onclick="downloadPDF()">Download PDF</button>
                 </div>
@@ -871,7 +876,8 @@
             </div>
         </div>
 
-        <div id="weekly" class="section hidden" style="display:none;">
+        <!-- WEEKLY REPORT SECTION -->
+        <div id="weekly" class="section admin-only">
             <h2>Automated Weekly Performance Summary</h2>
             <div class="action-container">
                 <span><b>Status:</b> Live synced from Firestore cloud entries</span>
@@ -978,7 +984,8 @@
             </div>
         </div>
 
-        <div id="announcements" class="section hidden" style="display:none;">
+        <!-- ANNOUNCEMENTS ADMIN & MANAGEMENT -->
+        <div id="announcements" class="section admin-only">
             <h2>Broadcast Announcements</h2>
             <form class="auth-form" onsubmit="postAnnouncement(event)" style="margin-bottom: 25px;">
                 <div class="form-group">
@@ -1249,9 +1256,7 @@
         const password = document.getElementById('loginPassword').value.trim();
 
         if(phone === ADMIN_CREDENTIALS.phone && password === ADMIN_CREDENTIALS.password) {
-            showToast("Admin accounts use admin.html — redirecting...", "error");
-            setTimeout(function(){ window.location.href = 'admin.html'; }, 1500);
-            return;
+            currentUser = { name: ADMIN_CREDENTIALS.name, phone: ADMIN_CREDENTIALS.phone, role: 'admin' };
         } else {
             const foundUser = userAccounts[phone];
             const hashedInput = await hashPassword(password);
@@ -1287,6 +1292,19 @@
         document.getElementById('appDashboard').classList.remove('hidden');
         document.getElementById('displayUsername').textContent = currentUser.name;
         document.getElementById('displayRole').textContent = currentUser.role;
+
+        const adminElements = document.querySelectorAll('.admin-only');
+        adminElements.forEach(el => {
+            if(currentUser.role === 'admin') {
+                el.style.display = '';
+            } else {
+                el.style.display = 'none';
+            }
+        });
+
+        if(currentUser.role === 'admin') {
+            updatePlayerDropdown();
+        }
 
         renderProfileStats();
         handleInitialRouting();
@@ -1406,6 +1424,11 @@
     function handleInitialRouting() {
         const hash = window.location.hash.replace('#/', '');
         let targetTab = routeMap[hash] || 'dailyLb';
+        
+        // Non-admin fallback if trying to access restricted urls directly
+        if(currentUser.role !== 'admin' && ['register', 'daily', 'weekly', 'announcements'].includes(targetTab)) {
+            targetTab = 'dailyLb';
+        }
         navigateTo(targetTab, false);
     }
 
