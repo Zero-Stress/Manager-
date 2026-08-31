@@ -23,6 +23,8 @@ public class FirestoreRepository {
     private final CollectionReference dailyLogsRef;
     private final CollectionReference announcementsRef;
     private final DocumentReference weeklyDataRef;
+    private final DocumentReference themeRef;
+    private final CollectionReference pushUpdatesRef;
 
     public FirestoreRepository() {
         db = FirebaseFirestore.getInstance();
@@ -30,6 +32,8 @@ public class FirestoreRepository {
         dailyLogsRef = db.collection("dailylogs");
         announcementsRef = db.collection("announcements");
         weeklyDataRef = db.collection("appState").document("weeklyData");
+        themeRef = db.collection("appSettings").document("theme");
+        pushUpdatesRef = db.collection("pushUpdates");
     }
 
     // ==================== AUTH ====================
@@ -83,6 +87,10 @@ public class FirestoreRepository {
         usersRef.document(phone).update("status", status);
     }
 
+    public void updatePlayerRole(String phone, String role) {
+        usersRef.document(phone).update("playerRole", role);
+    }
+
     public void addPlayer(String name, String phone, String password) {
         String hashed = hashPassword(password);
         Map<String, Object> data = new HashMap<>();
@@ -96,6 +104,7 @@ public class FirestoreRepository {
         data.put("playerRole", "fragger");
         data.put("rewardPoints", 0);
         data.put("totalRewardPoints", 0);
+        data.put("voiceChatAllowed", false);
         usersRef.document(phone).set(data);
     }
 
@@ -212,6 +221,77 @@ public class FirestoreRepository {
 
     public void deleteAnnouncement(String id, OnResultCallback callback) {
         announcementsRef.document(id).delete()
+            .addOnSuccessListener(a -> callback.onSuccess())
+            .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
+    // ==================== PUSH UPDATES ====================
+
+    public void sendPushUpdate(String title, String message, OnResultCallback callback) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("title", title);
+        data.put("message", message);
+        data.put("timestamp", System.currentTimeMillis());
+        data.put("read", false);
+        pushUpdatesRef.add(data)
+            .addOnSuccessListener(doc -> callback.onSuccess())
+            .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
+    public ListenerRegistration listenPushUpdates(PushUpdatesCallback callback) {
+        return pushUpdatesRef.orderBy("timestamp", Query.Direction.DESCENDING)
+            .addSnapshotListener((snapshots, error) -> {
+                if (error != null) return;
+                List<Map<String, Object>> list = new ArrayList<>();
+                if (snapshots != null) {
+                    for (QueryDocumentSnapshot doc : snapshots) {
+                        Map<String, Object> item = new HashMap<>();
+                        item.put("id", doc.getId());
+                        item.putAll(doc.getData());
+                        list.add(item);
+                    }
+                }
+                callback.onPushUpdatesUpdated(list);
+            });
+    }
+
+    public interface PushUpdatesCallback {
+        void onPushUpdatesUpdated(List<Map<String, Object>> updates);
+    }
+
+    public void deletePushUpdate(String id, OnResultCallback callback) {
+        pushUpdatesRef.document(id).delete()
+            .addOnSuccessListener(a -> callback.onSuccess())
+            .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
+    // ==================== THEME CUSTOMIZER ====================
+
+    public void saveTheme(Map<String, Object> themeData, OnResultCallback callback) {
+        themeData.put("lastUpdated", System.currentTimeMillis());
+        themeRef.set(themeData, SetOptions.merge())
+            .addOnSuccessListener(a -> callback.onSuccess())
+            .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
+    public ListenerRegistration listenTheme(ThemeCallback callback) {
+        return themeRef.addSnapshotListener((doc, error) -> {
+            if (error != null || doc == null || !doc.exists()) {
+                callback.onThemeUpdated(new HashMap<>());
+                return;
+            }
+            Map<String, Object> data = new HashMap<>();
+            data.putAll(doc.getData());
+            callback.onThemeUpdated(data);
+        });
+    }
+
+    public interface ThemeCallback {
+        void onThemeUpdated(Map<String, Object> themeData);
+    }
+
+    public void resetTheme(OnResultCallback callback) {
+        themeRef.delete()
             .addOnSuccessListener(a -> callback.onSuccess())
             .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
     }

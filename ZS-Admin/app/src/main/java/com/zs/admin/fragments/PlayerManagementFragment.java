@@ -1,6 +1,7 @@
 package com.zs.admin.fragments;
 
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -17,7 +18,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.google.gson.Gson;
 import com.zs.admin.FirestoreRepository;
 import com.zs.admin.models.Player;
 
@@ -26,6 +26,8 @@ import java.util.List;
 public class PlayerManagementFragment extends Fragment {
     private FirestoreRepository repo;
     private LinearLayout playerListContainer;
+
+    private static final String[] ROLES = {"fragger", "igl", "support", "entry", "sniper", "anchor", "shotcaller"};
 
     @Nullable
     @Override
@@ -41,8 +43,16 @@ public class PlayerManagementFragment extends Fragment {
         header.setText("PLAYER MANAGEMENT");
         header.setTextColor(Color.parseColor("#38bdf8"));
         header.setTextSize(16);
-        header.setTypeface(null, android.graphics.Typeface.BOLD);
+        header.setTypeface(null, Typeface.BOLD);
         root.addView(header);
+
+        // Subtitle
+        TextView subtitle = new TextView(getContext());
+        subtitle.setText("Manage roles, status, and accounts");
+        subtitle.setTextColor(Color.parseColor("#94a3b8"));
+        subtitle.setTextSize(12);
+        subtitle.setPadding(0, dp(4), 0, dp(8));
+        root.addView(subtitle);
 
         // Add Player button
         Button addBtn = new Button(getContext());
@@ -51,7 +61,7 @@ public class PlayerManagementFragment extends Fragment {
         addBtn.setBackgroundColor(Color.parseColor("#10b981"));
         LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT, dp(40));
-        btnParams.setMargins(0, dp(12), 0, dp(12));
+        btnParams.setMargins(0, dp(8), 0, dp(8));
         addBtn.setLayoutParams(btnParams);
         addBtn.setOnClickListener(v -> showAddPlayerDialog());
         root.addView(addBtn);
@@ -106,7 +116,7 @@ public class PlayerManagementFragment extends Fragment {
             nameTv.setText(idx++ + ". " + p.getName());
             nameTv.setTextColor(Color.WHITE);
             nameTv.setTextSize(14);
-            nameTv.setTypeface(null, android.graphics.Typeface.BOLD);
+            nameTv.setTypeface(null, Typeface.BOLD);
             nameTv.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
             topRow.addView(nameTv);
 
@@ -125,13 +135,29 @@ public class PlayerManagementFragment extends Fragment {
             phoneTv.setPadding(0, dp(4), 0, 0);
             card.addView(phoneTv);
 
-            // Role
+            // Role display + change button
+            LinearLayout roleRow = new LinearLayout(getContext());
+            roleRow.setOrientation(LinearLayout.HORIZONTAL);
+            roleRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            roleRow.setPadding(0, dp(4), 0, 0);
+
             TextView roleTv = new TextView(getContext());
             String role = p.getPlayerRole() != null ? p.getPlayerRole() : "fragger";
             roleTv.setText("Role: " + role.substring(0, 1).toUpperCase() + role.substring(1));
-            roleTv.setTextColor(Color.parseColor("#f59e0b"));
+            roleTv.setTextColor(Color.parseColor("#a855f7"));
             roleTv.setTextSize(12);
-            card.addView(roleTv);
+            roleTv.setTypeface(null, Typeface.BOLD);
+            roleTv.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+            roleRow.addView(roleTv);
+
+            Button roleBtn = new Button(getContext());
+            roleBtn.setText("Change");
+            roleBtn.setTextSize(9);
+            roleBtn.setTextColor(Color.WHITE);
+            roleBtn.setBackgroundColor(Color.parseColor("#a855f7"));
+            roleBtn.setOnClickListener(v -> showRoleDialog(p));
+            roleRow.addView(roleBtn);
+            card.addView(roleRow);
 
             // Action buttons row
             LinearLayout actions = new LinearLayout(getContext());
@@ -151,7 +177,7 @@ public class PlayerManagementFragment extends Fragment {
             actions.addView(statusBtn);
 
             Button resetBtn = new Button(getContext());
-            resetBtn.setText("Reset Pass");
+            resetBtn.setText("Pass");
             resetBtn.setTextSize(10);
             resetBtn.setTextColor(Color.WHITE);
             resetBtn.setBackgroundColor(Color.parseColor("#38bdf8"));
@@ -172,6 +198,38 @@ public class PlayerManagementFragment extends Fragment {
             card.addView(actions);
             playerListContainer.addView(card);
         }
+    }
+
+    private void showRoleDialog(Player player) {
+        if (!isAdded() || getContext() == null) return;
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
+        builder.setTitle("Set Role for " + player.getName());
+
+        LinearLayout layout = new LinearLayout(requireContext());
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(dp(20), dp(12), dp(20), dp(8));
+
+        String currentRole = player.getPlayerRole() != null ? player.getPlayerRole() : "fragger";
+
+        for (String r : ROLES) {
+            Button roleBtn = new Button(requireContext());
+            roleBtn.setText(r.substring(0, 1).toUpperCase() + r.substring(1));
+            roleBtn.setTextColor(Color.WHITE);
+            roleBtn.setBackgroundColor(r.equals(currentRole) ? Color.parseColor("#a855f7") : Color.parseColor("#1e293b"));
+            roleBtn.setOnClickListener(v -> {
+                repo.updatePlayerRole(player.getPhone(), r);
+                Toast.makeText(getContext(), player.getName() + " -> " + r, Toast.LENGTH_SHORT).show();
+            });
+            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(44));
+            p.setMargins(0, dp(4), 0, dp(4));
+            roleBtn.setLayoutParams(p);
+            layout.addView(roleBtn);
+        }
+
+        builder.setView(layout);
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
     }
 
     private void showAddPlayerDialog() {

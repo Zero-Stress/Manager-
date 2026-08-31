@@ -8,18 +8,18 @@ import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.zs.admin.fragments.AdminAnnouncementsFragment;
+import com.zs.admin.fragments.AppCustomizerFragment;
 import com.zs.admin.fragments.DailyInputFragment;
 import com.zs.admin.fragments.PlayerManagementFragment;
+import com.zs.admin.fragments.PushUpdateFragment;
 import com.zs.admin.fragments.WeeklySummaryFragment;
 
 public class AdminDashboardActivity extends AppCompatActivity {
@@ -38,20 +38,23 @@ public class AdminDashboardActivity extends AppCompatActivity {
         if (adminName == null) adminName = prefs.getString("admin_name", "Admin");
 
         TextView adminNameText = findViewById(R.id.adminNameText);
-        adminNameText.setText(adminName);
+        if (adminNameText != null) adminNameText.setText(adminName);
 
-        findViewById(R.id.logoutBtn).setOnClickListener(v -> {
-            new AlertDialog.Builder(this)
-                .setTitle("Logout")
-                .setMessage("Are you sure?")
-                .setPositiveButton("Logout", (d, w) -> {
-                    prefs.edit().remove("admin_name").apply();
-                    startActivity(new Intent(this, AdminLoginActivity.class));
-                    finish();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-        });
+        View logoutBtn = findViewById(R.id.logoutBtn);
+        if (logoutBtn != null) {
+            logoutBtn.setOnClickListener(v -> {
+                new AlertDialog.Builder(this)
+                    .setTitle("Logout")
+                    .setMessage("Are you sure?")
+                    .setPositiveButton("Logout", (d, w) -> {
+                        prefs.edit().remove("admin_name").apply();
+                        startActivity(new Intent(this, AdminLoginActivity.class));
+                        finish();
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+            });
+        }
 
         buildBottomNav();
 
@@ -66,36 +69,32 @@ public class AdminDashboardActivity extends AppCompatActivity {
         LinearLayout bar = findViewById(R.id.bottom_bar);
         if (bar == null) return;
 
+        String[] labels = {"Players", "Input", "Weekly", "Push", "Theme", "Announce"};
+        tabs = new TextView[labels.length];
+
+        LinearLayout root = findViewById(R.id.root_layout);
+
         // Divider
         View divider = new View(this);
         divider.setBackgroundColor(Color.parseColor("#1e3a5f"));
         LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, dp(1));
-
-        String[] labels = {"Players", "Daily Input", "Weekly", "Announcements"};
-        TextView tab0 = createTab(labels[0], 0);
-        TextView tab1 = createTab(labels[1], 1);
-        TextView tab2 = createTab(labels[2], 2);
-        TextView tab3 = createTab(labels[3], 3);
-        tabs = new TextView[]{tab0, tab1, tab2, tab3};
-
-        LinearLayout root = findViewById(R.id.root_layout);
         root.addView(divider, dividerParams);
 
-        bar.addView(tab0);
-        bar.addView(tab1);
-        bar.addView(tab2);
-        bar.addView(tab3);
+        for (int i = 0; i < labels.length; i++) {
+            tabs[i] = createTab(labels[i], i);
+            bar.addView(tabs[i]);
+        }
     }
 
     private TextView createTab(String label, int index) {
         TextView tv = new TextView(this);
         tv.setText(label);
         tv.setTextColor(Color.parseColor("#475569"));
-        tv.setTextSize(10);
+        tv.setTextSize(9);
         tv.setGravity(Gravity.CENTER);
         tv.setTypeface(null, Typeface.NORMAL);
-        tv.setPadding(dp(8), dp(12), dp(8), dp(12));
+        tv.setPadding(dp(6), dp(10), dp(6), dp(10));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
             0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
         tv.setLayoutParams(params);
@@ -127,7 +126,9 @@ public class AdminDashboardActivity extends AppCompatActivity {
             case 0: fragment = new PlayerManagementFragment(); break;
             case 1: fragment = new DailyInputFragment(); break;
             case 2: fragment = new WeeklySummaryFragment(); break;
-            case 3: fragment = new AdminAnnouncementsFragment(); break;
+            case 3: fragment = new PushUpdateFragment(); break;
+            case 4: fragment = new AppCustomizerFragment(); break;
+            case 5: fragment = new AdminAnnouncementsFragment(); break;
         }
         if (fragment != null) loadFragment(fragment);
     }
