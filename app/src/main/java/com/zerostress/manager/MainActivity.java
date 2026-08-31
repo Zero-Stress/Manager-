@@ -13,27 +13,20 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.gson.Gson;
-import com.zerostress.manager.fragments.AnnouncementsFragment;
-import com.zerostress.manager.fragments.AttendanceFragment;
 import com.zerostress.manager.fragments.ChatFragment;
-import com.zerostress.manager.fragments.DailyInputFragment;
 import com.zerostress.manager.fragments.LeaderboardFragment;
 import com.zerostress.manager.fragments.ProfileFragment;
-import com.zerostress.manager.fragments.RegistrationFragment;
 import com.zerostress.manager.fragments.ScheduleFragment;
 import com.zerostress.manager.fragments.SquadFragment;
-import com.zerostress.manager.fragments.TournamentFragment;
 import com.zerostress.manager.fragments.AnalyticsFragment;
 import com.zerostress.manager.models.Player;
 
@@ -238,111 +231,18 @@ public class MainActivity extends AppCompatActivity {
         popup.getMenu().add(0, 1, 0, "My Profile");
         popup.getMenu().add(0, 2, 1, "My Squad");
 
-        if ("admin".equals(currentUser.getRole())) {
-            popup.getMenu().add(0, 10, 10, "--- ADMIN ---").setEnabled(false);
-            popup.getMenu().add(0, 3, 2, "Players");
-            popup.getMenu().add(0, 4, 3, "Daily Input");
-            popup.getMenu().add(0, 5, 4, "Announcements");
-            popup.getMenu().add(0, 6, 5, "Tournaments");
-            popup.getMenu().add(0, 7, 6, "Attendance");
-            popup.getMenu().add(0, 8, 7, "Squad Manager");
-            popup.getMenu().add(0, 11, 9, "Push Update");
-        }
+        // Admin management features are now in the separate ZS Admin app
 
         popup.setOnMenuItemClickListener(item -> {
             Fragment fragment = null;
             int id = item.getItemId();
             if (id == 1) fragment = new ProfileFragment();
             else if (id == 2) fragment = new SquadFragment();
-            else if (id == 3) fragment = new RegistrationFragment();
-            else if (id == 4) fragment = new DailyInputFragment();
-            else if (id == 5) fragment = new AnnouncementsFragment();
-            else if (id == 6) fragment = new TournamentFragment();
-            else if (id == 7) fragment = new AttendanceFragment();
-            else if (id == 8) fragment = new SquadFragment();
-            else if (id == 11) {
-                showPushUpdateDialog();
-                return true;
-            }
 
             if (fragment != null) loadFragment(fragment, currentUser);
             return true;
         });
         popup.show();
-    }
-
-    private void showPushUpdateDialog() {
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
-        builder.setTitle("Push App Update");
-
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(40, 20, 40, 10);
-
-        TextView infoTv = new TextView(this);
-        infoTv.setText("Set a new version. All players will be prompted to update.");
-        infoTv.setTextColor(Color.parseColor("#94a3b8"));
-        infoTv.setTextSize(12);
-        layout.addView(infoTv);
-
-        EditText versionCodeInput = new EditText(this);
-        versionCodeInput.setHint("Version Code (number)");
-        versionCodeInput.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
-        layout.addView(versionCodeInput);
-
-        EditText versionNameInput = new EditText(this);
-        versionNameInput.setHint("Version Name");
-        layout.addView(versionNameInput);
-
-        EditText downloadUrlInput = new EditText(this);
-        downloadUrlInput.setHint("APK Download URL");
-        downloadUrlInput.setInputType(android.text.InputType.TYPE_TEXT_VARIATION_URI);
-        layout.addView(downloadUrlInput);
-
-        EditText changelogInput = new EditText(this);
-        changelogInput.setHint("Changelog");
-        changelogInput.setMinLines(3);
-        layout.addView(changelogInput);
-
-        SwitchCompat forceSwitch = new SwitchCompat(this);
-        forceSwitch.setText("Force Update");
-        forceSwitch.setTextColor(Color.parseColor("#f1f5f9"));
-        forceSwitch.setTextSize(13);
-        layout.addView(forceSwitch);
-
-        builder.setView(layout);
-
-        builder.setPositiveButton("Push Update", (d, w) -> {
-            String vc = versionCodeInput.getText().toString().trim();
-            String vn = versionNameInput.getText().toString().trim();
-            String url = downloadUrlInput.getText().toString().trim();
-            String cl = changelogInput.getText().toString().trim();
-            boolean force = forceSwitch.isChecked();
-
-            if (vc.isEmpty() || vn.isEmpty() || url.isEmpty()) {
-                Toast.makeText(this, "Fill in all fields", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            try {
-                int versionCode = Integer.parseInt(vc);
-                AppUpdateManager.setUpdateInfo(versionCode, vn, url, cl.isEmpty() ? "Bug fixes" : cl, force,
-                    new AppUpdateManager.OnUpdateSetCallback() {
-                        @Override public void onSuccess() {
-                            runOnUiThread(() -> Toast.makeText(MainActivity.this,
-                                "Update pushed!", Toast.LENGTH_LONG).show());
-                        }
-                        @Override public void onFailure(String e) {
-                            runOnUiThread(() -> Toast.makeText(MainActivity.this,
-                                "Failed: " + e, Toast.LENGTH_SHORT).show());
-                        }
-                    });
-            } catch (NumberFormatException e) {
-                Toast.makeText(this, "Version code must be a number", Toast.LENGTH_SHORT).show();
-            }
-        });
-        builder.setNegativeButton("Cancel", null);
-        builder.show();
     }
 
     private void loadFragment(Fragment fragment, Player user) {
