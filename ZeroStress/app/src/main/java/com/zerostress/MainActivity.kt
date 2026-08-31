@@ -13,6 +13,7 @@ import com.zerostress.ui.screens.auth.RegisterScreen
 import com.zerostress.ui.theme.ZeroStressTheme
 import com.zerostress.viewmodel.AppViewModel
 import com.zerostress.viewmodel.AuthViewModel
+import com.zerostress.viewmodel.VoiceChatViewModel
 import kotlinx.coroutines.flow.collectLatest
 
 class MainActivity : ComponentActivity() {
@@ -22,6 +23,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val authViewModel: AuthViewModel = viewModel()
             val appViewModel: AppViewModel = viewModel()
+            val voiceViewModel: VoiceChatViewModel = viewModel()
             val authState by authViewModel.uiState.collectAsState()
             val isDark = isSystemInDarkTheme()
             var showRegister by remember { mutableStateOf(false) }
@@ -40,6 +42,7 @@ class MainActivity : ComponentActivity() {
                         MainNavigation(
                             currentUser = authState.user!!,
                             viewModel = appViewModel,
+                            voiceViewModel = voiceViewModel,
                             onLogout = { authViewModel.logout() }
                         )
                     }

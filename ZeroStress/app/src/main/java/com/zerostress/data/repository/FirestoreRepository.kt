@@ -200,6 +200,10 @@ class FirestoreRepository {
         docRef.set(ChatMessage(id = docRef.id, sender = sender, message = message, isAdmin = isAdmin)).await()
     }
 
+    suspend fun deleteMessage(id: String) {
+        chatRef.document(id).delete().await()
+    }
+
     suspend fun clearChat() {
         val snapshot = chatRef.get().await()
         for (doc in snapshot.documents) { doc.reference.delete().await() }

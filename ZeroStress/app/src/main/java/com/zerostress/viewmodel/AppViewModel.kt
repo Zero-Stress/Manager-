@@ -152,6 +152,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun replyToMessage(sender: String, message: String, replyToSender: String, isAdmin: Boolean) {
+        viewModelScope.launch {
+            repo.sendMessage(sender, "↩$replyToSender: $message", isAdmin)
+        }
+    }
+
+    fun deleteMessage(id: String) {
+        viewModelScope.launch {
+            repo.deleteMessage(id)
+            _toastMessage.emit("Message deleted")
+        }
+    }
+
     fun clearChat() {
         viewModelScope.launch {
             repo.clearChat()
