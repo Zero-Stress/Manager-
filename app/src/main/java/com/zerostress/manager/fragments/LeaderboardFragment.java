@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment;
 
 import com.zerostress.manager.FirestoreRepository;
 import com.zerostress.manager.R;
+import com.zerostress.manager.ThemeManager;
 import com.zerostress.manager.models.LeaderboardEntry;
 import com.zerostress.manager.models.MatchRecord;
 import com.zerostress.manager.models.Player;
@@ -124,9 +125,11 @@ public class LeaderboardFragment extends Fragment {
         emptyView.setVisibility(View.GONE);
         table.setVisibility(View.VISIBLE);
 
+        ThemeManager tm = ThemeManager.getInstance(requireContext());
+
         // Header row
         TableRow header = new TableRow(getContext());
-        header.setBackgroundColor(Color.parseColor("#090d16"));
+        header.setBackgroundColor(tm.getBackgroundColorInt());
         addHeaderCell(header, "Rank");
         addHeaderCell(header, "Player");
         addHeaderCell(header, "Matches");
@@ -162,7 +165,7 @@ public class LeaderboardFragment extends Fragment {
 
             TextView scoreCell = new TextView(getContext());
             scoreCell.setText(e.getScorePoints() + " pts");
-            scoreCell.setTextColor(Color.parseColor("#38bdf8"));
+            scoreCell.setTextColor(tm.getPrimaryColorInt());
             scoreCell.setTextSize(12);
             scoreCell.setPadding(8, 12, 8, 12);
             row.addView(scoreCell);
@@ -174,7 +177,8 @@ public class LeaderboardFragment extends Fragment {
     private void addHeaderCell(TableRow row, String text) {
         TextView tv = new TextView(getContext());
         tv.setText(text);
-        tv.setTextColor(Color.parseColor("#38bdf8"));
+        ThemeManager tm = ThemeManager.getInstance(requireContext());
+        tv.setTextColor(tm.getPrimaryColorInt());
         tv.setTextSize(11);
         tv.setPadding(8, 12, 8, 12);
         row.addView(tv);
@@ -183,7 +187,8 @@ public class LeaderboardFragment extends Fragment {
     private void addCell(TableRow row, String text) {
         TextView tv = new TextView(getContext());
         tv.setText(text);
-        tv.setTextColor(Color.parseColor("#f1f5f9"));
+        ThemeManager tm = ThemeManager.getInstance(requireContext());
+        tv.setTextColor(tm.getTextColorInt());
         tv.setTextSize(12);
         tv.setPadding(8, 12, 8, 12);
         row.addView(tv);

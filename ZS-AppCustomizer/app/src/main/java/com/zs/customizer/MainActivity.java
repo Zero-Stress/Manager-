@@ -256,7 +256,8 @@ public class MainActivity extends AppCompatActivity {
                             if (data.containsKey("headerTextSize")) seekHeaderTextSize.setProgress(toInt(data.get("headerTextSize"), 18));
                             if (data.containsKey("bodyTextSize")) seekBodyTextSize.setProgress(toInt(data.get("bodyTextSize"), 14));
                             if (data.containsKey("inputHeight")) seekInputHeight.setProgress(toInt(data.get("inputHeight"), 48));
-                            if (data.containsKey("contentPadding")) seekPadding.setProgress(toInt(data.get("contentPadding"), 16));
+                            if (data.containsKey("cardPadding")) seekPadding.setProgress(toInt(data.get("cardPadding"), 16));
+                            else if (data.containsKey("contentPadding")) seekPadding.setProgress(toInt(data.get("contentPadding"), 16));
                             refreshColorGrid();
                         }
                     }
@@ -288,7 +289,12 @@ public class MainActivity extends AppCompatActivity {
             data.put("headerTextSize", seekHeaderTextSize.getProgress());
             data.put("bodyTextSize", seekBodyTextSize.getProgress());
             data.put("inputHeight", seekInputHeight.getProgress());
-            data.put("contentPadding", seekPadding.getProgress());
+            data.put("cardPadding", seekPadding.getProgress());
+            data.put("borderColor", "#1e3a5f");
+            data.put("warningColor", "#f59e0b");
+            data.put("fontFamily", "sans-serif");
+            data.put("buttonTextSize", 14);
+            data.put("navBarHeight", 56);
             data.put("timestamp", System.currentTimeMillis());
 
             FirebaseFirestore.getInstance()

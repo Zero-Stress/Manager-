@@ -95,6 +95,13 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (Throwable ignored) {}
 
+        // Apply theme colors
+        try {
+            applyTheme();
+        } catch (Throwable t) {
+            Log.e(TAG, "Theme apply failed (non-fatal)", t);
+        }
+
         // Build bottom navigation bar programmatically (no XML inflation issues)
         try {
             buildBottomNav();
@@ -136,15 +143,23 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void applyTheme() {
+        ThemeManager tm = ThemeManager.getInstance(this);
+        View root = findViewById(R.id.root_layout);
+        if (root != null) root.setBackgroundColor(tm.getBackgroundColorInt());
+    }
+
     private void buildBottomNav() {
         LinearLayout root = findViewById(R.id.root_layout);
         if (root == null) return;
+
+        ThemeManager tm = ThemeManager.getInstance(this);
 
         // Create bottom bar
         LinearLayout bar = new LinearLayout(this);
         bar.setOrientation(LinearLayout.HORIZONTAL);
         bar.setGravity(Gravity.CENTER);
-        bar.setBackgroundColor(Color.parseColor("#0a0f1c"));
+        bar.setBackgroundColor(tm.getNavBarColorInt());
 
         LinearLayout.LayoutParams barParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, dp(56));
@@ -152,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Divider line above bar
         View divider = new View(this);
-        divider.setBackgroundColor(Color.parseColor("#1e3a5f"));
+        divider.setBackgroundColor(tm.getBorderColorInt());
         LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, dp(1));
         root.addView(divider, dividerParams);
@@ -173,6 +188,15 @@ public class MainActivity extends AppCompatActivity {
         bar.addView(tabMore);
 
         root.addView(bar);
+
+        // Set theme change listener
+        tm.setThemeChangeListener(newTheme -> {
+            runOnUiThread(() -> {
+                applyTheme();
+                buildBottomNav();
+                selectTab(selectedTab);
+            });
+        });
     }
 
     private TextView createTab(String label, int index) {
@@ -197,10 +221,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void selectTab(int index) {
         selectedTab = index;
+        ThemeManager tm = ThemeManager.getInstance(this);
         for (int i = 0; i < tabs.length; i++) {
             if (tabs[i] != null) {
                 if (i == index) {
-                    tabs[i].setTextColor(Color.parseColor("#38bdf8"));
+                    tabs[i].setTextColor(tm.getPrimaryColorInt());
                     tabs[i].setTypeface(null, Typeface.BOLD);
                 } else {
                     tabs[i].setTextColor(Color.parseColor("#475569"));
