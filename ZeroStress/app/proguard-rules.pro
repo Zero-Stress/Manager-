@@ -1,0 +1,5 @@
+-keepattributes Signature
+-keepattributes *Annotation*
+-keep class com.zerostress.data.model.** { *; }
+-keep class com.google.firebase.** { *; }
+-dontwarn com.google.firebase.**
