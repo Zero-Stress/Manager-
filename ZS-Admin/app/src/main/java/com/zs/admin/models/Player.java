@@ -1,7 +1,5 @@
 package com.zs.admin.models;
 
-import com.google.firebase.firestore.FieldName;
-
 import java.util.List;
 
 public class Player {
