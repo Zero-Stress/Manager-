@@ -26,6 +26,10 @@ import com.zerostress.manager.ui.player.FriendsScreen
 import com.zerostress.manager.ui.player.PlayerComparisonScreen
 import com.zerostress.manager.ui.player.PerformanceTrendsScreen
 import com.zerostress.manager.ui.player.AchievementsScreen
+import com.zerostress.manager.ui.player.RankLevelScreen
+import com.zerostress.manager.ui.player.DailyRewardsScreen
+import com.zerostress.manager.ui.player.ChallengesScreen
+import com.zerostress.manager.ui.player.CommunityScreen
 import com.zerostress.manager.viewmodel.AppViewModel
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -48,8 +52,14 @@ fun AdminDashboard(
     val isAdmin = role == "admin"
 
     val tabs = if (isAdmin) listOf(
-        "Players", "Daily Input", "Daily LB", "Weekly", "Weekly LB", "Profile", "Friends", "Compare", "Trends", "Badges", "Seasons", "Chat", "Voice", "Schedule", "Announce"
-    ) else listOf("Daily LB", "Weekly LB", "Profile", "Friends", "Compare", "Trends", "Badges", "Seasons", "Chat", "Voice", "Schedule")
+        "Rank", "Rewards", "Players", "Daily", "Daily LB", "Weekly", "Weekly LB", "Profile",
+        "Friends", "Compare", "Trends", "Badges", "Seasons", "Challenges", "Community",
+        "Analytics", "Chat", "Voice", "Schedule", "Announce"
+    ) else listOf(
+        "Rank", "Rewards", "Daily LB", "Weekly LB", "Profile",
+        "Friends", "Compare", "Trends", "Badges", "Seasons", "Challenges", "Community",
+        "Chat", "Voice", "Schedule"
+    )
 
     Column(modifier = Modifier.fillMaxSize()) {
         // Header
@@ -149,6 +159,11 @@ fun AdminDashboard(
             "Seasons" -> SeasonScreen(phone = phone, role = role, appViewModel = appViewModel)
             "Schedule" -> MatchScheduleScreen(role = role, appViewModel = appViewModel)
             "Announce" -> if (isAdmin) AnnouncementsScreen(appViewModel = appViewModel)
+            "Rank" -> RankLevelScreen(phone = phone, name = name, appViewModel = appViewModel)
+            "Rewards" -> DailyRewardsScreen(phone = phone, appViewModel = appViewModel)
+            "Challenges" -> ChallengesScreen(phone = phone, role = role, appViewModel = appViewModel)
+            "Community" -> CommunityScreen(phone = phone, name = name, role = role, appViewModel = appViewModel)
+            "Analytics" -> if (isAdmin) AdminAnalyticsScreen(phone = phone, appViewModel = appViewModel)
         }
     }
 }

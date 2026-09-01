@@ -22,6 +22,14 @@ class FirebaseRepository {
     private val achievementsRef = db.collection("player_achievements")
     private val seasonsRef = db.collection("seasons")
     private val seasonSnapshotsRef = db.collection("season_snapshots")
+    private val ranksRef = db.collection("player_ranks")
+    private val challengesRef = db.collection("weekly_challenges")
+    private val challengeProgressRef = db.collection("challenge_progress")
+    private val mvpVotesRef = db.collection("mvp_votes")
+    private val pollsRef = db.collection("polls")
+    private val lfgRef = db.collection("lfg_posts")
+    private val reviewsRef = db.collection("player_reviews")
+    private val settingsRef = db.collection("admin_settings")
 
     // ==================== USERS ====================
     suspend fun createUser(user: User) {
@@ -293,6 +301,170 @@ class FirebaseRepository {
                 trySend(snapshots)
             }
         awaitClose { reg.remove() }
+    }
+
+    // ==================== RANKS & LEVELS ====================
+    suspend fun getOrCreateRank(phone: String): PlayerRank {
+        val doc = ranksRef.document(phone).get().await()
+        return doc.toObject(PlayerRank::class.java) ?: PlayerRank(phone = phone).also {
+            ranksRef.document(phone).set(it).await()
+        }
+    }
+
+    suspend fun updateRank(rank: PlayerRank) {
+        ranksRef.document(rank.phone).set(rank).await()
+    }
+
+    fun observeRank(phone: String): Flow<PlayerRank?> = callbackFlow {
+        val reg = ranksRef.document(phone).addSnapshotListener { snap, _ ->
+            trySend(snap?.toObject(PlayerRank::class.java))
+        }
+        awaitClose { reg.remove() }
+    }
+
+    fun observeAllRanks(): Flow<List<PlayerRank>> = callbackFlow {
+        val reg = ranksRef.addSnapshotListener { snap, _ ->
+            val ranks = snap?.documents?.mapNotNull { it.toObject(PlayerRank::class.java) } ?: emptyList()
+            trySend(ranks)
+        }
+        awaitClose { reg.remove() }
+    }
+
+    // ==================== WEEKLY CHALLENGES ====================
+    suspend fun createChallenge(challenge: WeeklyChallenge) {
+        val docRef = challengesRef.document()
+        challengesRef.document(docRef.id).set(challenge.copy(id = docRef.id)).await()
+    }
+
+    fun observeChallenges(): Flow<List<WeeklyChallenge>> = callbackFlow {
+        val reg = challengesRef.orderBy("createdAt", Query.Direction.DESCENDING)
+            .addSnapshotListener { snap, _ ->
+                val challenges = snap?.documents?.mapNotNull { it.toObject(WeeklyChallenge::class.java) } ?: emptyList()
+                trySend(challenges)
+            }
+        awaitClose { reg.remove() }
+    }
+
+    suspend fun updateChallengeProgress(challengeId: String, phone: String, playerName: String, value: Int) {
+        val existing = challengeProgressRef
+            .whereEqualTo("challengeId", challengeId)
+            .whereEqualTo("phone", phone)
+            .get().await()
+        if (existing.isEmpty) {
+            challengeProgressRef.add(ChallengeProgress(challengeId = challengeId, phone = phone, playerName = playerName, currentValue = value)).await()
+        } else {
+            challengeProgressRef.document(existing.documents[0].id)
+                .update("currentValue", value).await()
+        }
+    }
+
+    fun observeChallengeProgress(challengeId: String): Flow<List<ChallengeProgress>> = callbackFlow {
+        val reg = challengeProgressRef
+            .whereEqualTo("challengeId", challengeId)
+            .addSnapshotListener { snap, _ ->
+                val progress = snap?.documents?.mapNotNull { it.toObject(ChallengeProgress::class.java) } ?: emptyList()
+                trySend(progress)
+            }
+        awaitClose { reg.remove() }
+    }
+
+    // ==================== MVP VOTES ====================
+    suspend fun castMVPVote(matchId: String, voterPhone: String, candidatePhone: String, candidateName: String) {
+        val existing = mvpVotesRef
+            .whereEqualTo("matchId", matchId)
+            .whereEqualTo("voterPhone", voterPhone)
+            .get().await()
+        if (existing.isEmpty) {
+            mvpVotesRef.add(MVPVote(matchId = matchId, voterPhone = voterPhone, candidatePhone = candidatePhone, candidateName = candidateName)).await()
+        }
+    }
+
+    fun observeMVPVotes(matchId: String): Flow<List<MVPVote>> = callbackFlow {
+        val reg = mvpVotesRef
+            .whereEqualTo("matchId", matchId)
+            .addSnapshotListener { snap, _ ->
+                val votes = snap?.documents?.mapNotNull { it.toObject(MVPVote::class.java) } ?: emptyList()
+                trySend(votes)
+            }
+        awaitClose { reg.remove() }
+    }
+
+    // ==================== POLLS ====================
+    suspend fun createPoll(poll: Poll) {
+        val docRef = pollsRef.document()
+        pollsRef.document(docRef.id).set(poll.copy(id = docRef.id)).await()
+    }
+
+    fun observePolls(): Flow<List<Poll>> = callbackFlow {
+        val reg = pollsRef.orderBy("createdAt", Query.Direction.DESCENDING)
+            .addSnapshotListener { snap, _ ->
+                val polls = snap?.documents?.mapNotNull { it.toObject(Poll::class.java) } ?: emptyList()
+                trySend(polls)
+            }
+        awaitClose { reg.remove() }
+    }
+
+    suspend fun votePoll(pollId: String, option: String) {
+        val doc = pollsRef.document(pollId).get().await()
+        val poll = doc.toObject(Poll::class.java) ?: return
+        val votes = poll.votes.toMutableMap()
+        votes[option] = (votes[option] ?: 0) + 1
+        pollsRef.document(pollId).update("votes", votes).await()
+    }
+
+    suspend fun deletePoll(id: String) { pollsRef.document(id).delete().await() }
+
+    // ==================== LFG ====================
+    suspend fun createLFGPost(post: LFGPost) {
+        val docRef = lfgRef.document()
+        lfgRef.document(docRef.id).set(post.copy(id = docRef.id)).await()
+    }
+
+    fun observeLFGPosts(): Flow<List<LFGPost>> = callbackFlow {
+        val reg = lfgRef.whereEqualTo("isActive", true)
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .addSnapshotListener { snap, _ ->
+                val posts = snap?.documents?.mapNotNull { it.toObject(LFGPost::class.java) } ?: emptyList()
+                trySend(posts)
+            }
+        awaitClose { reg.remove() }
+    }
+
+    suspend fun deleteLFGPost(id: String) { lfgRef.document(id).delete().await() }
+
+    // ==================== REVIEWS ====================
+    suspend fun submitReview(review: PlayerReview) {
+        reviewsRef.add(review).await()
+    }
+
+    fun observeReviews(targetPhone: String): Flow<List<PlayerReview>> = callbackFlow {
+        val reg = reviewsRef
+            .whereEqualTo("targetPhone", targetPhone)
+            .addSnapshotListener { snap, _ ->
+                val reviews = snap?.documents?.mapNotNull { it.toObject(PlayerReview::class.java) } ?: emptyList()
+                trySend(reviews)
+            }
+        awaitClose { reg.remove() }
+    }
+
+    // ==================== ADMIN SETTINGS ====================
+    suspend fun getAdminSettings(): AdminSettings {
+        val doc = settingsRef.document("main").get().await()
+        return doc.toObject(AdminSettings::class.java) ?: AdminSettings()
+    }
+
+    suspend fun updateAdminSettings(settings: AdminSettings) {
+        settingsRef.document("main").set(settings).await()
+    }
+
+    suspend fun banPlayer(phone: String) {
+        val s = getAdminSettings()
+        updateAdminSettings(s.copy(bannedPlayers = s.bannedPlayers + phone))
+    }
+
+    suspend fun unbanPlayer(phone: String) {
+        val s = getAdminSettings()
+        updateAdminSettings(s.copy(bannedPlayers = s.bannedPlayers - phone))
     }
 
     suspend fun endSeasonAndSnapshot(seasonId: String) {

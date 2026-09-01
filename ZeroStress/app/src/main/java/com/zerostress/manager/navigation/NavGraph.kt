@@ -23,6 +23,11 @@ import com.zerostress.manager.ui.player.PlayerComparisonScreen
 import com.zerostress.manager.ui.player.PerformanceTrendsScreen
 import com.zerostress.manager.ui.player.AchievementsScreen
 import com.zerostress.manager.ui.admin.SeasonScreen
+import com.zerostress.manager.ui.admin.AdminAnalyticsScreen
+import com.zerostress.manager.ui.player.RankLevelScreen
+import com.zerostress.manager.ui.player.DailyRewardsScreen
+import com.zerostress.manager.ui.player.ChallengesScreen
+import com.zerostress.manager.ui.player.CommunityScreen
 
 sealed class Screen(val route: String) {
     object Login : Screen("login")
@@ -43,6 +48,11 @@ sealed class Screen(val route: String) {
     object Trends : Screen("trends")
     object Achievements : Screen("achievements")
     object Seasons : Screen("seasons")
+    object RankLevel : Screen("rank_level")
+    object DailyRewards : Screen("daily_rewards")
+    object Challenges : Screen("challenges")
+    object Community : Screen("community")
+    object AdminAnalytics : Screen("admin_analytics")
 }
 
 @Composable
@@ -125,6 +135,21 @@ fun AppNavigation(prefs: PreferenceManager) {
         }
         composable(Screen.Seasons.route) {
             SeasonScreen(phone = sessionPhone, role = sessionRole, appViewModel = viewModel())
+        }
+        composable(Screen.RankLevel.route) {
+            RankLevelScreen(phone = sessionPhone, name = sessionName, appViewModel = viewModel())
+        }
+        composable(Screen.DailyRewards.route) {
+            DailyRewardsScreen(phone = sessionPhone, appViewModel = viewModel())
+        }
+        composable(Screen.Challenges.route) {
+            ChallengesScreen(phone = sessionPhone, role = sessionRole, appViewModel = viewModel())
+        }
+        composable(Screen.Community.route) {
+            CommunityScreen(phone = sessionPhone, name = sessionName, role = sessionRole, appViewModel = viewModel())
+        }
+        composable(Screen.AdminAnalytics.route) {
+            AdminAnalyticsScreen(phone = sessionPhone, appViewModel = viewModel())
         }
     }
 }
