@@ -76,18 +76,6 @@ dependencies {
     implementation("com.google.mlkit:text-recognition:16.0.0")
     implementation("com.google.mlkit:text-recognition-devanagari:16.0.0")
 
-    // Image Cropper
-    implementation("com.github.dhaval2404:imagepicker:2.1")
-
-    // Voice Chat - WebRTC (open source)
-    implementation("org.webrtc:google-webrtc:1.0.32006")
-
-    // Accompanist
-    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
-
-    // PDF generation
-    implementation("com.itextpdf:itext7-core:7.2.5")
-
     // Coil for image loading
     implementation("io.coil-kt:coil-compose:2.5.0")
 

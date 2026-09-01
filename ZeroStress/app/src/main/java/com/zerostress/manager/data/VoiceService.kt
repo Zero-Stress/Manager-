@@ -7,21 +7,13 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.os.Binder
-import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.zerostress.manager.MainActivity
-import com.zerostress.manager.R
-import org.webrtc.*
-import java.util.concurrent.Executors
 
 class VoiceService : Service() {
 
     private val binder = LocalBinder()
-    private var peerConnection: PeerConnection? = null
-    private var audioTrack: AudioTrack? = null
-    private var factory: PeerConnectionFactory? = null
-    private val executor = Executors.newSingleThreadExecutor()
     private var isMuted = false
     private var channelId = ""
 
@@ -34,7 +26,6 @@ class VoiceService : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-        initWebRTC()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -43,24 +34,8 @@ class VoiceService : Service() {
         return START_STICKY
     }
 
-    private fun initWebRTC() {
-        val initOptions = PeerConnectionFactory.InitializationOptions.builder(this)
-            .setEnableInternalTracer(false)
-            .createInitializationOptions()
-        PeerConnectionFactory.initialize(initOptions)
-
-        val options = PeerConnectionFactory.Options()
-        factory = PeerConnectionFactory.builder()
-            .setOptions(options)
-            .createPeerConnectionFactory()
-
-        val audioSource = factory!!.createAudioSource(MediaConstraints())
-        audioTrack = factory!!.createAudioTrack("audio_track", audioSource)
-    }
-
     fun toggleMute(): Boolean {
         isMuted = !isMuted
-        audioTrack?.setEnabled(!isMuted)
         return isMuted
     }
 
@@ -68,18 +43,15 @@ class VoiceService : Service() {
 
     fun joinChannel(channelId: String) {
         this.channelId = channelId
-        // WebRTC signaling would connect to Firebase here
-        audioTrack?.setEnabled(true)
+        // Voice channel join logic via Firebase
     }
 
     fun leaveChannel() {
-        audioTrack?.setEnabled(false)
-        peerConnection?.close()
-        peerConnection = null
+        // Voice channel leave logic via Firebase
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 "voice_channel", "Voice Chat",
                 NotificationManager.IMPORTANCE_LOW
@@ -102,8 +74,6 @@ class VoiceService : Service() {
 
     override fun onDestroy() {
         leaveChannel()
-        factory?.dispose()
-        PeerConnectionFactory.dispose()
         super.onDestroy()
     }
 }
