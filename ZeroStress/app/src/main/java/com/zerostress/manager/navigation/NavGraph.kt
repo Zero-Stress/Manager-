@@ -18,6 +18,11 @@ import com.zerostress.manager.ui.player.PlayerProfileScreen
 import com.zerostress.manager.ui.chat.ChatScreen
 import com.zerostress.manager.ui.voice.VoiceLobbyScreen
 import com.zerostress.manager.ui.schedule.MatchScheduleScreen
+import com.zerostress.manager.ui.player.FriendsScreen
+import com.zerostress.manager.ui.player.PlayerComparisonScreen
+import com.zerostress.manager.ui.player.PerformanceTrendsScreen
+import com.zerostress.manager.ui.player.AchievementsScreen
+import com.zerostress.manager.ui.admin.SeasonScreen
 
 sealed class Screen(val route: String) {
     object Login : Screen("login")
@@ -33,6 +38,11 @@ sealed class Screen(val route: String) {
     object Chat : Screen("chat")
     object VoiceLobby : Screen("voice_lobby")
     object MatchSchedule : Screen("match_schedule")
+    object Friends : Screen("friends")
+    object Compare : Screen("compare")
+    object Trends : Screen("trends")
+    object Achievements : Screen("achievements")
+    object Seasons : Screen("seasons")
 }
 
 @Composable
@@ -100,6 +110,21 @@ fun AppNavigation(prefs: PreferenceManager) {
         }
         composable(Screen.MatchSchedule.route) {
             MatchScheduleScreen(role = sessionRole, onBack = { navController.popBackStack() })
+        }
+        composable(Screen.Friends.route) {
+            FriendsScreen(phone = sessionPhone, appViewModel = viewModel())
+        }
+        composable(Screen.Compare.route) {
+            PlayerComparisonScreen(myPhone = sessionPhone, myName = sessionName, appViewModel = viewModel())
+        }
+        composable(Screen.Trends.route) {
+            PerformanceTrendsScreen(phone = sessionPhone, appViewModel = viewModel())
+        }
+        composable(Screen.Achievements.route) {
+            AchievementsScreen(phone = sessionPhone, appViewModel = viewModel())
+        }
+        composable(Screen.Seasons.route) {
+            SeasonScreen(phone = sessionPhone, role = sessionRole, appViewModel = viewModel())
         }
     }
 }

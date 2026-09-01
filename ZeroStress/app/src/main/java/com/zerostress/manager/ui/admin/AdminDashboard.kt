@@ -22,6 +22,10 @@ import androidx.navigation.NavController
 import com.zerostress.manager.data.PreferenceManager
 import com.zerostress.manager.navigation.Screen
 import com.zerostress.manager.ui.theme.*
+import com.zerostress.manager.ui.player.FriendsScreen
+import com.zerostress.manager.ui.player.PlayerComparisonScreen
+import com.zerostress.manager.ui.player.PerformanceTrendsScreen
+import com.zerostress.manager.ui.player.AchievementsScreen
 import com.zerostress.manager.viewmodel.AppViewModel
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -44,8 +48,8 @@ fun AdminDashboard(
     val isAdmin = role == "admin"
 
     val tabs = if (isAdmin) listOf(
-        "Players", "Daily Input", "Daily LB", "Weekly", "Weekly LB", "Profile", "Chat", "Voice", "Schedule", "Announce"
-    ) else listOf("Daily LB", "Weekly LB", "Profile", "Chat", "Voice", "Schedule")
+        "Players", "Daily Input", "Daily LB", "Weekly", "Weekly LB", "Profile", "Friends", "Compare", "Trends", "Badges", "Seasons", "Chat", "Voice", "Schedule", "Announce"
+    ) else listOf("Daily LB", "Weekly LB", "Profile", "Friends", "Compare", "Trends", "Badges", "Seasons", "Chat", "Voice", "Schedule")
 
     Column(modifier = Modifier.fillMaxSize()) {
         // Header
@@ -138,6 +142,11 @@ fun AdminDashboard(
             "Profile" -> PlayerProfileScreen(phone = phone, name = name, appViewModel = appViewModel)
             "Chat" -> ChatScreen(phone = phone, name = name, role = role, appViewModel = appViewModel)
             "Voice" -> VoiceLobbyScreen(phone = phone, name = name, appViewModel = appViewModel)
+            "Friends" -> FriendsScreen(phone = phone, appViewModel = appViewModel)
+            "Compare" -> PlayerComparisonScreen(myPhone = phone, myName = name, appViewModel = appViewModel)
+            "Trends" -> PerformanceTrendsScreen(phone = phone, appViewModel = appViewModel)
+            "Badges" -> AchievementsScreen(phone = phone, appViewModel = appViewModel)
+            "Seasons" -> SeasonScreen(phone = phone, role = role, appViewModel = appViewModel)
             "Schedule" -> MatchScheduleScreen(role = role, appViewModel = appViewModel)
             "Announce" -> if (isAdmin) AnnouncementsScreen(appViewModel = appViewModel)
         }

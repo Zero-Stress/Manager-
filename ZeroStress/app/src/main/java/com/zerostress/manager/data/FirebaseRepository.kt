@@ -7,6 +7,7 @@ import com.zerostress.manager.models.*
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
 class FirebaseRepository {
@@ -17,6 +18,10 @@ class FirebaseRepository {
     private val chatRef = db.collection("chat")
     private val voiceRef = db.collection("voice_channels")
     private val scheduleRef = db.collection("match_schedules")
+    private val friendsRef = db.collection("friendships")
+    private val achievementsRef = db.collection("player_achievements")
+    private val seasonsRef = db.collection("seasons")
+    private val seasonSnapshotsRef = db.collection("season_snapshots")
 
     // ==================== USERS ====================
     suspend fun createUser(user: User) {
@@ -182,5 +187,134 @@ class FirebaseRepository {
 
     suspend fun deleteSchedule(id: String) {
         scheduleRef.document(id).delete().await()
+    }
+
+    // ==================== FRIENDS ====================
+    suspend fun sendFriendRequest(requesterPhone: String, accepterPhone: String) {
+        val existing = friendsRef.whereEqualTo("requesterPhone", requesterPhone)
+            .whereEqualTo("accepterPhone", accepterPhone).get().await()
+        if (existing.isEmpty) {
+            val docRef = friendsRef.document()
+            docRef.set(Friendship(id = docRef.id, requesterPhone = requesterPhone, accepterPhone = accepterPhone)).await()
+        }
+    }
+
+    suspend fun acceptFriendRequest(friendshipId: String) {
+        friendsRef.document(friendshipId).update("status", "accepted").await()
+    }
+
+    suspend fun removeFriend(friendshipId: String) {
+        friendsRef.document(friendshipId).delete().await()
+    }
+
+    fun observeFriends(phone: String): Flow<List<Friendship>> = callbackFlow {
+        val reg = friendsRef
+            .whereEqualTo("status", "accepted")
+            .addSnapshotListener { snap, _ ->
+                val all = snap?.documents?.mapNotNull { it.toObject(Friendship::class.java) } ?: emptyList()
+                val myFriends = all.filter { it.requesterPhone == phone || it.accepterPhone == phone }
+                trySend(myFriends)
+            }
+        awaitClose { reg.remove() }
+    }
+
+    fun observeFriendRequests(phone: String): Flow<List<Friendship>> = callbackFlow {
+        val reg = friendsRef
+            .whereEqualTo("accepterPhone", phone)
+            .whereEqualTo("status", "pending")
+            .addSnapshotListener { snap, _ ->
+                val requests = snap?.documents?.mapNotNull { it.toObject(Friendship::class.java) } ?: emptyList()
+                trySend(requests)
+            }
+        awaitClose { reg.remove() }
+    }
+
+    suspend fun searchUsers(query: String): List<User> {
+        if (query.isBlank()) return emptyList()
+        return usersRef.whereGreaterThanOrEqualTo("name", query)
+            .whereLessThanOrEqualTo("name", query + "\uF8FF")
+            .get().await().documents.mapNotNull { it.toObject(User::class.java) }
+    }
+
+    // ==================== ACHIEVEMENTS ====================
+    suspend fun unlockAchievement(phone: String, achievementId: String) {
+        val existing = achievementsRef
+            .whereEqualTo("phone", phone)
+            .whereEqualTo("achievementId", achievementId)
+            .get().await()
+        if (existing.isEmpty) {
+            achievementsRef.add(PlayerAchievement(phone = phone, achievementId = achievementId)).await()
+        }
+    }
+
+    fun observeAchievements(phone: String): Flow<List<PlayerAchievement>> = callbackFlow {
+        val reg = achievementsRef
+            .whereEqualTo("phone", phone)
+            .addSnapshotListener { snap, _ ->
+                val achievements = snap?.documents?.mapNotNull { it.toObject(PlayerAchievement::class.java) } ?: emptyList()
+                trySend(achievements)
+            }
+        awaitClose { reg.remove() }
+    }
+
+    // ==================== SEASONS ====================
+    suspend fun createSeason(season: Season) {
+        val docRef = seasonsRef.document()
+        seasonsRef.document(docRef.id).set(season.copy(id = docRef.id)).await()
+    }
+
+    fun observeSeasons(): Flow<List<Season>> = callbackFlow {
+        val reg = seasonsRef.orderBy("createdAt", Query.Direction.DESCENDING)
+            .addSnapshotListener { snap, _ ->
+                val seasons = snap?.documents?.mapNotNull { it.toObject(Season::class.java) } ?: emptyList()
+                trySend(seasons)
+            }
+        awaitClose { reg.remove() }
+    }
+
+    suspend fun setActiveSeason(seasonId: String) {
+        // Deactivate all
+        seasonsRef.get().await().documents.forEach { doc ->
+            seasonsRef.document(doc.id).update("isActive", false).await()
+        }
+        seasonsRef.document(seasonId).update("isActive", true).await()
+    }
+
+    suspend fun saveSeasonSnapshot(snapshot: SeasonSnapshot) {
+        seasonSnapshotsRef.add(snapshot).await()
+    }
+
+    fun observeSeasonSnapshots(seasonId: String): Flow<List<SeasonSnapshot>> = callbackFlow {
+        val reg = seasonSnapshotsRef
+            .whereEqualTo("seasonId", seasonId)
+            .orderBy("finalScore", Query.Direction.DESCENDING)
+            .addSnapshotListener { snap, _ ->
+                val snapshots = snap?.documents?.mapNotNull { it.toObject(SeasonSnapshot::class.java) } ?: emptyList()
+                trySend(snapshots)
+            }
+        awaitClose { reg.remove() }
+    }
+
+    suspend fun endSeasonAndSnapshot(seasonId: String) {
+        val users = getAllUsers().filter { it.status == "confirmed" }
+        val allLogs = db.collection("dailylogs").get().await()
+            .documents.mapNotNull { it.toObject(DailyLog::class.java) }
+
+        users.forEachIndexed { index, user ->
+            val userLogs = allLogs.filter { it.phone == user.phone }
+            val snapshot = SeasonSnapshot(
+                seasonId = seasonId,
+                playerName = user.name,
+                phone = user.phone,
+                totalMatches = userLogs.sumOf { it.matches },
+                totalWins = userLogs.sumOf { it.wins },
+                totalKills = userLogs.sumOf { it.kills },
+                totalAssists = userLogs.sumOf { it.assists },
+                totalDamage = userLogs.sumOf { it.damage },
+                finalScore = userLogs.sumOf { it.calculateScore() },
+                rank = index + 1
+            )
+            saveSeasonSnapshot(snapshot)
+        }
     }
 }
