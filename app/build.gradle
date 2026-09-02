@@ -96,9 +96,6 @@ dependencies {
     // Preferences
     implementation 'androidx.preference:preference:1.2.1'
 
-    // WebRTC for voice chat
-    implementation 'org.webrtc:google-webrtc:1.0.32006'
-
     // OkHttp for signaling
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
 

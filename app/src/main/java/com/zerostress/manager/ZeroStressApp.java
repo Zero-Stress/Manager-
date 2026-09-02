@@ -33,7 +33,7 @@ public class ZeroStressApp extends Application {
             appCheck.setTokenAutoRefreshEnabled(true);
 
             appCheck.getToken(false).addOnSuccessListener(result -> {
-                AppCheckToken token = result.getToken();
+                String token = result.getToken();
                 Log.w(TAG, "APP CHECK DEBUG TOKEN: " + token);
             }).addOnFailureListener(e -> {
                 Log.e(TAG, "App Check token failed: " + e.getMessage(), e);

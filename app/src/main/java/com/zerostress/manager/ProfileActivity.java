@@ -57,9 +57,9 @@ public class ProfileActivity extends AppCompatActivity {
                     long damage = doc.getLong("damage") != null ? doc.getLong("damage") : 0;
                     long wins = doc.getLong("wins") != null ? doc.getLong("wins") : 0;
                     long matches = doc.getLong("matches") != null ? doc.getLong("matches") : 0;
-                    int xp = doc.getLong("xp") != null ? doc.getInt("xp") : 0;
-                    int level = doc.getLong("level") != null ? doc.getInt("level") : 1;
-                    int coins = doc.getLong("coins") != null ? doc.getInt("coins") : 0;
+                    int xp = doc.getLong("xp") != null ? doc.getLong("xp").intValue() : 0;
+                    int level = doc.getLong("level") != null ? doc.getLong("level").intValue() : 1;
+                    int coins = doc.getLong("coins") != null ? doc.getLong("coins").intValue() : 0;
                     String rank = doc.getString("rank") != null ? doc.getString("rank") : "Iron";
 
                     tvScore.setText(score + " pts");

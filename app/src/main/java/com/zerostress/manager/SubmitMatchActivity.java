@@ -96,9 +96,9 @@ public class SubmitMatchActivity extends AppCompatActivity {
                 long currentWins = doc.getLong("wins") != null ? doc.getLong("wins") : 0;
                 long currentMatches = doc.getLong("matches") != null ? doc.getLong("matches") : 0;
                 long currentScore = doc.getLong("score") != null ? doc.getLong("score") : 0;
-                int currentXp = doc.getLong("xp") != null ? doc.getInt("xp") : 0;
-                int currentLevel = doc.getLong("level") != null ? doc.getInt("level") : 1;
-                int currentCoins = doc.getLong("coins") != null ? doc.getInt("coins") : 0;
+                int currentXp = doc.getLong("xp") != null ? doc.getLong("xp").intValue() : 0;
+                int currentLevel = doc.getLong("level") != null ? doc.getLong("level").intValue() : 1;
+                int currentCoins = doc.getLong("coins") != null ? doc.getLong("coins").intValue() : 0;
 
                 long newKills = currentKills + kills;
                 long newDamage = currentDamage + damage;

@@ -86,8 +86,21 @@ public class VoiceActivity extends AppCompatActivity {
                 checkPermissionsAndJoin();
             }
         });
+    }
 
-        loadChannels();
+    private void loadChannels() {
+        db.collection("voice_channels")
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                // Process voice channels
+                for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                    String channelName = doc.getString("name");
+                    // Handle channel data
+                }
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Failed to load channels", Toast.LENGTH_SHORT).show();
+            });
     }
 
     private void checkPermissionsAndJoin() {
