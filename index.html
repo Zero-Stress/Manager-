@@ -45,55 +45,45 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 <div class="bg-grid"></div>
 <div class="bg-dots"></div>
 <div class="page">
-<div class="app-icon">ZS</div>
+<div class="app-icon"><img src="logo.png" alt="Zero Stress" style="width:100%;height:100%;border-radius:24px;object-fit:cover"></div>
 <h1 class="app-name">ZERO <span>STRESS</span></h1>
-<p class="app-version">Performance &amp; Leaderboard Manager &bull; v2.0</p>
-<p class="app-tagline">Track matches, climb leaderboards, and dominate your squad with real-time stats powered by Firebase Cloud.</p>
+<p class="app-version">Performance &amp; Leaderboard Manager &bull; v2.2</p>
+<p class="app-tagline">Track matches, climb leaderboards, chat with your squad, and dominate with real-time stats powered by Firebase Cloud.</p>
 <a class="download-btn" href="https://github.com/Zero-Stress/Manager-/releases/latest" target="_blank" rel="noopener" id="downloadLink">
 <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v4h3.66V9h3.84L12 2z"/></svg>
-Download APK
+Download APK (v2.2)
 </a>
-<a class="download-btn" href="ZeroStress-v2.0.zip" download style="background:linear-gradient(135deg,#10b981,#059669);margin-top:8px;">
-<svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>
-Download Source Code (ZIP)
-</a>
-<p class="download-meta">Free &bull; No ads &bull; <span>v2.0</span> &bull; ~15 MB APK &bull; ~75 KB ZIP</p>
+<p class="download-meta">Free &bull; No ads &bull; <span>v2.2</span> &bull; Kotlin + Jetpack Compose &bull; Firebase</p>
 <div class="features">
-<div class="feature-card"><div class="feature-icon">&#127942;</div><div class="feature-title">Live Leaderboards</div><div class="feature-desc">Daily &amp; weekly rankings with score calculation, medals, and win rates.</div></div>
-<div class="feature-card"><div class="feature-icon">&#128248;</div><div class="feature-title">OCR Scanner</div><div class="feature-desc">Snap a screenshot and auto-fill kills, damage &amp; survival stats instantly.</div></div>
-<div class="feature-card"><div class="feature-icon">&#128172;</div><div class="feature-title">Team Chat</div><div class="feature-desc">WhatsApp-style messaging for squad coordination and admin broadcasts.</div></div>
-<div class="feature-card"><div class="feature-icon">&#127908;</div><div class="feature-title">Voice Chat</div><div class="feature-desc">Free lifetime voice channels for real-time team communication.</div></div>
-<div class="feature-card"><div class="feature-icon">&#128202;</div><div class="feature-title">Player Profiles</div><div class="feature-desc">Lifetime stats, scorecard export, and detailed performance breakdown.</div></div>
-<div class="feature-card"><div class="feature-icon">&#128276;</div><div class="feature-title">Push Notifications</div><div class="feature-desc">Get alerts for match schedules, announcements, and admin updates.</div></div>
-<div class="feature-card"><div class="feature-icon">&#127941;</div><div class="feature-title">Rank &amp; Level</div><div class="feature-desc">XP-based leveling with 8 rank tiers from Bronze to Mythic.</div></div>
-<div class="feature-card"><div class="feature-icon">&#128176;</div><div class="feature-title">Coin Economy</div><div class="feature-desc">Earn coins daily, spend on customizations in the coin shop.</div></div>
+<div class="feature-card"><div class="feature-icon">&#127942;</div><div class="feature-title">Live Leaderboards</div><div class="feature-desc">Daily, weekly & all-time rankings with medals and score formula.</div></div>
+<div class="feature-card"><div class="feature-icon">&#128248;</div><div class="feature-title">OCR Scanner</div><div class="feature-desc">Snap a screenshot and auto-fill kills, damage & survival stats.</div></div>
+<div class="feature-card"><div class="feature-icon">&#128172;</div><div class="feature-title">Team Chat</div><div class="feature-desc">WhatsApp-style messaging. Admin can clear all chats.</div></div>
+<div class="feature-card"><div class="feature-icon">&#127908;</div><div class="feature-title">Voice Chat</div><div class="feature-desc">Free lifetime voice channels for real-time squad comms.</div></div>
+<div class="feature-card"><div class="feature-icon">&#128101;</div><div class="feature-title">Friend System</div><div class="feature-desc">Add friends, compare stats, and challenge each other.</div></div>
+<div class="feature-card"><div class="feature-icon">&#127941;</div><div class="feature-title">Rank & Level</div><div class="feature-desc">XP-based leveling with 8 rank tiers from Bronze to Mythic.</div></div>
+<div class="feature-card"><div class="feature-icon">&#128176;</div><div class="feature-title">Coin Economy</div><div class="feature-desc">Earn coins from matches, spend in the coin shop.</div></div>
 <div class="feature-card"><div class="feature-icon">&#127919;</div><div class="feature-title">Weekly Challenges</div><div class="feature-desc">Compete in weekly challenges for bonus rewards.</div></div>
-<div class="feature-card"><div class="feature-icon">&#128101;</div><div class="feature-title">Community</div><div class="feature-desc">Polls, LFG board, and MVP voting system.</div></div>
+<div class="feature-card"><div class="feature-icon">&#127942;</div><div class="feature-title">Achievements</div><div class="feature-desc">Unlock badges and earn XP + coins for milestones.</div></div>
+<div class="feature-card"><div class="feature-icon">&#127775;</div><div class="feature-title">Season System</div><div class="feature-desc">30-day seasons with rank-based rewards at the end.</div></div>
+<div class="feature-card"><div class="feature-icon">&#128197;</div><div class="feature-title">Match Schedule</div><div class="feature-desc">View upcoming matches, register, and track results.</div></div>
+<div class="feature-card"><div class="feature-icon">&#128276;</div><div class="feature-title">Push Notifications</div><div class="feature-desc">Alerts for match schedules, announcements, and chat.</div></div>
+<div class="feature-card"><div class="feature-icon">&#128100;</div><div class="feature-title">Player Profile</div><div class="feature-desc">Lifetime stats, win rate, XP progress, and scorecard.</div></div>
+<div class="feature-card"><div class="feature-icon">&#128274;</div><div class="feature-title">Admin Controls</div><div class="feature-desc">Approve players, reset passwords, assign roles, ban users.</div></div>
 </div>
 <div class="install-section">
-<div class="install-title">How to Install</div>
-<div class="step"><div class="step-num">1</div><div class="step-text">Tap <b>Download APK</b> above. The file downloads to your phone.</div></div>
-<div class="step"><div class="step-num">2</div><div class="step-text">Open <b>Settings &rarr; Security</b> and enable <b>Install from Unknown Sources</b> for your browser/file manager.</div></div>
-<div class="step"><div class="step-num">3</div><div class="step-text">Open the downloaded <b>ZeroStress.apk</b> file and tap <b>Install</b>.</div></div>
-<div class="step"><div class="step-num">4</div><div class="step-text">Launch the app, register with your <b>+880</b> phone number, and wait for admin approval.</div></div>
+<div class="install-title">How to Install on AndroidIDE</div>
+<div class="step"><div class="step-num">1</div><div class="step-text"><b>Download</b> the source code ZIP and extract it.</div></div>
+<div class="step"><div class="step-num">2</div><div class="step-text">Open the project folder in <b>AndroidIDE</b>.</div></div>
+<div class="step"><div class="step-num">3</div><div class="step-text">Place your <b>google-services.json</b> in the <b>app/</b> folder.</div></div>
+<div class="step"><div class="step-num">4</div><div class="step-text">Run <b>Build &rarr; Build APK</b> to compile and install.</div></div>
 </div>
 <div class="footer">
-<p>Zero Stress Manager &copy; 2026 &bull; Built with Firebase</p>
+<p>Zero Stress Manager &copy; 2026 &bull; Built with Kotlin + Jetpack Compose + Firebase</p>
 <p style="margin-top:4px"><a href="https://github.com/Zero-Stress/Manager-" target="_blank">View Source on GitHub</a></p>
 </div>
 </div>
 <script>
-(async function(){
-try{
-var res=await fetch("https://api.github.com/repos/Zero-Stress/Manager-/releases/latest");
-if(res.ok){
-var r=await res.json();
-var a=r.assets.find(function(x){return x.name.endsWith(".apk")});
-if(a)document.getElementById("downloadLink").href=a.browser_download_url;
-document.querySelector(".download-meta").innerHTML="Free &bull; No ads &bull; <span>"+(r.tag_name||"v2.0")+"</span> &bull; "+(a?(a.size/1048576).toFixed(1)+" MB":"~15 MB");
-}
-}catch(e){}
-})();
+(async function(){try{var res=await fetch("https://api.github.com/repos/Zero-Stress/Manager-/releases/latest");if(res.ok){var r=await res.json();var a=r.assets.find(function(x){return x.name.endsWith(".apk")});if(a)document.getElementById("downloadLink").href=a.browser_download_url;document.querySelector(".download-meta").innerHTML="Free &bull; No ads &bull; <span>"+(r.tag_name||"v2.2")+"</span> &bull; "+(a?(a.size/1048576).toFixed(1)+" MB":"~15 MB");}}catch(e){}})();
 </script>
 </body>
 </html>

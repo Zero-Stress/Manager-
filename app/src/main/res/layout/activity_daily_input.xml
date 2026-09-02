@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#090d16">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📝 Daily Input"
+            android:textColor="#38bdf8"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Enter player stats for today"
+            android:textColor="#64748b"
+            android:textSize="13sp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Player Name"
+            android:textColor="#94a3b8"
+            android:textSize="12sp"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/etDailyPlayerName"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_input"
+            android:hint="Enter player name"
+            android:textColor="#f1f5f9"
+            android:textColorHint="#475569"
+            android:paddingHorizontal="12dp"
+            android:textSize="14sp"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Match Type"
+            android:textColor="#94a3b8"
+            android:textSize="12sp"
+            android:layout_marginBottom="4dp" />
+
+        <Spinner
+            android:id="@+id/spinnerDailyMatchType"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_input"
+            android:paddingHorizontal="12dp"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Kills"
+            android:textColor="#94a3b8"
+            android:textSize="12sp"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/etDailyKills"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_input"
+            android:hint="0"
+            android:inputType="number"
+            android:textColor="#f1f5f9"
+            android:textColorHint="#475569"
+            android:paddingHorizontal="12dp"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Assists"
+            android:textColor="#94a3b8"
+            android:textSize="12sp"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/etDailyAssists"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_input"
+            android:hint="0"
+            android:inputType="number"
+            android:textColor="#f1f5f9"
+            android:textColorHint="#475569"
+            android:paddingHorizontal="12dp"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Damage"
+            android:textColor="#94a3b8"
+            android:textSize="12sp"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/etDailyDamage"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_input"
+            android:hint="0"
+            android:inputType="number"
+            android:textColor="#f1f5f9"
+            android:textColorHint="#475569"
+            android:paddingHorizontal="12dp"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Survival Time (Minutes & Seconds)"
+            android:textColor="#94a3b8"
+            android:textSize="12sp"
+            android:layout_marginBottom="4dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
+
+            <EditText
+                android:id="@+id/etDailyMinutes"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_input"
+                android:hint="Min"
+                android:inputType="number"
+                android:textColor="#f1f5f9"
+                android:textColorHint="#475569"
+                android:paddingHorizontal="12dp"
+                android:textSize="14sp" />
+
+            <EditText
+                android:id="@+id/etDailySeconds"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_input"
+                android:hint="Sec"
+                android:inputType="number"
+                android:textColor="#f1f5f9"
+                android:textColorHint="#475569"
+                android:paddingHorizontal="12dp"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDailySubmit"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="SAVE DAILY ENTRY"
+            android:textColor="#090d16"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:backgroundTint="#10b981"
+            app:cornerRadius="12dp" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="12dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Recent Entries"
+            android:textColor="#ffffff"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDailyStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="No entries today"
+            android:textColor="#94a3b8"
+            android:textSize="13sp"
+            android:layout_marginTop="8dp"
+            android:fontFamily="monospace" />
+
+    </LinearLayout>
+</ScrollView>
