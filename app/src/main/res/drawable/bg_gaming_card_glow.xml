@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Glow effect -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#38bdf8"
+                android:endColor="#0ea5e9"
+                android:angle="135" />
+            <corners android:radius="22dp" />
+        </shape>
+    </item>
+    <!-- Inner card -->
+    <item
+        android:bottom="2dp"
+        android:left="2dp"
+        android:right="2dp"
+        android:top="2dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#1a1f35"
+                android:centerColor="#131c31"
+                android:endColor="#0d1422"
+                android:angle="135" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+</layer-list>
