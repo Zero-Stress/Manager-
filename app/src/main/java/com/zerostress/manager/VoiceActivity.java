@@ -25,17 +25,58 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.agora.rtc.IRtcEngineEventHandler;
+import io.agora.rtc.RtcEngine;
+import io.agora.rtc.models.ChannelMediaOptions;
+
 public class VoiceActivity extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST_CODE = 1001;
     private RecyclerView rvChannels;
     private TextView tvStatus;
     private ProgressBar progressBar;
-    private MaterialButton btnJoinLeave;
+    private MaterialButton btnJoinLeave, btnMute;
     private FirebaseFirestore db;
     private String userId, userName;
     private boolean isInVoice = false;
+    private boolean isMuted = false;
     private String currentChannelId = null;
+
+    // Agora SDK
+    private RtcEngine mRtcEngine;
+    private boolean isEngineInitialized = false;
+
+    private final IRtcEngineEventHandler mRtcEventHandler = new IRtcEngineEventHandler() {
+        @Override
+        public void onJoinChannelSuccess(String channel, int uid, int elapsed) {
+            runOnUiThread(() -> {
+                tvStatus.setText("🟢 Connected — You are in voice chat");
+                tvStatus.setTextColor(ContextCompat.getColor(VoiceActivity.this, R.color.success));
+            });
+        }
+
+        @Override
+        public void onUserJoined(int uid, int elapsed) {
+            runOnUiThread(() -> {
+                tvStatus.setText("🟢 Connected — " + (int)(tvStatus.getTag() != null ? (int)tvStatus.getTag() : 0 + 1) + " participants");
+            });
+        }
+
+        @Override
+        public void onUserOffline(int uid, UserOfflineReason reason) {
+            runOnUiThread(() -> {
+                tvStatus.setText("🟢 Connected — User left");
+            });
+        }
+
+        @Override
+        public void onLeaveChannel(RtcStats stats) {
+            runOnUiThread(() -> {
+                tvStatus.setText("🔴 Not connected");
+                tvStatus.setTextColor(ContextCompat.getColor(VoiceActivity.this, R.color.text_secondary));
+            });
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +90,7 @@ public class VoiceActivity extends AppCompatActivity {
         tvStatus = findViewById(R.id.tvVoiceStatus);
         progressBar = findViewById(R.id.progressBar);
         btnJoinLeave = findViewById(R.id.btnJoinLeave);
+        btnMute = findViewById(R.id.btnMute);
 
         rvChannels.setLayoutManager(new LinearLayoutManager(this));
 
@@ -66,7 +108,19 @@ public class VoiceActivity extends AppCompatActivity {
             }
         });
 
+        btnMute.setOnClickListener(v -> toggleMute());
+
         loadChannels();
+    }
+
+    private void initAgoraEngine() {
+        try {
+            mRtcEngine = RtcEngine.create(getBaseContext(), AgoraConfig.APP_ID, mRtcEventHandler);
+            mRtcEngine.enableAudio();
+            isEngineInitialized = true;
+        } catch (Exception e) {
+            Toast.makeText(this, "Failed to initialize voice engine: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void loadChannels() {
@@ -108,9 +162,26 @@ public class VoiceActivity extends AppCompatActivity {
     }
 
     private void joinVoiceChannel() {
-        String channelId = "general_voice";
+        if (!isEngineInitialized) {
+            initAgoraEngine();
+        }
+
+        if (mRtcEngine == null) {
+            Toast.makeText(this, "Voice engine not initialized", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String channelId = AgoraConfig.CHANNEL;
         currentChannelId = channelId;
 
+        // Join Agora channel
+        ChannelMediaOptions options = new ChannelMediaOptions();
+        options.channelProfile = io.agora.rtc.Constants.CHANNEL_PROFILE_COMMUNICATION;
+        options.audioScenario = io.agora.rtc.Constants.AUDIO_SCENARIO_CHATROOM;
+
+        mRtcEngine.joinChannel(AgoraConfig.TOKEN, channelId, 0, options);
+
+        // Save to Firestore
         Map<String, Object> participant = new HashMap<>();
         participant.put("userId", userId);
         participant.put("userName", userName);
@@ -122,30 +193,31 @@ public class VoiceActivity extends AppCompatActivity {
             .set(participant)
             .addOnSuccessListener(v -> {
                 isInVoice = true;
+                isMuted = false;
                 btnJoinLeave.setText("🔴 Leave Voice");
                 btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.danger));
-                tvStatus.setText("🟢 Connected to Voice Channel");
-                tvStatus.setTextColor(ContextCompat.getColor(this, R.color.success));
+                btnMute.setVisibility(View.VISIBLE);
+                btnMute.setText("🔇 Unmute");
                 Toast.makeText(this, "Joined voice channel!", Toast.LENGTH_SHORT).show();
-
-                listenToParticipants(channelId);
             })
             .addOnFailureListener(e -> {
                 Toast.makeText(this, "Failed to join: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
 
-    private void listenToParticipants(String channelId) {
-        db.collection("voice_channels").document(channelId)
-            .collection("participants")
-            .addSnapshotListener((snapshots, e) -> {
-                if (e != null || snapshots == null) return;
-                int count = snapshots.size();
-                tvStatus.setText("🟢 Connected — " + count + " participant" + (count != 1 ? "s" : ""));
-            });
+    private void toggleMute() {
+        if (mRtcEngine == null) return;
+
+        isMuted = !isMuted;
+        mRtcEngine.muteLocalAudioStream(isMuted);
+        btnMute.setText(isMuted ? "🔊 Unmute" : "🔇 Mute");
     }
 
     private void leaveVoice() {
+        if (mRtcEngine != null) {
+            mRtcEngine.leaveChannel();
+        }
+
         if (currentChannelId != null) {
             db.collection("voice_channels").document(currentChannelId)
                 .collection("participants").document(userId)
@@ -153,9 +225,11 @@ public class VoiceActivity extends AppCompatActivity {
         }
 
         isInVoice = false;
+        isMuted = false;
         currentChannelId = null;
         btnJoinLeave.setText("🎙️ Join Voice");
         btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.accent));
+        btnMute.setVisibility(View.GONE);
         tvStatus.setText("🔴 Not connected");
         tvStatus.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
     }
@@ -164,5 +238,10 @@ public class VoiceActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (isInVoice) leaveVoice();
+        if (mRtcEngine != null) {
+            mRtcEngine.destroy();
+            mRtcEngine = null;
+            isEngineInitialized = false;
+        }
     }
 }

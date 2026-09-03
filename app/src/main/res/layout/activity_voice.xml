@@ -24,17 +24,38 @@
         android:textSize="14sp"
         android:layout_marginTop="8dp" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnJoinLeave"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginTop="20dp"
-        android:text="🎙️ Join Voice"
-        android:textColor="#ffffff"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        app:backgroundTint="#10b981"
-        app:cornerRadius="14dp" />
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="20dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnJoinLeave"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="🎙️ Join Voice"
+            android:textColor="#ffffff"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:backgroundTint="#10b981"
+            app:cornerRadius="14dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnMute"
+            android:layout_width="wrap_content"
+            android:layout_height="56dp"
+            android:text="🔇 Mute"
+            android:textColor="#ffffff"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:backgroundTint="#475569"
+            app:cornerRadius="14dp"
+            android:visibility="gone" />
+
+    </LinearLayout>
 
     <ProgressBar
         android:id="@+id/progressBar"
