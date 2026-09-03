@@ -62,10 +62,13 @@ public class AdminDashboardActivity extends AppCompatActivity {
         findViewById(R.id.btnAnnouncements).setOnClickListener(v -> showAnnouncementDialog());
         findViewById(R.id.btnLeaderboard).setOnClickListener(v -> startActivity(new Intent(this, LeaderboardActivity.class)));
         findViewById(R.id.btnChat).setOnClickListener(v -> startActivity(new Intent(this, ChatActivity.class)));
-        findViewById(R.id.btnVoice).setOnClickListener(v -> startActivity(new Intent(this, VoiceActivity.class)));
-        findViewById(R.id.btnSeasons).setOnClickListener(v -> showEditSeasonDialog());
+        findViewById(R.id.btnVoice).setOnClickListener(v -> startActivity(new Intent(this, ManageVoiceChannelsActivity.class)));
+        findViewById(R.id.btnSeasons).setOnClickListener(v -> startActivity(new Intent(this, ManageSeasonsActivity.class)));
         findViewById(R.id.btnSchedule).setOnClickListener(v -> showEditScheduleDialog());
-        findViewById(R.id.btnProfile).setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
+        findViewById(R.id.btnProfile).setOnClickListener(v -> startActivity(new Intent(this, ViewAllPlayersStatsActivity.class)));
+        
+        // New admin features
+        findViewById(R.id.btnNotifications).setOnClickListener(v -> startActivity(new Intent(this, SendNotificationActivity.class)));
         
         findViewById(R.id.btnSettings).setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
         findViewById(R.id.btnLogout).setOnClickListener(v -> {
