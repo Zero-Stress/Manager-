@@ -11,63 +11,73 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="32dp">
 
         <!-- Logo Container -->
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:id="@+id/logoContainer"
+            android:layout_width="180dp"
+            android:layout_height="180dp"
             android:orientation="vertical"
             android:gravity="center"
+            android:background="@drawable/bg_fancy_logo"
             android:layout_marginTop="40dp"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/bg_gaming_card_glow"
-            android:padding="32dp">
+            android:layout_marginBottom="24dp"
+            android:alpha="0">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="⚡"
-                android:textSize="48sp"
-                android:layout_marginBottom="8dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="ZERO STRESS"
-                android:textColor="@color/primary"
-                android:textSize="28sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.15" />
+                android:textSize="64sp" />
         </LinearLayout>
 
+        <!-- Title -->
         <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ZERO STRESS"
+            android:textColor="@color/primary"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.25"
+            android:alpha="0"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Subtitle -->
+        <TextView
+            android:id="@+id/tvSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="PERFORMANCE &amp; LEADERBOARD"
             android:textColor="@color/text_secondary"
-            android:textSize="12sp"
-            android:letterSpacing="0.2"
-            android:layout_marginBottom="40dp" />
+            android:textSize="11sp"
+            android:letterSpacing="0.35"
+            android:alpha="0"
+            android:layout_marginBottom="48dp" />
 
         <!-- Login Card -->
         <LinearLayout
+            android:id="@+id/loginCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/bg_gaming_card"
-            android:padding="28dp"
-            android:layout_marginBottom="24dp">
+            android:background="@drawable/bg_fancy_card"
+            android:padding="32dp"
+            android:layout_marginBottom="24dp"
+            android:alpha="0">
 
+            <!-- Welcome Text -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="WELCOME BACK"
                 android:textColor="@color/primary"
-                android:textSize="18sp"
+                android:textSize="20sp"
                 android:textStyle="bold"
-                android:letterSpacing="0.1"
-                android:layout_marginBottom="24dp" />
+                android:letterSpacing="0.15"
+                android:layout_marginBottom="28dp" />
 
             <!-- Phone Input -->
             <TextView
@@ -75,26 +85,26 @@
                 android:layout_height="wrap_content"
                 android:text="PHONE NUMBER"
                 android:textColor="@color/text_secondary"
-                android:textSize="11sp"
-                android:letterSpacing="0.15"
-                android:layout_marginBottom="8dp" />
+                android:textSize="10sp"
+                android:letterSpacing="0.2"
+                android:layout_marginBottom="10dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
+                android:layout_height="60dp"
                 android:orientation="horizontal"
-                android:background="@drawable/bg_gaming_input">
+                android:background="@drawable/bg_fancy_input">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:paddingHorizontal="16dp"
+                    android:paddingHorizontal="20dp"
                     android:text="+880"
                     android:textColor="@color/primary"
                     android:textStyle="bold"
-                    android:textSize="15sp"
-                    android:background="@drawable/bg_gaming_stat_card" />
+                    android:textSize="16sp"
+                    android:background="@drawable/bg_fancy_stat_cyan" />
 
                 <EditText
                     android:id="@+id/etPhone"
@@ -107,13 +117,13 @@
                     android:maxLength="10"
                     android:textColor="@color/text_primary"
                     android:textColorHint="@color/text_muted"
-                    android:paddingHorizontal="16dp"
-                    android:textSize="15sp" />
+                    android:paddingHorizontal="20dp"
+                    android:textSize="16sp" />
             </LinearLayout>
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="16dp" />
+                android:layout_height="20dp" />
 
             <!-- Password Input -->
             <TextView
@@ -121,48 +131,51 @@
                 android:layout_height="wrap_content"
                 android:text="PASSWORD"
                 android:textColor="@color/text_secondary"
-                android:textSize="11sp"
-                android:letterSpacing="0.15"
-                android:layout_marginBottom="8dp" />
+                android:textSize="10sp"
+                android:letterSpacing="0.2"
+                android:layout_marginBottom="10dp" />
 
             <EditText
                 android:id="@+id/etPassword"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:background="@drawable/bg_gaming_input"
+                android:layout_height="60dp"
+                android:background="@drawable/bg_fancy_input"
                 android:hint="••••••••"
                 android:inputType="textPassword"
                 android:textColor="@color/text_primary"
                 android:textColorHint="@color/text_muted"
-                android:paddingHorizontal="16dp"
-                android:textSize="15sp" />
+                android:paddingHorizontal="20dp"
+                android:textSize="16sp" />
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="24dp" />
+                android:layout_height="28dp" />
 
             <!-- Login Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLogin"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
+                android:layout_height="60dp"
                 android:text="ENTER THE ARENA"
                 android:textColor="@color/white"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                android:letterSpacing="0.1"
-                app:backgroundTint="@color/primary"
-                app:cornerRadius="16dp"
-                app:background="@drawable/bg_gaming_button" />
+                android:letterSpacing="0.15"
+                app:background="@drawable/bg_fancy_button_primary"
+                app:backgroundTint="@android:color/transparent"
+                app:cornerRadius="20dp"
+                app:elevation="8dp" />
 
         </LinearLayout>
 
         <!-- Register Link -->
         <LinearLayout
+            android:id="@+id/registerContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center">
+            android:gravity="center"
+            android:alpha="0">
 
             <TextView
                 android:layout_width="wrap_content"

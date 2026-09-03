@@ -7,36 +7,44 @@
     android:background="@color/bg_main"
     android:padding="32dp">
 
-    <!-- Logo Container with Glow -->
+    <!-- Animated Background Circles -->
+    <View
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:background="@drawable/bg_fancy_stat_purple"
+        android:alpha="0.3"
+        android:layout_marginBottom="-150dp" />
+
+    <!-- Logo Container -->
     <LinearLayout
         android:layout_width="200dp"
         android:layout_height="200dp"
         android:orientation="vertical"
         android:gravity="center"
-        android:background="@drawable/bg_gaming_card_glow"
-        android:layout_marginBottom="32dp">
+        android:background="@drawable/bg_fancy_logo"
+        android:layout_marginBottom="40dp">
 
         <TextView
             android:id="@+id/tvLogo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="⚡"
-            android:textSize="72sp"
+            android:textSize="80sp"
             android:alpha="0" />
     </LinearLayout>
 
-    <!-- App Title -->
+    <!-- Title -->
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="ZERO STRESS"
         android:textColor="@color/primary"
-        android:textSize="32sp"
+        android:textSize="36sp"
         android:textStyle="bold"
-        android:letterSpacing="0.2"
+        android:letterSpacing="0.3"
         android:alpha="0"
-        android:layout_marginBottom="8dp" />
+        android:layout_marginBottom="12dp" />
 
     <!-- Subtitle -->
     <TextView
@@ -45,31 +53,32 @@
         android:layout_height="wrap_content"
         android:text="PERFORMANCE &amp; LEADERBOARD"
         android:textColor="@color/text_secondary"
-        android:textSize="12sp"
-        android:letterSpacing="0.3"
+        android:textSize="11sp"
+        android:letterSpacing="0.4"
         android:alpha="0"
-        android:layout_marginBottom="48dp" />
+        android:layout_marginBottom="60dp" />
 
     <!-- Loading Container -->
     <LinearLayout
+        android:id="@+id/loadingContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center"
         android:alpha="0">
 
-        <!-- Animated Loading Bar -->
+        <!-- Loading Bar -->
         <FrameLayout
-            android:layout_width="200dp"
-            android:layout_height="6dp"
-            android:background="@drawable/bg_gaming_stat_card"
-            android:layout_marginBottom="16dp">
+            android:layout_width="250dp"
+            android:layout_height="8dp"
+            android:background="@drawable/bg_fancy_card"
+            android:layout_marginBottom="20dp">
 
             <View
                 android:id="@+id/loadingBar"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:background="@drawable/bg_gradient_cyan" />
+                android:background="@drawable/bg_fancy_button_primary" />
         </FrameLayout>
 
         <!-- Loading Status -->
@@ -78,9 +87,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Initializing..."
-            android:textColor="@color/text_muted"
-            android:textSize="11sp"
-            android:letterSpacing="0.1" />
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            android:letterSpacing="0.15" />
     </LinearLayout>
 
     <!-- Version -->
@@ -90,7 +99,7 @@
         android:text="v3.0"
         android:textColor="@color/text_muted"
         android:textSize="10sp"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="60dp"
         android:alpha="0.5" />
 
 </LinearLayout>
