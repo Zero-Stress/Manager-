@@ -4,31 +4,87 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#090d16"
+    android:background="@color/bg_main"
     android:padding="16dp">
 
+    <!-- Header -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="🎙️ Voice Chat"
-        android:textColor="#38bdf8"
+        android:text="🎙️ VOICE ARENA"
+        android:textColor="@color/primary"
         android:textSize="22sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:letterSpacing="0.1" />
 
-    <TextView
-        android:id="@+id/tvVoiceStatus"
-        android:layout_width="wrap_content"
+    <!-- Admin Panel (Hidden by default) -->
+    <LinearLayout
+        android:id="@+id/tvAdminPanel"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="🔴 Not connected"
-        android:textColor="#94a3b8"
-        android:textSize="14sp"
-        android:layout_marginTop="8dp" />
+        android:orientation="vertical"
+        android:background="@drawable/bg_gaming_card"
+        android:padding="16dp"
+        android:layout_marginTop="16dp"
+        android:visibility="gone">
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="👑 ADMIN CONTROLS"
+            android:textColor="@color/gold"
+            android:textSize="12sp"
+            android:letterSpacing="0.15"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnManagePermissions"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="👥 MANAGE VOICE PERMISSIONS"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
+            android:visibility="gone"
+            app:backgroundTint="@color/gold"
+            app:cornerRadius="12dp" />
+    </LinearLayout>
+
+    <!-- Status Card -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_gaming_card"
+        android:padding="20dp"
+        android:layout_marginTop="16dp">
+
+        <TextView
+            android:id="@+id/tvVoiceStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔴 Not connected"
+            android:textColor="@color/text_secondary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Join a voice channel to talk with your squad"
+            android:textColor="@color/text_muted"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- Control Buttons -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginTop="20dp">
+        android:layout_marginTop="16dp">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnJoinLeave"
@@ -37,24 +93,24 @@
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
             android:text="🎙️ Join Voice"
-            android:textColor="#ffffff"
-            android:textSize="16sp"
+            android:textColor="@color/white"
+            android:textSize="14sp"
             android:textStyle="bold"
-            app:backgroundTint="#10b981"
-            app:cornerRadius="14dp" />
+            app:backgroundTint="@color/success"
+            app:cornerRadius="16dp"
+            app:background="@drawable/bg_gaming_button_success" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnMute"
             android:layout_width="wrap_content"
             android:layout_height="56dp"
             android:text="🔇 Mute"
-            android:textColor="#ffffff"
+            android:textColor="@color/white"
             android:textSize="14sp"
             android:textStyle="bold"
-            app:backgroundTint="#475569"
-            app:cornerRadius="14dp"
-            android:visibility="gone" />
-
+            android:visibility="gone"
+            app:backgroundTint="@color/text_muted"
+            app:cornerRadius="16dp" />
     </LinearLayout>
 
     <ProgressBar
@@ -63,22 +119,52 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="16dp"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:indeterminateTint="@color/primary" />
 
-    <TextView
-        android:layout_width="wrap_content"
+    <!-- Voice Rules -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Active Channels"
-        android:textColor="#ffffff"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        android:orientation="vertical"
+        android:background="@drawable/bg_gaming_card"
+        android:padding="16dp"
+        android:layout_marginTop="16dp">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvChannels"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📋 VOICE RULES"
+            android:textColor="@color/primary"
+            android:textSize="12sp"
+            android:letterSpacing="0.15"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="• Admins have full access to voice chat\n• Players need permission from admin\n• Click 'Manage Permissions' to grant access\n• Mute yourself to stay silent"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            android:lineSpacingExtra="4dp" />
+    </LinearLayout>
+
+    <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="8dp" />
+        android:layout_weight="1" />
+
+    <!-- Back Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnBack"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="← BACK"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp"
+        android:letterSpacing="0.15"
+        app:backgroundTint="@android:color/transparent" />
 
 </LinearLayout>
