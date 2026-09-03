@@ -624,7 +624,7 @@ public class VoiceActivity extends AppCompatActivity {
         @NonNull
         @Override
         public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_voice_chat, parent, false);
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_voice_chat_message, parent, false);
             return new VH(v);
         }
 
@@ -646,9 +646,9 @@ public class VoiceActivity extends AppCompatActivity {
             TextView tvSender, tvMessage, tvTime;
             VH(View v) {
                 super(v);
-                tvSender = v.findViewById(R.id.tvChatSender);
-                tvMessage = v.findViewById(R.id.tvChatMessage);
-                tvTime = v.findViewById(R.id.tvChatTime);
+                tvSender = v.findViewById(R.id.tvSenderName);
+                tvMessage = v.findViewById(R.id.tvMessage);
+                tvTime = v.findViewById(R.id.tvTimestamp);
             }
         }
     }

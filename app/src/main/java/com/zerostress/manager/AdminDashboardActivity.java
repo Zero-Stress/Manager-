@@ -64,7 +64,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
         findViewById(R.id.btnChat).setOnClickListener(v -> startActivity(new Intent(this, ChatActivity.class)));
         findViewById(R.id.btnVoice).setOnClickListener(v -> startActivity(new Intent(this, ManageVoiceChannelsActivity.class)));
         findViewById(R.id.btnSeasons).setOnClickListener(v -> startActivity(new Intent(this, ManageSeasonsActivity.class)));
-        findViewById(R.id.btnSchedule).setOnClickListener(v -> showEditScheduleDialog());
         findViewById(R.id.btnProfile).setOnClickListener(v -> startActivity(new Intent(this, ViewAllPlayersStatsActivity.class)));
         
         // New admin features
