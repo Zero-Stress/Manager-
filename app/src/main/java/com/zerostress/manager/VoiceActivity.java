@@ -20,21 +20,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import org.webrtc.AudioSource;
-import org.webrtc.AudioTrack;
-import org.webrtc.DataChannel;
-import org.webrtc.DefaultVideoDecoderFactory;
-import org.webrtc.DefaultVideoEncoderFactory;
-import org.webrtc.EglBase;
-import org.webrtc.IceCandidate;
-import org.webrtc.MediaConstraints;
-import org.webrtc.MediaStream;
-import org.webrtc.PeerConnection;
-import org.webrtc.PeerConnectionFactory;
-import org.webrtc.RtpReceiver;
-import org.webrtc.SdpObserver;
-import org.webrtc.SessionDescription;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,12 +36,6 @@ public class VoiceActivity extends AppCompatActivity {
     private String userId, userName;
     private boolean isInVoice = false;
     private String currentChannelId = null;
-
-    // WebRTC
-    private PeerConnectionFactory peerConnectionFactory;
-    private PeerConnection peerConnection;
-    private EglBase eglBase;
-    private AudioTrack localAudioTrack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,16 +65,23 @@ public class VoiceActivity extends AppCompatActivity {
                 checkPermissionsAndJoin();
             }
         });
+
+        loadChannels();
     }
 
     private void loadChannels() {
         db.collection("voice_channels")
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
-                // Process voice channels
+                List<String> channels = new ArrayList<>();
                 for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                     String channelName = doc.getString("name");
-                    // Handle channel data
+                    if (channelName != null) {
+                        channels.add(channelName);
+                    }
+                }
+                if (channels.isEmpty()) {
+                    tvStatus.setText("No voice channels available");
                 }
             })
             .addOnFailureListener(e -> {
@@ -121,32 +107,9 @@ public class VoiceActivity extends AppCompatActivity {
         }
     }
 
-    private void initWebRTC() {
-        eglBase = EglBase.create();
-        PeerConnectionFactory.InitializationOptions initOptions = PeerConnectionFactory.InitializationOptions.builder(this).createInitializationOptions();
-        PeerConnectionFactory.initialize(initOptions);
-
-        peerConnectionFactory = PeerConnectionFactory.builder()
-                .setVideoDecoderFactory(new DefaultVideoDecoderFactory(eglBase.getEglBaseContext()))
-                .setVideoEncoderFactory(new DefaultVideoEncoderFactory(eglBase.getEglBaseContext(), true, true))
-                .createPeerConnectionFactory();
-
-        MediaConstraints audioConstraints = new MediaConstraints();
-        audioConstraints.mandatory.add(new MediaConstraints.KeyValuePair("googEchoCancellation", "true"));
-        audioConstraints.mandatory.add(new MediaConstraints.KeyValuePair("googAutoGainControl", "true"));
-        audioConstraints.mandatory.add(new MediaConstraints.KeyValuePair("googNoiseSuppression", "true"));
-        audioConstraints.mandatory.add(new MediaConstraints.KeyValuePair("googHighpassFilter", "true"));
-
-        AudioSource audioSource = peerConnectionFactory.createAudioSource(audioConstraints);
-        localAudioTrack = peerConnectionFactory.createAudioTrack("local_audio", audioSource);
-        localAudioTrack.setEnabled(true);
-    }
-
     private void joinVoiceChannel() {
         String channelId = "general_voice";
         currentChannelId = channelId;
-
-        initWebRTC();
 
         Map<String, Object> participant = new HashMap<>();
         participant.put("userId", userId);
@@ -187,15 +150,6 @@ public class VoiceActivity extends AppCompatActivity {
             db.collection("voice_channels").document(currentChannelId)
                 .collection("participants").document(userId)
                 .delete();
-        }
-
-        if (peerConnection != null) {
-            peerConnection.close();
-            peerConnection = null;
-        }
-        if (localAudioTrack != null) {
-            localAudioTrack.dispose();
-            localAudioTrack = null;
         }
 
         isInVoice = false;
