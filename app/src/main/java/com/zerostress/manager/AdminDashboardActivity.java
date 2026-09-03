@@ -240,7 +240,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
             holder.tvScore.setText(String.valueOf(score != null ? score : 0));
 
             holder.itemView.setOnClickListener(v -> {
-                String[] options = {"Approve", "Reject", "Set Admin", "Set Player", "Ban"};
+                String[] options = {"Approve", "Reject", "Set Admin", "Set Player", "Ban", "Delete Player"};
                 new AlertDialog.Builder(AdminDashboardActivity.this)
                     .setTitle(doc.getString("name"))
                     .setItems(options, (d, which) -> {
@@ -250,6 +250,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
                             case 2: updateRole(doc.getId(), "admin"); break;
                             case 3: updateRole(doc.getId(), "player"); break;
                             case 4: updateStatus(doc.getId(), "banned"); break;
+                            case 5: deletePlayer(doc.getId(), doc.getString("name")); break;
                         }
                     })
                     .show();
@@ -284,5 +285,23 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 Toast.makeText(this, "Role updated!", Toast.LENGTH_SHORT).show();
                 loadPlayers();
             });
+    }
+
+    private void deletePlayer(String uid, String name) {
+        new AlertDialog.Builder(this)
+            .setTitle("⚠️ Delete Player")
+            .setMessage("Are you sure you want to delete '" + name + "'?\n\nThis action cannot be undone!")
+            .setPositiveButton("Delete", (d, w) -> {
+                db.collection("players").document(uid).delete()
+                    .addOnSuccessListener(v -> {
+                        Toast.makeText(this, "Player deleted!", Toast.LENGTH_SHORT).show();
+                        loadPlayers();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
     }
 }

@@ -67,7 +67,11 @@ public class LeaderboardActivity extends AppCompatActivity {
                 progressBar.setVisibility(View.GONE);
                 players.clear();
                 for (DocumentSnapshot doc : query.getDocuments()) {
-                    players.add(doc);
+                    // Only show players, not admins
+                    String role = doc.getString("role");
+                    if (!"admin".equals(role)) {
+                        players.add(doc);
+                    }
                 }
                 Collections.sort(players, (a, b) -> {
                     long sa = a.getLong("score") != null ? a.getLong("score") : 0;
