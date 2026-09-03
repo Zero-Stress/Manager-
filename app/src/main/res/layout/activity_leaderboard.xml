@@ -4,17 +4,37 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#090d16"
+    android:background="@color/bg_main"
     android:padding="16dp">
 
-    <TextView
-        android:id="@+id/tvPeriod"
-        android:layout_width="wrap_content"
+    <!-- Header with Reset Button -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Leaderboard"
-        android:textColor="#38bdf8"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tvPeriod"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Leaderboard"
+            android:textColor="@color/primary"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnReset"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="🗑️ RESET"
+            android:textColor="@color/danger"
+            android:textSize="11sp"
+            android:visibility="gone"
+            app:backgroundTint="@android:color/transparent" />
+    </LinearLayout>
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
@@ -22,9 +42,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         app:tabBackground="@drawable/bg_tab"
-        app:tabTextColor="#94a3b8"
-        app:tabSelectedTextColor="#38bdf8"
-        app:tabIndicatorColor="#38bdf8" />
+        app:tabTextColor="@color/text_secondary"
+        app:tabSelectedTextColor="@color/primary"
+        app:tabIndicatorColor="@color/primary" />
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -32,7 +52,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="16dp"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:indeterminateTint="@color/primary" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvLeaderboard"
