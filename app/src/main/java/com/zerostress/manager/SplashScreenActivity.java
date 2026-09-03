@@ -51,7 +51,7 @@ public class SplashScreenActivity extends AppCompatActivity {
         tvSubtitle = findViewById(R.id.tvSubtitle);
         tvLoadingStatus = findViewById(R.id.tvLoadingStatus);
         loadingBar = findViewById(R.id.loadingBar);
-        loadingContainer = findViewById(R.id.tvLoadingStatus) != null ? 
+        loadingContainer = tvLoadingStatus != null ? 
             (LinearLayout) tvLoadingStatus.getParent() : null;
     }
 
@@ -133,13 +133,12 @@ public class SplashScreenActivity extends AppCompatActivity {
         tvLoadingStatus.setText("Ready!");
 
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            Intent intent;
-
             if (auth.getCurrentUser() != null) {
                 String userId = auth.getCurrentUser().getUid();
                 
                 db.collection("players").document(userId).get()
                     .addOnSuccessListener(doc -> {
+                        Intent intent;
                         if (doc.exists()) {
                             String role = doc.getString("role");
                             if ("admin".equals(role)) {
@@ -156,14 +155,14 @@ public class SplashScreenActivity extends AppCompatActivity {
                         finish();
                     })
                     .addOnFailureListener(e -> {
-                        intent = new Intent(SplashScreenActivity.this, LoginActivity.class);
+                        Intent intent = new Intent(SplashScreenActivity.this, LoginActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
                         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                         finish();
                     });
             } else {
-                intent = new Intent(SplashScreenActivity.this, LoginActivity.class);
+                Intent intent = new Intent(SplashScreenActivity.this, LoginActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
                 overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
