@@ -31,21 +31,17 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Player Name"
+            android:text="Select Player"
             android:textColor="#94a3b8"
             android:textSize="12sp"
             android:layout_marginBottom="4dp" />
 
-        <EditText
-            android:id="@+id/etDailyPlayerName"
+        <Spinner
+            android:id="@+id/spinnerDailyPlayerName"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:background="@drawable/bg_input"
-            android:hint="Enter player name"
-            android:textColor="#f1f5f9"
-            android:textColorHint="#475569"
             android:paddingHorizontal="12dp"
-            android:textSize="14sp"
             android:layout_marginBottom="12dp" />
 
         <TextView

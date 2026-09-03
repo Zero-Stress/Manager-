@@ -9,6 +9,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
@@ -22,11 +23,14 @@ import java.util.Map;
 
 public class DailyInputActivity extends AppCompatActivity {
 
-    private EditText etPlayerName, etKills, etAssists, etDamage, etMinutes, etSeconds;
-    private Spinner spinnerMatchType;
+    private Spinner spinnerPlayerName, spinnerMatchType;
+    private EditText etKills, etAssists, etDamage, etMinutes, etSeconds;
     private ProgressBar progressBar;
     private TextView tvStatus;
     private FirebaseFirestore db;
+
+    private List<String> playerNames = new ArrayList<>();
+    private List<String> playerIds = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,33 +39,85 @@ public class DailyInputActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
 
-        etPlayerName = findViewById(R.id.etDailyPlayerName);
+        spinnerPlayerName = findViewById(R.id.spinnerDailyPlayerName);
+        spinnerMatchType = findViewById(R.id.spinnerDailyMatchType);
         etKills = findViewById(R.id.etDailyKills);
         etAssists = findViewById(R.id.etDailyAssists);
         etDamage = findViewById(R.id.etDailyDamage);
         etMinutes = findViewById(R.id.etDailyMinutes);
         etSeconds = findViewById(R.id.etDailySeconds);
-        spinnerMatchType = findViewById(R.id.spinnerDailyMatchType);
         progressBar = findViewById(R.id.progressBar);
         tvStatus = findViewById(R.id.tvDailyStatus);
         MaterialButton btnSubmit = findViewById(R.id.btnDailySubmit);
 
+        // Load registered players
+        loadRegisteredPlayers();
+
+        // Match types
         String[] types = {"Classic", "Ranked", "Tournament", "Custom"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, types);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerMatchType.setAdapter(adapter);
+        ArrayAdapter<String> typeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, types);
+        typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerMatchType.setAdapter(typeAdapter);
 
         btnSubmit.setOnClickListener(v -> submitDailyInput());
         loadRecentEntries();
     }
 
+    private void loadRegisteredPlayers() {
+        progressBar.setVisibility(View.VISIBLE);
+
+        db.collection("players")
+            .whereEqualTo("status", "approved")
+            .get()
+            .addOnSuccessListener(query -> {
+                progressBar.setVisibility(View.GONE);
+                playerNames.clear();
+                playerIds.clear();
+
+                for (DocumentSnapshot doc : query.getDocuments()) {
+                    String name = doc.getString("name");
+                    if (name != null && !name.isEmpty()) {
+                        playerNames.add(name);
+                        playerIds.add(doc.getId());
+                    }
+                }
+
+                if (playerNames.isEmpty()) {
+                    playerNames.add("No players registered");
+                }
+
+                // Add "Select Player" as first item
+                playerNames.add(0, "-- Select Player --");
+                playerIds.add(0, "");
+
+                ArrayAdapter<String> playerAdapter = new ArrayAdapter<>(
+                    DailyInputActivity.this,
+                    android.R.layout.simple_spinner_item,
+                    playerNames
+                );
+                playerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinnerPlayerName.setAdapter(playerAdapter);
+            })
+            .addOnFailureListener(e -> {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(this, "Error loading players: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+
     private void submitDailyInput() {
-        String playerName = etPlayerName.getText().toString().trim();
+        int selectedPosition = spinnerPlayerName.getSelectedItemPosition();
+
+        if (selectedPosition <= 0) {
+            Toast.makeText(this, "Please select a player", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String playerName = playerNames.get(selectedPosition);
+        String playerId = playerIds.get(selectedPosition);
         String killsStr = etKills.getText().toString().trim();
         String assistsStr = etAssists.getText().toString().trim();
         String damageStr = etDamage.getText().toString().trim();
 
-        if (playerName.isEmpty()) { etPlayerName.setError("Required"); return; }
         if (killsStr.isEmpty()) { etKills.setError("Required"); return; }
         if (damageStr.isEmpty()) { etDamage.setError("Required"); return; }
 
@@ -77,6 +133,7 @@ public class DailyInputActivity extends AppCompatActivity {
 
         Map<String, Object> dailyLog = new HashMap<>();
         dailyLog.put("playerName", playerName);
+        dailyLog.put("playerId", playerId);
         dailyLog.put("kills", kills);
         dailyLog.put("assists", assists);
         dailyLog.put("damage", damage);
@@ -87,8 +144,9 @@ public class DailyInputActivity extends AppCompatActivity {
         db.collection("daily_logs").add(dailyLog)
             .addOnSuccessListener(v -> {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(this, "Daily entry saved!", Toast.LENGTH_SHORT).show();
-                etPlayerName.setText("");
+                Toast.makeText(this, "Daily entry saved for " + playerName + "!", Toast.LENGTH_SHORT).show();
+                // Reset spinner to default
+                spinnerPlayerName.setSelection(0);
                 etKills.setText("");
                 etAssists.setText("");
                 etDamage.setText("");

@@ -31,7 +31,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private FirebaseAuth auth;
     private ProgressBar progressBar;
-    private TextView tvAdminName, tvTotalPlayers, tvActiveMatches, tvPlayerList;
+    private TextView tvAdminName, tvTotalPlayers, tvActiveMatches;
     private RecyclerView rvPlayers;
     private PlayerAdapter adapter;
     private List<DocumentSnapshot> players = new ArrayList<>();
@@ -110,12 +110,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
             .addOnSuccessListener(query -> {
                 if (progressBar != null) progressBar.setVisibility(View.GONE);
                 players.clear();
-                int approved = 0, pending = 0;
                 for (DocumentSnapshot doc : query.getDocuments()) {
                     players.add(doc);
-                    String status = doc.getString("status");
-                    if ("approved".equals(status)) approved++;
-                    else if ("pending".equals(status)) pending++;
                 }
                 if (adapter != null) adapter.notifyDataSetChanged();
             })
@@ -159,39 +155,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
             .show();
     }
 
-    private void showEditSeasonDialog() {
-        View view = LayoutInflater.from(this).inflate(R.layout.dialog_add_player, null);
-        EditText etSeasonName = view.findViewById(R.id.etPlayerName);
-        etSeasonName.setHint("Season Name (e.g., Season 1)");
-        EditText etSeasonDesc = view.findViewById(R.id.etPlayerPhone);
-        etSeasonDesc.setHint("Description");
-        EditText etSeasonDuration = view.findViewById(R.id.etPlayerPassword);
-        etSeasonDuration.setHint("Duration (days)");
-
-        new AlertDialog.Builder(this)
-            .setTitle("📅 Edit Season")
-            .setView(view)
-            .setPositiveButton("Save", (d, w) -> {
-                String name = etSeasonName.getText().toString().trim();
-                String desc = etSeasonDesc.getText().toString().trim();
-                String duration = etSeasonDuration.getText().toString().trim();
-                
-                if (!TextUtils.isEmpty(name)) {
-                    Map<String, Object> season = new HashMap<>();
-                    season.put("name", name);
-                    season.put("description", desc);
-                    season.put("duration", duration.isEmpty() ? "30" : duration);
-                    season.put("updatedAt", System.currentTimeMillis());
-                    season.put("createdBy", auth.getUid());
-                    
-                    db.collection("seasons").document("current").set(season)
-                        .addOnSuccessListener(v -> Toast.makeText(this, "Season updated!", Toast.LENGTH_SHORT).show());
-                }
-            })
-            .setNegativeButton("Cancel", null)
-            .show();
-    }
-
     private void showEditScheduleDialog() {
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_add_player, null);
         EditText etMatchTitle = view.findViewById(R.id.etPlayerName);
@@ -225,7 +188,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
             .show();
     }
 
-    // Player Adapter
+    // Player Adapter with Edit Name/Role
     class PlayerAdapter extends RecyclerView.Adapter<PlayerAdapter.VH> {
         @NonNull
         @Override
@@ -238,20 +201,29 @@ public class AdminDashboardActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull VH holder, int position) {
             DocumentSnapshot doc = players.get(position);
             holder.tvName.setText(doc.getString("name"));
-            holder.tvRole.setText(doc.getString("role") + " • " + doc.getString("status"));
+            String role = doc.getString("role");
+            String status = doc.getString("status");
+            holder.tvRole.setText((role != null ? role : "player") + " • " + (status != null ? status : "pending"));
             Long score = doc.getLong("score");
             holder.tvScore.setText(String.valueOf(score != null ? score : 0));
 
             holder.itemView.setOnClickListener(v -> {
-                String[] options = {"Approve", "Reject", "Set Admin", "Set Player", "Ban", "Delete Player"};
+                String[] options = {
+                    "✏️ Edit Name",
+                    "👑 Change Role",
+                    "✅ Approve",
+                    "❌ Reject",
+                    "🚫 Ban",
+                    "🗑️ Delete Player"
+                };
                 new AlertDialog.Builder(AdminDashboardActivity.this)
                     .setTitle(doc.getString("name"))
                     .setItems(options, (d, which) -> {
                         switch (which) {
-                            case 0: updateStatus(doc.getId(), "approved"); break;
-                            case 1: updateStatus(doc.getId(), "rejected"); break;
-                            case 2: updateRole(doc.getId(), "admin"); break;
-                            case 3: updateRole(doc.getId(), "player"); break;
+                            case 0: showEditNameDialog(doc); break;
+                            case 1: showChangeRoleDialog(doc); break;
+                            case 2: updateStatus(doc.getId(), "approved"); break;
+                            case 3: updateStatus(doc.getId(), "rejected"); break;
                             case 4: updateStatus(doc.getId(), "banned"); break;
                             case 5: deletePlayer(doc.getId(), doc.getString("name")); break;
                         }
@@ -274,18 +246,71 @@ public class AdminDashboardActivity extends AppCompatActivity {
         }
     }
 
+    // Edit Player Name Dialog
+    private void showEditNameDialog(DocumentSnapshot player) {
+        EditText input = new EditText(this);
+        input.setText(player.getString("name"));
+        input.setSelection(input.getText().length());
+
+        new AlertDialog.Builder(this)
+            .setTitle("✏️ Edit Player Name")
+            .setView(input)
+            .setPositiveButton("Save", (d, w) -> {
+                String newName = input.getText().toString().trim();
+                if (!TextUtils.isEmpty(newName)) {
+                    db.collection("players").document(player.getId())
+                        .update("name", newName)
+                        .addOnSuccessListener(v -> {
+                            Toast.makeText(this, "Name updated to: " + newName, Toast.LENGTH_SHORT).show();
+                            loadPlayers();
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
+                }
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+
+    // Change Role Dialog
+    private void showChangeRoleDialog(DocumentSnapshot player) {
+        String currentRole = player.getString("role");
+        if (currentRole == null) currentRole = "player";
+
+        String[] roles = {"player", "moderator", "admin"};
+        int checkedItem = 0;
+        for (int i = 0; i < roles.length; i++) {
+            if (roles[i].equals(currentRole)) {
+                checkedItem = i;
+                break;
+            }
+        }
+
+        new AlertDialog.Builder(this)
+            .setTitle("👑 Change Role for " + player.getString("name"))
+            .setSingleChoiceItems(roles, checkedItem, (dialog, which) -> {
+                String selectedRole = roles[which];
+                db.collection("players").document(player.getId())
+                    .update("role", selectedRole)
+                    .addOnSuccessListener(v -> {
+                        Toast.makeText(this, "Role updated to: " + selectedRole, Toast.LENGTH_SHORT).show();
+                        loadPlayers();
+                        dialog.dismiss();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    });
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+
     private void updateStatus(String uid, String status) {
         db.collection("players").document(uid).update("status", status)
             .addOnSuccessListener(v -> {
-                Toast.makeText(this, "Updated!", Toast.LENGTH_SHORT).show();
-                loadPlayers();
-            });
-    }
-
-    private void updateRole(String uid, String role) {
-        db.collection("players").document(uid).update("role", role)
-            .addOnSuccessListener(v -> {
-                Toast.makeText(this, "Role updated!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Status updated!", Toast.LENGTH_SHORT).show();
                 loadPlayers();
             });
     }
