@@ -13,8 +13,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
@@ -29,9 +27,10 @@ import java.util.Map;
 public class VoiceActivity extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST_CODE = 1001;
-    private TextView tvStatus, tvAdminPanel;
+    private TextView tvStatus;
+    private View tvAdminPanel;
     private ProgressBar progressBar;
-    private MaterialButton btnJoinLeave, btnMute, btnManagePermissions;
+    private MaterialButton btnJoinLeave, btnMute, btnManagePermissions, btnBack;
     private FirebaseFirestore db;
     private String userId, userName;
     private boolean isInVoice = false;
@@ -48,16 +47,22 @@ public class VoiceActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         userId = FirebaseAuth.getInstance().getUid();
 
+        if (userId == null) {
+            Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        // Initialize views with null checks
         tvStatus = findViewById(R.id.tvVoiceStatus);
         tvAdminPanel = findViewById(R.id.tvAdminPanel);
         progressBar = findViewById(R.id.progressBar);
         btnJoinLeave = findViewById(R.id.btnJoinLeave);
         btnMute = findViewById(R.id.btnMute);
         btnManagePermissions = findViewById(R.id.btnManagePermissions);
+        btnBack = findViewById(R.id.btnBack);
 
-        // Check if user is admin
-        checkUserRole();
-
+        // Set click listeners
         btnJoinLeave.setOnClickListener(v -> {
             if (isInVoice) {
                 leaveVoice();
@@ -68,7 +73,16 @@ public class VoiceActivity extends AppCompatActivity {
 
         btnMute.setOnClickListener(v -> toggleMute());
 
-        btnManagePermissions.setOnClickListener(v -> showManagePermissionsDialog());
+        if (btnManagePermissions != null) {
+            btnManagePermissions.setOnClickListener(v -> showManagePermissionsDialog());
+        }
+
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> finish());
+        }
+
+        // Check if user is admin
+        checkUserRole();
     }
 
     private void checkUserRole() {
@@ -82,14 +96,19 @@ public class VoiceActivity extends AppCompatActivity {
                     isAdmin = "admin".equals(role);
                     
                     if (isAdmin) {
-                        tvAdminPanel.setVisibility(View.VISIBLE);
-                        btnManagePermissions.setVisibility(View.VISIBLE);
+                        if (tvAdminPanel != null) tvAdminPanel.setVisibility(View.VISIBLE);
+                        if (btnManagePermissions != null) btnManagePermissions.setVisibility(View.VISIBLE);
                     } else {
-                        tvAdminPanel.setVisibility(View.GONE);
-                        btnManagePermissions.setVisibility(View.GONE);
+                        if (tvAdminPanel != null) tvAdminPanel.setVisibility(View.GONE);
+                        if (btnManagePermissions != null) btnManagePermissions.setVisibility(View.GONE);
                         checkPlayerPermission();
                     }
+                } else {
+                    userName = "Unknown";
                 }
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Error loading profile", Toast.LENGTH_SHORT).show();
             });
     }
 
@@ -103,6 +122,10 @@ public class VoiceActivity extends AppCompatActivity {
                     hasPermission = false;
                 }
                 updateUIBasedOnPermission();
+            })
+            .addOnFailureListener(e -> {
+                hasPermission = false;
+                updateUIBasedOnPermission();
             });
     }
 
@@ -110,13 +133,13 @@ public class VoiceActivity extends AppCompatActivity {
         if (!isAdmin && !hasPermission) {
             btnJoinLeave.setEnabled(false);
             btnJoinLeave.setText("🔒 NO PERMISSION");
-            btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.text_muted));
-            tvStatus.setText("🔴 Ask admin to grant voice access");
-            tvStatus.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+            if (tvStatus != null) {
+                tvStatus.setText("🔴 Ask admin to grant voice access");
+                tvStatus.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+            }
         } else {
             btnJoinLeave.setEnabled(true);
             btnJoinLeave.setText("🎙️ Join Voice");
-            btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.success));
         }
     }
 
@@ -144,7 +167,7 @@ public class VoiceActivity extends AppCompatActivity {
 
         Map<String, Object> participant = new HashMap<>();
         participant.put("userId", userId);
-        participant.put("userName", userName);
+        participant.put("userName", userName != null ? userName : "Unknown");
         participant.put("joinedAt", System.currentTimeMillis());
         participant.put("muted", false);
         participant.put("isAdmin", isAdmin);
@@ -159,10 +182,11 @@ public class VoiceActivity extends AppCompatActivity {
                 btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.danger));
                 btnMute.setVisibility(View.VISIBLE);
                 btnMute.setText("🔇 Mute");
-                tvStatus.setText("🟢 Connected to Voice Channel");
-                tvStatus.setTextColor(ContextCompat.getColor(this, R.color.success));
+                if (tvStatus != null) {
+                    tvStatus.setText("🟢 Connected to Voice Channel");
+                    tvStatus.setTextColor(ContextCompat.getColor(this, R.color.success));
+                }
                 Toast.makeText(this, "Joined voice channel!", Toast.LENGTH_SHORT).show();
-
                 listenToParticipants(channelId);
             })
             .addOnFailureListener(e -> {
@@ -176,7 +200,9 @@ public class VoiceActivity extends AppCompatActivity {
             .addSnapshotListener((snapshots, e) -> {
                 if (e != null || snapshots == null) return;
                 int count = snapshots.size();
-                tvStatus.setText("🟢 Connected — " + count + " participant" + (count != 1 ? "s" : ""));
+                if (tvStatus != null) {
+                    tvStatus.setText("🟢 Connected — " + count + " participant" + (count != 1 ? "s" : ""));
+                }
             });
     }
 
@@ -197,7 +223,8 @@ public class VoiceActivity extends AppCompatActivity {
             return;
         }
 
-        // Get all players
+        Toast.makeText(this, "Loading players...", Toast.LENGTH_SHORT).show();
+
         db.collection("players").get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
                 List<DocumentSnapshot> players = new ArrayList<>();
@@ -209,27 +236,31 @@ public class VoiceActivity extends AppCompatActivity {
                     String playerName = doc.getString("name");
                     String role = doc.getString("role");
                     
-                    // Skip admins
                     if ("admin".equals(role)) continue;
                     
                     players.add(doc);
                     playerNames.add(playerName != null ? playerName : "Unknown");
-                    
-                    // Check current permission
-                    String finalPlayerId = playerId;
-                    db.collection("voice_permissions").document(playerId).get()
-                        .addOnSuccessListener(permDoc -> {
-                            Boolean allowed = permDoc.getBoolean("allowed");
-                            playerPermissions.add(allowed != null && allowed);
-                            
-                            if (playerPermissions.size() == players.size()) {
-                                showPermissionSelectionDialog(playerNames, players, playerPermissions);
-                            }
-                        });
+                    playerPermissions.add(false);
                 }
                 
                 if (players.isEmpty()) {
                     Toast.makeText(this, "No players found", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Load permissions for each player
+                for (int i = 0; i < players.size(); i++) {
+                    String playerId = players.get(i).getId();
+                    final int index = i;
+                    db.collection("voice_permissions").document(playerId).get()
+                        .addOnSuccessListener(permDoc -> {
+                            Boolean allowed = permDoc.getBoolean("allowed");
+                            playerPermissions.set(index, allowed != null && allowed);
+                            
+                            if (index == players.size() - 1) {
+                                showPermissionSelectionDialog(playerNames, players, playerPermissions);
+                            }
+                        });
                 }
             });
     }
@@ -259,8 +290,7 @@ public class VoiceActivity extends AppCompatActivity {
                     permission.put("updatedAt", System.currentTimeMillis());
                     permission.put("grantedBy", userId);
                     
-                    db.collection("voice_permissions").document(playerId)
-                        .set(permission);
+                    db.collection("voice_permissions").document(playerId).set(permission);
                 }
                 Toast.makeText(this, "Permissions updated!", Toast.LENGTH_SHORT).show();
             })
@@ -279,10 +309,12 @@ public class VoiceActivity extends AppCompatActivity {
         isMuted = false;
         currentChannelId = null;
         btnJoinLeave.setText("🎙️ Join Voice");
-        btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.accent));
+        btnJoinLeave.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.success));
         btnMute.setVisibility(View.GONE);
-        tvStatus.setText("🔴 Not connected");
-        tvStatus.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+        if (tvStatus != null) {
+            tvStatus.setText("🔴 Not connected");
+            tvStatus.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+        }
     }
 
     @Override

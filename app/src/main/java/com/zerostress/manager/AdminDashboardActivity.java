@@ -17,7 +17,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -32,7 +31,10 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private FirebaseAuth auth;
     private ProgressBar progressBar;
-    private TextView tvAdminName, tvTotalPlayers, tvActiveMatches;
+    private TextView tvAdminName, tvTotalPlayers, tvActiveMatches, tvPlayerList;
+    private RecyclerView rvPlayers;
+    private PlayerAdapter adapter;
+    private List<DocumentSnapshot> players = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,16 +48,23 @@ public class AdminDashboardActivity extends AppCompatActivity {
         tvTotalPlayers = findViewById(R.id.tvTotalPlayers);
         tvActiveMatches = findViewById(R.id.tvActiveMatches);
         progressBar = findViewById(R.id.progressBar);
+        rvPlayers = findViewById(R.id.rvPlayers);
+
+        if (rvPlayers != null) {
+            rvPlayers.setLayoutManager(new LinearLayoutManager(this));
+            adapter = new PlayerAdapter();
+            rvPlayers.setAdapter(adapter);
+        }
 
         // Navigation buttons
-        findViewById(R.id.btnPlayerManagement).setOnClickListener(v -> loadPlayers());
+        findViewById(R.id.btnPlayerManagement).setOnClickListener(v -> showPlayerList());
         findViewById(R.id.btnDailyInput).setOnClickListener(v -> startActivity(new Intent(this, DailyInputActivity.class)));
         findViewById(R.id.btnAnnouncements).setOnClickListener(v -> showAnnouncementDialog());
         findViewById(R.id.btnLeaderboard).setOnClickListener(v -> startActivity(new Intent(this, LeaderboardActivity.class)));
         findViewById(R.id.btnChat).setOnClickListener(v -> startActivity(new Intent(this, ChatActivity.class)));
         findViewById(R.id.btnVoice).setOnClickListener(v -> startActivity(new Intent(this, VoiceActivity.class)));
-        findViewById(R.id.btnSeasons).setOnClickListener(v -> startActivity(new Intent(this, SeasonActivity.class)));
-        findViewById(R.id.btnSchedule).setOnClickListener(v -> startActivity(new Intent(this, ScheduleActivity.class)));
+        findViewById(R.id.btnSeasons).setOnClickListener(v -> showEditSeasonDialog());
+        findViewById(R.id.btnSchedule).setOnClickListener(v -> showEditScheduleDialog());
         findViewById(R.id.btnProfile).setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
         
         findViewById(R.id.btnSettings).setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
@@ -66,10 +75,13 @@ public class AdminDashboardActivity extends AppCompatActivity {
         });
 
         loadAdminInfo();
+        loadPlayers();
     }
 
     private void loadAdminInfo() {
         String userId = auth.getUid();
+        if (userId == null) return;
+        
         db.collection("players").document(userId).get()
             .addOnSuccessListener(doc -> {
                 if (doc.exists()) {
@@ -89,7 +101,36 @@ public class AdminDashboardActivity extends AppCompatActivity {
     }
 
     private void loadPlayers() {
-        Toast.makeText(this, "Loading players...", Toast.LENGTH_SHORT).show();
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+        
+        db.collection("players").get()
+            .addOnSuccessListener(query -> {
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
+                players.clear();
+                int approved = 0, pending = 0;
+                for (DocumentSnapshot doc : query.getDocuments()) {
+                    players.add(doc);
+                    String status = doc.getString("status");
+                    if ("approved".equals(status)) approved++;
+                    else if ("pending".equals(status)) pending++;
+                }
+                if (adapter != null) adapter.notifyDataSetChanged();
+            })
+            .addOnFailureListener(e -> {
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
+                Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+
+    private void showPlayerList() {
+        if (players.isEmpty()) {
+            Toast.makeText(this, "Loading players...", Toast.LENGTH_SHORT).show();
+            loadPlayers();
+        } else {
+            if (rvPlayers != null) {
+                rvPlayers.setVisibility(rvPlayers.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+            }
+        }
     }
 
     private void showAnnouncementDialog() {
@@ -113,5 +154,135 @@ public class AdminDashboardActivity extends AppCompatActivity {
             })
             .setNegativeButton("Cancel", null)
             .show();
+    }
+
+    private void showEditSeasonDialog() {
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_add_player, null);
+        EditText etSeasonName = view.findViewById(R.id.etPlayerName);
+        etSeasonName.setHint("Season Name (e.g., Season 1)");
+        EditText etSeasonDesc = view.findViewById(R.id.etPlayerPhone);
+        etSeasonDesc.setHint("Description");
+        EditText etSeasonDuration = view.findViewById(R.id.etPlayerPassword);
+        etSeasonDuration.setHint("Duration (days)");
+
+        new AlertDialog.Builder(this)
+            .setTitle("📅 Edit Season")
+            .setView(view)
+            .setPositiveButton("Save", (d, w) -> {
+                String name = etSeasonName.getText().toString().trim();
+                String desc = etSeasonDesc.getText().toString().trim();
+                String duration = etSeasonDuration.getText().toString().trim();
+                
+                if (!TextUtils.isEmpty(name)) {
+                    Map<String, Object> season = new HashMap<>();
+                    season.put("name", name);
+                    season.put("description", desc);
+                    season.put("duration", duration.isEmpty() ? "30" : duration);
+                    season.put("updatedAt", System.currentTimeMillis());
+                    season.put("createdBy", auth.getUid());
+                    
+                    db.collection("seasons").document("current").set(season)
+                        .addOnSuccessListener(v -> Toast.makeText(this, "Season updated!", Toast.LENGTH_SHORT).show());
+                }
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+
+    private void showEditScheduleDialog() {
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_add_player, null);
+        EditText etMatchTitle = view.findViewById(R.id.etPlayerName);
+        etMatchTitle.setHint("Match Title");
+        EditText etMatchTime = view.findViewById(R.id.etPlayerPhone);
+        etMatchTime.setHint("Date & Time");
+        EditText etMatchType = view.findViewById(R.id.etPlayerPassword);
+        etMatchType.setHint("Match Type (Ranked/Custom)");
+
+        new AlertDialog.Builder(this)
+            .setTitle("📋 Edit Schedule")
+            .setView(view)
+            .setPositiveButton("Save", (d, w) -> {
+                String title = etMatchTitle.getText().toString().trim();
+                String time = etMatchTime.getText().toString().trim();
+                String type = etMatchType.getText().toString().trim();
+                
+                if (!TextUtils.isEmpty(title)) {
+                    Map<String, Object> schedule = new HashMap<>();
+                    schedule.put("title", title);
+                    schedule.put("dateTime", time);
+                    schedule.put("type", type.isEmpty() ? "Custom" : type);
+                    schedule.put("createdAt", System.currentTimeMillis());
+                    schedule.put("createdBy", auth.getUid());
+                    
+                    db.collection("schedules").add(schedule)
+                        .addOnSuccessListener(v -> Toast.makeText(this, "Schedule added!", Toast.LENGTH_SHORT).show());
+                }
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+
+    // Player Adapter
+    class PlayerAdapter extends RecyclerView.Adapter<PlayerAdapter.VH> {
+        @NonNull
+        @Override
+        public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_player, parent, false);
+            return new VH(v);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull VH holder, int position) {
+            DocumentSnapshot doc = players.get(position);
+            holder.tvName.setText(doc.getString("name"));
+            holder.tvRole.setText(doc.getString("role") + " • " + doc.getString("status"));
+            Long score = doc.getLong("score");
+            holder.tvScore.setText(String.valueOf(score != null ? score : 0));
+
+            holder.itemView.setOnClickListener(v -> {
+                String[] options = {"Approve", "Reject", "Set Admin", "Set Player", "Ban"};
+                new AlertDialog.Builder(AdminDashboardActivity.this)
+                    .setTitle(doc.getString("name"))
+                    .setItems(options, (d, which) -> {
+                        switch (which) {
+                            case 0: updateStatus(doc.getId(), "approved"); break;
+                            case 1: updateStatus(doc.getId(), "rejected"); break;
+                            case 2: updateRole(doc.getId(), "admin"); break;
+                            case 3: updateRole(doc.getId(), "player"); break;
+                            case 4: updateStatus(doc.getId(), "banned"); break;
+                        }
+                    })
+                    .show();
+            });
+        }
+
+        @Override
+        public int getItemCount() { return players.size(); }
+
+        class VH extends RecyclerView.ViewHolder {
+            TextView tvName, tvRole, tvScore;
+            VH(View v) {
+                super(v);
+                tvName = v.findViewById(R.id.tvName);
+                tvRole = v.findViewById(R.id.tvRole);
+                tvScore = v.findViewById(R.id.tvScore);
+            }
+        }
+    }
+
+    private void updateStatus(String uid, String status) {
+        db.collection("players").document(uid).update("status", status)
+            .addOnSuccessListener(v -> {
+                Toast.makeText(this, "Updated!", Toast.LENGTH_SHORT).show();
+                loadPlayers();
+            });
+    }
+
+    private void updateRole(String uid, String role) {
+        db.collection("players").document(uid).update("role", role)
+            .addOnSuccessListener(v -> {
+                Toast.makeText(this, "Role updated!", Toast.LENGTH_SHORT).show();
+                loadPlayers();
+            });
     }
 }
