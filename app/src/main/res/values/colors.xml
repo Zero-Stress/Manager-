@@ -68,10 +68,10 @@
     <color name="voice_active_glow">#34d399</color>
     <color name="voice_idle">#475569</color>
     
-    <!-- Gaming Glow Colors -->
-    <color name="glow_cyan">rgba(56, 189, 248, 0.3)</color>
-    <color name="glow_purple">rgba(139, 92, 246, 0.3)</color>
-    <color name="glow_gold">rgba(245, 158, 11, 0.3)</color>
-    <color name="glow_green">rgba(16, 185, 129, 0.3)</color>
-    <color name="glow_red">rgba(239, 68, 68, 0.3)</color>
+    <!-- Gaming Glow Colors (30% opacity) -->
+    <color name="glow_cyan">#4D38BDF8</color>
+    <color name="glow_purple">#4D8B5CF6</color>
+    <color name="glow_gold">#4DF59E0B</color>
+    <color name="glow_green">#4D10B981</color>
+    <color name="glow_red">#4DEF4444</color>
 </resources>
