@@ -54,6 +54,11 @@
         <activity android:name=".DailyInputActivity" android:theme="@style/Theme.ZeroStress" />
         <activity android:name=".PerformanceActivity" android:theme="@style/Theme.ZeroStress" />
         <activity android:name=".SettingsActivity" android:theme="@style/Theme.ZeroStress" />
+        <activity android:name=".PlayerTitlesActivity" android:theme="@style/Theme.ZeroStress" />
+        <activity android:name=".DailyChallengesActivity" android:theme="@style/Theme.ZeroStress" />
+        <activity android:name=".BattlePassActivity" android:theme="@style/Theme.ZeroStress" />
+        <activity android:name=".PerformanceGraphsActivity" android:theme="@style/Theme.ZeroStress" />
+        <activity android:name=".DailyLoginRewardsActivity" android:theme="@style/Theme.ZeroStress" />
 
         <service
             android:name=".fcm.ZSFCMService"

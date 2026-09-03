@@ -439,21 +439,130 @@
         </LinearLayout>
     </LinearLayout>
 
+    <!-- More Features -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="EXTRA"
+        android:textColor="@color/text_secondary"
+        android:textSize="11sp"
+        android:letterSpacing="0.2"
+        android:layout_marginBottom="12dp"
+        android:layout_marginTop="8dp" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
 
-        <!-- Achievements -->
+        <!-- Daily Rewards -->
         <LinearLayout
-            android:id="@+id/btnAchievements"
+            android:id="@+id/btnDailyRewards"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginEnd="4dp"
             android:orientation="vertical"
             android:background="@drawable/bg_gaming_nav_button"
-            android:padding="16dp"
+            android:padding="12dp"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🎁"
+                android:textSize="24sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="REWARDS"
+                android:textColor="@color/text_primary"
+                android:textSize="9sp"
+                android:letterSpacing="0.1"
+                android:layout_marginTop="6dp" />
+        </LinearLayout>
+
+        <!-- Challenges -->
+        <LinearLayout
+            android:id="@+id/btnChallenges"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:orientation="vertical"
+            android:background="@drawable/bg_gaming_nav_button"
+            android:padding="12dp"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📋"
+                android:textSize="24sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CHALLENGES"
+                android:textColor="@color/text_primary"
+                android:textSize="9sp"
+                android:letterSpacing="0.1"
+                android:layout_marginTop="6dp" />
+        </LinearLayout>
+
+        <!-- Battle Pass -->
+        <LinearLayout
+            android:id="@+id/btnBattlePass"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:orientation="vertical"
+            android:background="@drawable/bg_gaming_nav_button"
+            android:padding="12dp"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚔️"
+                android:textSize="24sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BATTLE PASS"
+                android:textColor="@color/text_primary"
+                android:textSize="9sp"
+                android:letterSpacing="0.1"
+                android:layout_marginTop="6dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!-- Titles -->
+        <LinearLayout
+            android:id="@+id/btnTitles"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:orientation="vertical"
+            android:background="@drawable/bg_gaming_nav_button"
+            android:padding="12dp"
             android:gravity="center"
             android:clickable="true"
             android:focusable="true">
@@ -462,16 +571,47 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="🏅"
-                android:textSize="28sp" />
+                android:textSize="24sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="AWARDS"
+                android:text="TITLES"
                 android:textColor="@color/text_primary"
-                android:textSize="10sp"
+                android:textSize="9sp"
                 android:letterSpacing="0.1"
-                android:layout_marginTop="8dp" />
+                android:layout_marginTop="6dp" />
+        </LinearLayout>
+
+        <!-- Performance -->
+        <LinearLayout
+            android:id="@+id/btnPerformance"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:orientation="vertical"
+            android:background="@drawable/bg_gaming_nav_button"
+            android:padding="12dp"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📊"
+                android:textSize="24sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="STATS"
+                android:textColor="@color/text_primary"
+                android:textSize="9sp"
+                android:letterSpacing="0.1"
+                android:layout_marginTop="6dp" />
         </LinearLayout>
 
         <!-- Seasons -->
@@ -481,10 +621,9 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="4dp"
-            android:layout_marginEnd="4dp"
             android:orientation="vertical"
             android:background="@drawable/bg_gaming_nav_button"
-            android:padding="16dp"
+            android:padding="12dp"
             android:gravity="center"
             android:clickable="true"
             android:focusable="true">
@@ -493,46 +632,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="📅"
-                android:textSize="28sp" />
+                android:textSize="24sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="SEASONS"
                 android:textColor="@color/text_primary"
-                android:textSize="10sp"
+                android:textSize="9sp"
                 android:letterSpacing="0.1"
-                android:layout_marginTop="8dp" />
-        </LinearLayout>
-
-        <!-- Schedule -->
-        <LinearLayout
-            android:id="@+id/btnSchedule"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="4dp"
-            android:orientation="vertical"
-            android:background="@drawable/bg_gaming_nav_button"
-            android:padding="16dp"
-            android:gravity="center"
-            android:clickable="true"
-            android:focusable="true">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="📋"
-                android:textSize="28sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="SCHEDULE"
-                android:textColor="@color/text_primary"
-                android:textSize="10sp"
-                android:letterSpacing="0.1"
-                android:layout_marginTop="8dp" />
+                android:layout_marginTop="6dp" />
         </LinearLayout>
     </LinearLayout>
 

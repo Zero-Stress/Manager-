@@ -32,7 +32,7 @@ public class PlayerDashboardActivity extends AppCompatActivity {
         tvCoins = findViewById(R.id.tvCoins);
         tvXp = findViewById(R.id.tvXp);
 
-        // Navigation buttons (LinearLayouts with click listeners)
+        // Navigation buttons
         findViewById(R.id.btnSubmitMatch).setOnClickListener(v -> startActivity(new Intent(this, SubmitMatchActivity.class)));
         findViewById(R.id.btnLeaderboard).setOnClickListener(v -> startActivity(new Intent(this, LeaderboardActivity.class)));
         findViewById(R.id.btnChat).setOnClickListener(v -> startActivity(new Intent(this, ChatActivity.class)));
@@ -42,6 +42,13 @@ public class PlayerDashboardActivity extends AppCompatActivity {
         findViewById(R.id.btnFriends).setOnClickListener(v -> startActivity(new Intent(this, FriendsActivity.class)));
         findViewById(R.id.btnAchievements).setOnClickListener(v -> startActivity(new Intent(this, AchievementsActivity.class)));
         findViewById(R.id.btnSeasons).setOnClickListener(v -> startActivity(new Intent(this, SeasonActivity.class)));
+        
+        // New features
+        findViewById(R.id.btnDailyRewards).setOnClickListener(v -> startActivity(new Intent(this, DailyLoginRewardsActivity.class)));
+        findViewById(R.id.btnChallenges).setOnClickListener(v -> startActivity(new Intent(this, DailyChallengesActivity.class)));
+        findViewById(R.id.btnBattlePass).setOnClickListener(v -> startActivity(new Intent(this, BattlePassActivity.class)));
+        findViewById(R.id.btnTitles).setOnClickListener(v -> startActivity(new Intent(this, PlayerTitlesActivity.class)));
+        findViewById(R.id.btnPerformance).setOnClickListener(v -> startActivity(new Intent(this, PerformanceGraphsActivity.class)));
         
         findViewById(R.id.btnSettings).setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
         findViewById(R.id.btnLogout).setOnClickListener(v -> {
