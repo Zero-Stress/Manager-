@@ -8,11 +8,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -54,7 +51,8 @@ public class SplashScreenActivity extends AppCompatActivity {
         tvSubtitle = findViewById(R.id.tvSubtitle);
         tvLoadingStatus = findViewById(R.id.tvLoadingStatus);
         loadingBar = findViewById(R.id.loadingBar);
-        loadingContainer = (LinearLayout) loadingBar.getParent().getParent();
+        loadingContainer = findViewById(R.id.tvLoadingStatus) != null ? 
+            (LinearLayout) tvLoadingStatus.getParent() : null;
     }
 
     private void startLoadingAnimation() {
@@ -79,18 +77,17 @@ public class SplashScreenActivity extends AppCompatActivity {
             titleFadeIn.setDuration(400);
             titleFadeIn.start();
 
-            // Animate subtitle
             ObjectAnimator subtitleFadeIn = ObjectAnimator.ofFloat(tvSubtitle, "alpha", 0f, 1f);
             subtitleFadeIn.setDuration(400);
             subtitleFadeIn.start();
 
             // Show loading container
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                ObjectAnimator loadingFadeIn = ObjectAnimator.ofFloat(loadingContainer, "alpha", 0f, 1f);
-                loadingFadeIn.setDuration(300);
-                loadingFadeIn.start();
-
-                // Start loading simulation
+                if (loadingContainer != null) {
+                    ObjectAnimator loadingFadeIn = ObjectAnimator.ofFloat(loadingContainer, "alpha", 0f, 1f);
+                    loadingFadeIn.setDuration(300);
+                    loadingFadeIn.start();
+                }
                 startLoadingSimulation();
             }, 300);
         }, 600);
@@ -106,11 +103,14 @@ public class SplashScreenActivity extends AppCompatActivity {
             @Override
             public void run() {
                 if (progress[0] <= 100) {
-                    // Update loading bar
-                    float width = (progress[0] / 100f) * loadingBar.getParent() != null ? 
-                        ((View) loadingBar.getParent()).getWidth() : 200;
-                    loadingBar.getLayoutParams().width = (int) (width * (progress[0] / 100f));
-                    loadingBar.requestLayout();
+                    // Update loading bar width
+                    View parent = (View) loadingBar.getParent();
+                    if (parent != null) {
+                        int parentWidth = parent.getWidth();
+                        int newWidth = (int) (parentWidth * (progress[0] / 100f));
+                        loadingBar.getLayoutParams().width = Math.max(newWidth, 0);
+                        loadingBar.requestLayout();
+                    }
 
                     // Update loading message
                     if (messageIndex[0] < loadingMessages.length && progress[0] % 20 == 0) {
@@ -121,7 +121,6 @@ public class SplashScreenActivity extends AppCompatActivity {
                     progress[0] += 5;
                     handler.postDelayed(this, 100);
                 } else {
-                    // Loading complete - check auth and navigate
                     navigateToMain();
                 }
             }
@@ -137,7 +136,6 @@ public class SplashScreenActivity extends AppCompatActivity {
             Intent intent;
 
             if (auth.getCurrentUser() != null) {
-                // User is logged in - check role
                 String userId = auth.getCurrentUser().getUid();
                 
                 db.collection("players").document(userId).get()
@@ -165,7 +163,6 @@ public class SplashScreenActivity extends AppCompatActivity {
                         finish();
                     });
             } else {
-                // User not logged in
                 intent = new Intent(SplashScreenActivity.this, LoginActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
