@@ -197,8 +197,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 if (!TextUtils.isEmpty(timeStr)) {
                     try {
                         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault());
-                        java.util.Date d = sdf.parse(timeStr);
-                        if (d != null) matchTimeMs = d.getTime();
+                        java.util.Date parsedDate = sdf.parse(timeStr);
+                        if (parsedDate != null) matchTimeMs = parsedDate.getTime();
                     } catch (java.text.ParseException e) {
                         // If parse fails, fall back to 24h from now
                         matchTimeMs = System.currentTimeMillis() + 24 * 60 * 60 * 1000;
