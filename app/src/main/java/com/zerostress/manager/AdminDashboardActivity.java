@@ -62,7 +62,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         findViewById(R.id.btnAnnouncements).setOnClickListener(v -> showAnnouncementDialog());
         findViewById(R.id.btnLeaderboard).setOnClickListener(v -> startActivity(new Intent(this, LeaderboardActivity.class)));
         findViewById(R.id.btnChat).setOnClickListener(v -> startActivity(new Intent(this, ChatActivity.class)));
-        findViewById(R.id.btnVoice).setOnClickListener(v -> startActivity(new Intent(this, ManageVoiceChannelsActivity.class)));
+        findViewById(R.id.btnVoice).setOnClickListener(v -> startActivity(new Intent(this, VoiceActivity.class)));
         findViewById(R.id.btnSeasons).setOnClickListener(v -> startActivity(new Intent(this, ManageSeasonsActivity.class)));
         findViewById(R.id.btnProfile).setOnClickListener(v -> startActivity(new Intent(this, ViewAllPlayersStatsActivity.class)));
         
