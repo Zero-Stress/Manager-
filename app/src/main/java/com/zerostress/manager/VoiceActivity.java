@@ -44,7 +44,7 @@ public class VoiceActivity extends AppCompatActivity {
     private View tvAdminPanel;
     private ProgressBar progressBar;
     private MaterialButton btnJoinLeave, btnMute, btnDeafen, btnScreenShare, 
-        btnPushToTalk, btnHandRaise, btnMoreOptions;
+        btnPushToTalk, btnHandRaise, btnMoreOptions, btnManagePermissions;
     private ImageButton btnBack;
     private RecyclerView rvUsers, rvChat;
     private EditText etChatMessage;
@@ -99,6 +99,7 @@ public class VoiceActivity extends AppCompatActivity {
         btnHandRaise = findViewById(R.id.btnHandRaise);
         btnMoreOptions = findViewById(R.id.btnMoreOptions);
         btnBack = findViewById(R.id.btnBack);
+        btnManagePermissions = findViewById(R.id.btnManagePermissions);
         rvUsers = findViewById(R.id.rvUsers);
         rvChat = findViewById(R.id.rvChat);
         etChatMessage = findViewById(R.id.etChatMessage);
@@ -137,6 +138,9 @@ public class VoiceActivity extends AppCompatActivity {
 
         // Chat send
         findViewById(R.id.btnSendChat).setOnClickListener(v -> sendChatMessage());
+
+        // Admin: Manage Permissions
+        btnManagePermissions.setOnClickListener(v -> showManagePermissionsDialog());
     }
 
     private void checkUserRole() {
@@ -186,6 +190,23 @@ public class VoiceActivity extends AppCompatActivity {
     }
 
     private void checkPermissionsAndJoin() {
+        // Check if player has voice permission (admin always allowed)
+        if (!isAdmin) {
+            db.collection("players").document(userId).get()
+                .addOnSuccessListener(doc -> {
+                    Boolean allowed = doc.getBoolean("voiceAllowed");
+                    if (allowed != null && !allowed) {
+                        Toast.makeText(this, "Voice chat permission denied.\nAsk admin to enable it.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    requestMicPermissionAndJoin();
+                });
+        } else {
+            requestMicPermissionAndJoin();
+        }
+    }
+
+    private void requestMicPermissionAndJoin() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) 
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, 
@@ -193,6 +214,44 @@ public class VoiceActivity extends AppCompatActivity {
         } else {
             showChannelSelectionDialog();
         }
+    }
+
+    private void showManagePermissionsDialog() {
+        db.collection("players")
+            .whereEqualTo("status", "approved")
+            .get()
+            .addOnSuccessListener(query -> {
+                List<String> names = new ArrayList<>();
+                List<String> ids = new ArrayList<>();
+                List<Boolean> allowed = new ArrayList<>();
+
+                for (DocumentSnapshot doc : query.getDocuments()) {
+                    names.add(doc.getString("name"));
+                    ids.add(doc.getId());
+                    Boolean canJoin = doc.getBoolean("voiceAllowed");
+                    allowed.add(canJoin == null || canJoin); // Default: allowed
+                }
+
+                String[] namesArr = names.toArray(new String[0]);
+                boolean[] checkedArr = new boolean[allowed.size()];
+                for (int i = 0; i < allowed.size(); i++) checkedArr[i] = allowed.get(i);
+
+                new AlertDialog.Builder(this)
+                    .setTitle("👥 Manage Voice Permissions")
+                    .setMessage("Select players who can join voice chat:")
+                    .setMultiChoiceItems(namesArr, checkedArr, (dialog, which, isChecked) -> {
+                        checkedArr[which] = isChecked;
+                    })
+                    .setPositiveButton("Save", (d, w) -> {
+                        for (int i = 0; i < ids.size(); i++) {
+                            db.collection("players").document(ids.get(i))
+                                .update("voiceAllowed", checkedArr[i]);
+                        }
+                        Toast.makeText(this, "Permissions updated!", Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+            });
     }
 
     private void showChannelSelectionDialog() {

@@ -140,12 +140,16 @@ public class LeaderboardActivity extends AppCompatActivity {
     private void performReset(String type) {
         progressBar.setVisibility(View.VISIBLE);
         
-        // Get all players
+        // Get all players (including admins for reset)
         db.collection("players")
-            .whereEqualTo("status", "approved")
             .get()
             .addOnSuccessListener(query -> {
                 int totalPlayers = query.size();
+                if (totalPlayers == 0) {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(this, "No players to reset", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 int[] completed = {0};
 
                 for (DocumentSnapshot doc : query.getDocuments()) {
@@ -157,6 +161,7 @@ public class LeaderboardActivity extends AppCompatActivity {
                             // Only reset daily stats
                             resetData.put("dailyKills", 0);
                             resetData.put("dailyWins", 0);
+                            resetData.put("dailyAssists", 0);
                             resetData.put("dailyDamage", 0);
                             resetData.put("dailyMatches", 0);
                             resetData.put("dailyScore", 0);
@@ -166,6 +171,7 @@ public class LeaderboardActivity extends AppCompatActivity {
                             // Only reset weekly stats
                             resetData.put("weeklyKills", 0);
                             resetData.put("weeklyWins", 0);
+                            resetData.put("weeklyAssists", 0);
                             resetData.put("weeklyDamage", 0);
                             resetData.put("weeklyMatches", 0);
                             resetData.put("weeklyScore", 0);
@@ -175,6 +181,7 @@ public class LeaderboardActivity extends AppCompatActivity {
                             // Only reset monthly stats
                             resetData.put("monthlyKills", 0);
                             resetData.put("monthlyWins", 0);
+                            resetData.put("monthlyAssists", 0);
                             resetData.put("monthlyDamage", 0);
                             resetData.put("monthlyMatches", 0);
                             resetData.put("monthlyScore", 0);
@@ -185,20 +192,28 @@ public class LeaderboardActivity extends AppCompatActivity {
                             resetData.put("score", 0);
                             resetData.put("kills", 0);
                             resetData.put("wins", 0);
+                            resetData.put("assists", 0);
                             resetData.put("damage", 0);
                             resetData.put("matches", 0);
+                            resetData.put("xp", 0);
+                            resetData.put("level", 1);
+                            resetData.put("rank", "Iron");
+                            resetData.put("coins", 0);
                             resetData.put("dailyKills", 0);
                             resetData.put("dailyWins", 0);
+                            resetData.put("dailyAssists", 0);
                             resetData.put("dailyDamage", 0);
                             resetData.put("dailyMatches", 0);
                             resetData.put("dailyScore", 0);
                             resetData.put("weeklyKills", 0);
                             resetData.put("weeklyWins", 0);
+                            resetData.put("weeklyAssists", 0);
                             resetData.put("weeklyDamage", 0);
                             resetData.put("weeklyMatches", 0);
                             resetData.put("weeklyScore", 0);
                             resetData.put("monthlyKills", 0);
                             resetData.put("monthlyWins", 0);
+                            resetData.put("monthlyAssists", 0);
                             resetData.put("monthlyDamage", 0);
                             resetData.put("monthlyMatches", 0);
                             resetData.put("monthlyScore", 0);
@@ -213,7 +228,16 @@ public class LeaderboardActivity extends AppCompatActivity {
                             completed[0]++;
                             if (completed[0] >= totalPlayers) {
                                 progressBar.setVisibility(View.GONE);
-                                Toast.makeText(this, type.toUpperCase() + " leaderboard reset!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, "✅ " + type.toUpperCase() + " leaderboard reset!\nReloading...", Toast.LENGTH_SHORT).show();
+                                // Delay reload to let Firestore propagate
+                                new android.os.Handler().postDelayed(() -> loadLeaderboard(), 1000);
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            completed[0]++;
+                            if (completed[0] >= totalPlayers) {
+                                progressBar.setVisibility(View.GONE);
+                                Toast.makeText(this, "Reset completed with some errors", Toast.LENGTH_SHORT).show();
                                 loadLeaderboard();
                             }
                         });
