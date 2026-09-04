@@ -71,12 +71,13 @@ public class ZSFCMService extends FirebaseMessagingService {
                 if (token == null) return;
 
                 FirebaseAuth auth = FirebaseAuth.getInstance();
-                String uid = null;
+                String uidValue = null;
                 if (auth.getCurrentUser() != null) {
-                    uid = auth.getCurrentUser().getUid();
+                    uidValue = auth.getCurrentUser().getUid();
                 } else {
-                    uid = auth.getUid();
+                    uidValue = auth.getUid();
                 }
+                final String uid = uidValue;
 
                 if (uid != null) {
                     Map<String, Object> tokenData = new HashMap<>();
