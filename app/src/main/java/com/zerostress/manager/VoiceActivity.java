@@ -200,9 +200,14 @@ public class VoiceActivity extends AppCompatActivity {
                 .addOnSuccessListener(doc -> {
                     Boolean allowed = doc.getBoolean("voiceAllowed");
                     if (allowed != null && !allowed) {
-                        Toast.makeText(this, "Voice chat permission denied.\nAsk admin to enable it.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "🚫 Voice chat permission denied.\nAsk the admin to enable it.", Toast.LENGTH_LONG).show();
                         return;
                     }
+                    requestMicPermissionAndJoin();
+                })
+                .addOnFailureListener(e -> {
+                    // On error, allow joining (fail open) but warn
+                    Toast.makeText(this, "Could not verify permission, allowing join", Toast.LENGTH_SHORT).show();
                     requestMicPermissionAndJoin();
                 });
         } else {
@@ -255,19 +260,38 @@ public class VoiceActivity extends AppCompatActivity {
     }
 
     private void showManagePermissionsDialog() {
+        progressBar.setVisibility(View.VISIBLE);
+
         db.collection("players")
             .whereEqualTo("status", "approved")
             .get()
             .addOnSuccessListener(query -> {
+                progressBar.setVisibility(View.GONE);
+
+                if (query.isEmpty()) {
+                    Toast.makeText(this, "No approved players found", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 List<String> names = new ArrayList<>();
                 List<String> ids = new ArrayList<>();
                 List<Boolean> allowed = new ArrayList<>();
 
                 for (DocumentSnapshot doc : query.getDocuments()) {
-                    names.add(doc.getString("name"));
-                    ids.add(doc.getId());
+                    String name = doc.getString("name");
+                    if (name == null || name.isEmpty()) name = "Unknown";
+                    // Skip the admin themselves from the permission list
+                    if (doc.getId().equals(userId)) continue;
+
                     Boolean canJoin = doc.getBoolean("voiceAllowed");
+                    names.add((canJoin == null || canJoin ? "✅ " : "❌ ") + name);
+                    ids.add(doc.getId());
                     allowed.add(canJoin == null || canJoin); // Default: allowed
+                }
+
+                if (ids.isEmpty()) {
+                    Toast.makeText(this, "No players found", Toast.LENGTH_SHORT).show();
+                    return;
                 }
 
                 String[] namesArr = names.toArray(new String[0]);
@@ -276,29 +300,60 @@ public class VoiceActivity extends AppCompatActivity {
 
                 new AlertDialog.Builder(this)
                     .setTitle("👥 Manage Voice Permissions")
-                    .setMessage("✅ = Can join voice | ❌ = Denied access")
+                    .setMessage("Tick = can join voice chat\nUntick = denied access")
                     .setMultiChoiceItems(namesArr, checkedArr, (dialog, which, isChecked) -> {
                         checkedArr[which] = isChecked;
+                        // Update the display prefix live
+                        namesArr[which] = (isChecked ? "✅ " : "❌ ") +
+                            namesArr[which].replaceFirst("^[✅❌] ", "");
                     })
-                    .setPositiveButton("Save", (d, w) -> {
-                        int allowedCount = 0;
-                        for (int i = 0; i < ids.size(); i++) {
-                            db.collection("players").document(ids.get(i))
-                                .update("voiceAllowed", checkedArr[i]);
-                            if (checkedArr[i]) allowedCount++;
-                        }
-                        Toast.makeText(this, "✅ Updated! " + allowedCount + "/" + ids.size() + " players allowed", Toast.LENGTH_SHORT).show();
-                    })
+                    .setPositiveButton("Save", (d, w) -> saveVoicePermissions(ids, checkedArr))
                     .setNegativeButton("Cancel", null)
                     .setNeutralButton("Allow All", (d, w) -> {
-                        for (int i = 0; i < ids.size(); i++) {
-                            db.collection("players").document(ids.get(i))
-                                .update("voiceAllowed", true);
-                        }
-                        Toast.makeText(this, "✅ All players allowed", Toast.LENGTH_SHORT).show();
+                        boolean[] allTrue = new boolean[ids.size()];
+                        java.util.Arrays.fill(allTrue, true);
+                        saveVoicePermissions(ids, allTrue);
                     })
                     .show();
+            })
+            .addOnFailureListener(e -> {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(this, "Failed to load players: " + e.getMessage(), Toast.LENGTH_LONG).show();
             });
+    }
+
+    private void saveVoicePermissions(List<String> ids, boolean[] checkedArr) {
+        progressBar.setVisibility(View.VISIBLE);
+        final int total = ids.size();
+        final int[] done = {0};
+        final int[] errors = {0};
+
+        for (int i = 0; i < ids.size(); i++) {
+            final boolean allowed = checkedArr[i];
+            db.collection("players").document(ids.get(i))
+                .update("voiceAllowed", allowed)
+                .addOnSuccessListener(v -> {
+                    done[0]++;
+                    if (done[0] >= total) {
+                        progressBar.setVisibility(View.GONE);
+                        int allowedCount = 0;
+                        for (boolean b : checkedArr) if (b) allowedCount++;
+                        if (errors[0] == 0) {
+                            Toast.makeText(this, "✅ Saved! " + allowedCount + "/" + total + " players can join voice", Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(this, "Saved with " + errors[0] + " errors", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    done[0]++;
+                    errors[0]++;
+                    if (done[0] >= total) {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(this, "Saved with " + errors[0] + " errors", Toast.LENGTH_SHORT).show();
+                    }
+                });
+        }
     }
 
     private void showChannelSelectionDialog() {
