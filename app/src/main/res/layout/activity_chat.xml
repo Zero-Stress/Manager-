@@ -24,6 +24,21 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
+        <!-- Clear Chat (admin only) -->
+        <TextView
+            android:id="@+id/btnClearChat"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:text="🗑️ Clear"
+            android:textColor="#ff6b6b"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:paddingHorizontal="10dp"
+            android:background="@drawable/bg_input"
+            android:layout_marginEnd="8dp"
+            android:visibility="gone" />
+
         <ProgressBar
             android:id="@+id/progressBar"
             android:layout_width="24dp"

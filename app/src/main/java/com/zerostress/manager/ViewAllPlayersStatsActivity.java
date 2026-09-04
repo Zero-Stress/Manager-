@@ -94,8 +94,29 @@ public class ViewAllPlayersStatsActivity extends AppCompatActivity {
             holder.tvName.setText(doc.getString("name"));
             
             String role = doc.getString("role") != null ? doc.getString("role") : "player";
-            holder.tvRole.setText(role.toUpperCase());
-            holder.tvRole.setTextColor("admin".equals(role) ? 0xFF667eea : 0xFF11998e);
+            String gameRole = doc.getString("gameRole");
+            String displayRole = role.toUpperCase();
+            int roleColor = 0xFF11998e;
+            if ("admin".equals(role)) {
+                displayRole = "👑 ADMIN";
+                roleColor = 0xFF667eea;
+            } else if ("moderator".equals(role)) {
+                displayRole = "🛡️ MOD";
+                roleColor = 0xFFa855f7;
+            }
+            if (gameRole != null && !gameRole.isEmpty()) {
+                String emoji = "";
+                switch (gameRole) {
+                    case "Rusher": emoji = "⚔️ "; break;
+                    case "Sniper": emoji = "🎯 "; break;
+                    case "IGL": emoji = "👑 "; break;
+                    case "Supporter": emoji = "🛡️ "; break;
+                    case "Bomber": emoji = "💣 "; break;
+                }
+                displayRole = emoji + gameRole + " • " + displayRole;
+            }
+            holder.tvRole.setText(displayRole);
+            holder.tvRole.setTextColor(roleColor);
 
             long score = doc.getLong("score") != null ? doc.getLong("score") : 0;
             long kills = doc.getLong("kills") != null ? doc.getLong("kills") : 0;

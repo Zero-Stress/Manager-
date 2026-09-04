@@ -242,14 +242,26 @@ public class AdminDashboardActivity extends AppCompatActivity {
             holder.tvName.setText(doc.getString("name"));
             String role = doc.getString("role");
             String status = doc.getString("status");
-            holder.tvRole.setText((role != null ? role : "player") + " • " + (status != null ? status : "pending"));
+            String gameRole = doc.getString("gameRole");
+            String gameRoleEmoji = "";
+            if (gameRole != null && !gameRole.isEmpty()) {
+                switch (gameRole) {
+                    case "Rusher": gameRoleEmoji = "⚔️ "; break;
+                    case "Sniper": gameRoleEmoji = "🎯 "; break;
+                    case "IGL": gameRoleEmoji = "👑 "; break;
+                    case "Supporter": gameRoleEmoji = "🛡️ "; break;
+                    case "Bomber": gameRoleEmoji = "💣 "; break;
+                }
+            }
+            holder.tvRole.setText(gameRoleEmoji + (role != null ? role : "player") + " • " + (status != null ? status : "pending"));
             Long score = doc.getLong("score");
             holder.tvScore.setText(String.valueOf(score != null ? score : 0));
 
             holder.itemView.setOnClickListener(v -> {
                 String[] options = {
                     "✏️ Edit Name",
-                    "👑 Change Role",
+                    "👑 Change Admin Role",
+                    "🎮 Set Game Role",
                     "✅ Approve",
                     "❌ Reject",
                     "🚫 Ban",
@@ -261,10 +273,11 @@ public class AdminDashboardActivity extends AppCompatActivity {
                         switch (which) {
                             case 0: showEditNameDialog(doc); break;
                             case 1: showChangeRoleDialog(doc); break;
-                            case 2: updateStatus(doc.getId(), "approved"); break;
-                            case 3: updateStatus(doc.getId(), "rejected"); break;
-                            case 4: updateStatus(doc.getId(), "banned"); break;
-                            case 5: deletePlayer(doc.getId(), doc.getString("name")); break;
+                            case 2: showGameRoleDialog(doc); break;
+                            case 3: updateStatus(doc.getId(), "approved"); break;
+                            case 4: updateStatus(doc.getId(), "rejected"); break;
+                            case 5: updateStatus(doc.getId(), "banned"); break;
+                            case 6: deletePlayer(doc.getId(), doc.getString("name")); break;
                         }
                     })
                     .show();
@@ -334,6 +347,50 @@ public class AdminDashboardActivity extends AppCompatActivity {
                     .update("role", selectedRole)
                     .addOnSuccessListener(v -> {
                         Toast.makeText(this, "Role updated to: " + selectedRole, Toast.LENGTH_SHORT).show();
+                        loadPlayers();
+                        dialog.dismiss();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    });
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+
+    // Game Role Dialog (Rusher, Sniper, IGL, Supporter, Bomber)
+    private void showGameRoleDialog(DocumentSnapshot player) {
+        String currentGameRole = player.getString("gameRole");
+        if (currentGameRole == null) currentGameRole = "";
+
+        String[] gameRoles = {"Rusher", "Sniper", "IGL", "Supporter", "Bomber", "None"};
+        String[] gameRoleEmojis = {"⚔️", "🎯", "👑", "🛡️", "💣", "❌"};
+        int checkedItem = 5; // Default: None
+        for (int i = 0; i < gameRoles.length; i++) {
+            if (gameRoles[i].equals(currentGameRole)) {
+                checkedItem = i;
+                break;
+            }
+        }
+
+        // Build display names with emojis
+        String[] displayRoles = new String[gameRoles.length];
+        for (int i = 0; i < gameRoles.length; i++) {
+            displayRoles[i] = gameRoleEmojis[i] + " " + gameRoles[i];
+        }
+
+        new AlertDialog.Builder(this)
+            .setTitle("🎮 Set Game Role for " + player.getString("name"))
+            .setSingleChoiceItems(displayRoles, checkedItem, (dialog, which) -> {
+                String selectedGameRole = which == 5 ? "" : gameRoles[which];
+                String emoji = which == 5 ? "" : gameRoleEmojis[which];
+                db.collection("players").document(player.getId())
+                    .update("gameRole", selectedGameRole)
+                    .addOnSuccessListener(v -> {
+                        Toast.makeText(this, "Game role set to: " + emoji + " " + 
+                            (selectedGameRole.isEmpty() ? "None" : selectedGameRole), 
+                            Toast.LENGTH_SHORT).show();
                         loadPlayers();
                         dialog.dismiss();
                     })

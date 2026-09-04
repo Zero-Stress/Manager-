@@ -341,8 +341,25 @@ public class LeaderboardActivity extends AppCompatActivity {
                 medalColor = 0xFFCD7F32;
             }
 
+            String gameRole = doc.getString("gameRole");
+            String gameRoleText = "";
+            if (gameRole != null && !gameRole.isEmpty()) {
+                switch (gameRole) {
+                    case "Rusher": gameRoleText = "⚔️ Rusher"; break;
+                    case "Sniper": gameRoleText = "🎯 Sniper"; break;
+                    case "IGL": gameRoleText = "👑 IGL"; break;
+                    case "Supporter": gameRoleText = "🛡️ Supporter"; break;
+                    case "Bomber": gameRoleText = "💣 Bomber"; break;
+                    default: gameRoleText = gameRole; break;
+                }
+            }
+
             holder.tvName.setText(medal + name);
-            holder.tvRole.setText("Lv." + level + " • " + rank + " | K:" + kills + " W:" + wins);
+            String statsText = "Lv." + level + " • " + rank + " | K:" + kills + " W:" + wins;
+            if (!gameRoleText.isEmpty()) {
+                statsText = gameRoleText + " | " + statsText;
+            }
+            holder.tvRole.setText(statsText);
             holder.tvScore.setText(score + " pts");
             
             if (medalColor != 0) {

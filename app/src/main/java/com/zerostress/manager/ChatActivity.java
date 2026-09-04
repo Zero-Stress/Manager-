@@ -66,6 +66,7 @@ public class ChatActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
         MaterialButton btnSend = findViewById(R.id.btnSend);
         TextView btnMention = findViewById(R.id.btnMention);
+        TextView btnClearChat = findViewById(R.id.btnClearChat);
 
         LinearLayoutManager lm = new LinearLayoutManager(this);
         lm.setStackFromEnd(true);
@@ -88,6 +89,10 @@ public class ChatActivity extends AppCompatActivity {
         // @ button in input bar — tap to show mention picker
         btnMention.setOnClickListener(v -> showMentionDialog());
 
+        // Clear chat button (admin only)
+        btnClearChat.setOnClickListener(v -> showClearChatDialog());
+        checkAdminStatus();
+
         // Also support long-press on EditText for mentions
         etMessage.setOnLongClickListener(v -> {
             showMentionDialog();
@@ -105,6 +110,63 @@ public class ChatActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (chatListener != null) chatListener.remove();
+    }
+
+    private boolean isAdmin = false;
+
+    private void checkAdminStatus() {
+        String uid = FirebaseAuth.getInstance().getUid();
+        if (uid == null) return;
+        db.collection("players").document(uid).get()
+            .addOnSuccessListener(doc -> {
+                if (doc.exists()) {
+                    isAdmin = "admin".equals(doc.getString("role"));
+                    TextView btnClearChat = findViewById(R.id.btnClearChat);
+                    if (btnClearChat != null) {
+                        btnClearChat.setVisibility(isAdmin ? View.VISIBLE : View.GONE);
+                    }
+                }
+            });
+    }
+
+    private void showClearChatDialog() {
+        new AlertDialog.Builder(this)
+            .setTitle("🗑️ Clear All Chat Messages")
+            .setMessage("This will permanently delete ALL chat messages.\n\nThis action cannot be undone!")
+            .setPositiveButton("Clear All", (d, w) -> clearAllMessages())
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+
+    private void clearAllMessages() {
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+
+        db.collection("chat_messages").get()
+            .addOnSuccessListener(query -> {
+                if (query.isEmpty()) {
+                    if (progressBar != null) progressBar.setVisibility(View.GONE);
+                    Toast.makeText(this, "Chat is already empty", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Delete in batches of 500 (Firestore limit)
+                com.google.firebase.firestore.WriteBatch batch = db.batch();
+                int count = 0;
+                for (com.google.firebase.firestore.DocumentSnapshot doc : query.getDocuments()) {
+                    batch.delete(doc.getReference());
+                    count++;
+                }
+
+                batch.commit()
+                    .addOnSuccessListener(v -> {
+                        if (progressBar != null) progressBar.setVisibility(View.GONE);
+                        Toast.makeText(this, "✅ Chat cleared! " + count + " messages deleted", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        if (progressBar != null) progressBar.setVisibility(View.GONE);
+                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+            });
     }
 
     private void loadPlayers() {
