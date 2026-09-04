@@ -157,10 +157,11 @@ public class ChatActivity extends AppCompatActivity {
                     count++;
                 }
 
+                final int totalCount = count;
                 batch.commit()
                     .addOnSuccessListener(v -> {
                         if (progressBar != null) progressBar.setVisibility(View.GONE);
-                        Toast.makeText(this, "✅ Chat cleared! " + count + " messages deleted", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "✅ Chat cleared! " + totalCount + " messages deleted", Toast.LENGTH_SHORT).show();
                     })
                     .addOnFailureListener(e -> {
                         if (progressBar != null) progressBar.setVisibility(View.GONE);
