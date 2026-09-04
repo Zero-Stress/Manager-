@@ -59,7 +59,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         // Navigation buttons
         findViewById(R.id.btnPlayerManagement).setOnClickListener(v -> showPlayerList());
         findViewById(R.id.btnDailyInput).setOnClickListener(v -> startActivity(new Intent(this, DailyInputActivity.class)));
-        findViewById(R.id.btnAnnouncements).setOnClickListener(v -> showAnnouncementDialog());
+        findViewById(R.id.btnAnnouncements).setOnClickListener(v -> showEditScheduleDialog());
         findViewById(R.id.btnLeaderboard).setOnClickListener(v -> startActivity(new Intent(this, LeaderboardActivity.class)));
         findViewById(R.id.btnChat).setOnClickListener(v -> startActivity(new Intent(this, ChatActivity.class)));
         findViewById(R.id.btnVoice).setOnClickListener(v -> startActivity(new Intent(this, VoiceActivity.class)));
@@ -155,33 +155,72 @@ public class AdminDashboardActivity extends AppCompatActivity {
     }
 
     private void showEditScheduleDialog() {
-        View view = LayoutInflater.from(this).inflate(R.layout.dialog_add_player, null);
-        EditText etMatchTitle = view.findViewById(R.id.etPlayerName);
-        etMatchTitle.setHint("Match Title");
-        EditText etMatchTime = view.findViewById(R.id.etPlayerPhone);
-        etMatchTime.setHint("Date & Time");
-        EditText etMatchType = view.findViewById(R.id.etPlayerPassword);
-        etMatchType.setHint("Match Type (Ranked/Custom)");
+        String[] matchTypes = {"Ranked", "Custom", "Tournament", "Friendly"};
+        
+        // Build dialog view with three inputs
+        LinearLayout dialogView = new LinearLayout(this);
+        dialogView.setOrientation(LinearLayout.VERTICAL);
+        int pad = (int) (20 * getResources().getDisplayMetrics().density);
+        dialogView.setPadding(pad, pad, pad, 0);
+
+        EditText etMatchTitle = new EditText(this);
+        etMatchTitle.setHint("Match Title (e.g., Squad Battle #1)");
+        etMatchTitle.setTextColor(0xFFFFFFFF);
+        dialogView.addView(etMatchTitle);
+
+        EditText etMatchTime = new EditText(this);
+        etMatchTime.setHint("Date & Time (e.g., 2026-09-10 20:00)");
+        etMatchTime.setTextColor(0xFFFFFFFF);
+        dialogView.addView(etMatchTime);
+
+        EditText etMatchType = new EditText(this);
+        etMatchType.setHint("Type: Ranked / Custom / Tournament / Friendly");
+        etMatchType.setTextColor(0xFFFFFFFF);
+        dialogView.addView(etMatchType);
 
         new AlertDialog.Builder(this)
-            .setTitle("📋 Edit Schedule")
-            .setView(view)
-            .setPositiveButton("Save", (d, w) -> {
+            .setTitle("📋 Add Match Schedule")
+            .setView(dialogView)
+            .setPositiveButton("Create", (d, w) -> {
                 String title = etMatchTitle.getText().toString().trim();
-                String time = etMatchTime.getText().toString().trim();
+                String timeStr = etMatchTime.getText().toString().trim();
                 String type = etMatchType.getText().toString().trim();
                 
-                if (!TextUtils.isEmpty(title)) {
-                    Map<String, Object> schedule = new HashMap<>();
-                    schedule.put("title", title);
-                    schedule.put("dateTime", time);
-                    schedule.put("type", type.isEmpty() ? "Custom" : type);
-                    schedule.put("createdAt", System.currentTimeMillis());
-                    schedule.put("createdBy", auth.getUid());
-                    
-                    db.collection("schedules").add(schedule)
-                        .addOnSuccessListener(v -> Toast.makeText(this, "Schedule added!", Toast.LENGTH_SHORT).show());
+                if (TextUtils.isEmpty(title)) {
+                    Toast.makeText(this, "Title required", Toast.LENGTH_SHORT).show();
+                    return;
                 }
+
+                // Parse datetime
+                long matchTimeMs = System.currentTimeMillis();
+                if (!TextUtils.isEmpty(timeStr)) {
+                    try {
+                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault());
+                        java.util.Date d = sdf.parse(timeStr);
+                        if (d != null) matchTimeMs = d.getTime();
+                    } catch (java.text.ParseException e) {
+                        // If parse fails, fall back to 24h from now
+                        matchTimeMs = System.currentTimeMillis() + 24 * 60 * 60 * 1000;
+                    }
+                }
+
+                Map<String, Object> schedule = new HashMap<>();
+                schedule.put("title", title);
+                schedule.put("description", type.isEmpty() ? "Custom Match" : type);
+                schedule.put("matchTime", matchTimeMs);
+                schedule.put("dateTime", TextUtils.isEmpty(timeStr) ? "TBD" : timeStr);
+                schedule.put("status", "Upcoming");
+                schedule.put("type", type.isEmpty() ? "Custom" : type);
+                schedule.put("createdAt", System.currentTimeMillis());
+                schedule.put("createdBy", auth.getUid());
+                
+                db.collection("match_schedules").add(schedule)
+                    .addOnSuccessListener(v -> {
+                        Toast.makeText(this, "✅ Schedule created!", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
             })
             .setNegativeButton("Cancel", null)
             .show();
