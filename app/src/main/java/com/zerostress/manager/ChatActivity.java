@@ -355,10 +355,12 @@ public class ChatActivity extends AppCompatActivity {
             holder.tvSender.setText(doc.getString("senderName"));
 
             String text = doc.getString("text");
+            boolean isSent = userId.equals(doc.getString("senderId"));
 
-            // Highlight @mentions with bold + color
+            // Highlight @mentions with bold + color (light cyan on dark bubbles, dark navy on light/sent bubbles)
             if (text != null && text.contains("@")) {
                 SpannableStringBuilder builder = new SpannableStringBuilder(text);
+                int mentionColor = isSent ? Color.parseColor("#0b1220") : Color.parseColor("#7dd3fc");
                 for (DocumentSnapshot player : players) {
                     String name = player.getString("name");
                     if (name != null) {
@@ -366,7 +368,7 @@ public class ChatActivity extends AppCompatActivity {
                         int startIndex = text.indexOf(mention);
                         while (startIndex >= 0) {
                             builder.setSpan(
-                                new ForegroundColorSpan(Color.parseColor("#38bdf8")),
+                                new ForegroundColorSpan(mentionColor),
                                 startIndex,
                                 startIndex + mention.length(),
                                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
