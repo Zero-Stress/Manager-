@@ -95,51 +95,67 @@ public class LeaderboardActivity extends AppCompatActivity {
     }
 
     private void showResetDialog() {
-        String[] options = {"Reset Daily Only", "Reset Weekly Only", "Reset Monthly Only", "Reset All"};
-        
+        // Radio-button selection: Daily / Weekly / Monthly / All
+        // Default selection = currently viewed tab
+        String[] options = {
+            "📅 Daily Leaderboard",
+            "📆 Weekly Leaderboard",
+            "🗓️ Monthly Leaderboard",
+            "💣 Everything (All Time)"
+        };
+        final int[] selected = {currentTab}; // pre-select current tab
+
         new AlertDialog.Builder(this)
             .setTitle("⚠️ Reset Leaderboard")
-            .setMessage("Choose which leaderboard to reset:")
-            .setItems(options, (dialog, which) -> {
-                switch (which) {
-                    case 0: resetLeaderboard("daily"); break;
-                    case 1: resetLeaderboard("weekly"); break;
-                    case 2: resetLeaderboard("monthly"); break;
-                    case 3: resetLeaderboard("all"); break;
+            .setSingleChoiceItems(options, currentTab, (dialog, which) -> selected[0] = which)
+            .setPositiveButton("Next →", (d, w) -> {
+                String type;
+                switch (selected[0]) {
+                    case 0: type = "daily"; break;
+                    case 1: type = "weekly"; break;
+                    case 2: type = "monthly"; break;
+                    default: type = "all"; break;
                 }
+                resetLeaderboard(type);
             })
             .setNegativeButton("Cancel", null)
             .show();
     }
 
     private void resetLeaderboard(String type) {
-        String confirmMessage = "";
+        String confirmMessage;
+        String title;
         switch (type) {
             case "daily":
-                confirmMessage = "Reset Daily leaderboard only?\nWeekly and Monthly will NOT be affected.";
+                title = "📅 Reset Daily Leaderboard";
+                confirmMessage = "All DAILY stats (kills, wins, score) will be set to 0 for every player.\n\nWeekly and Monthly stats are NOT affected.";
                 break;
             case "weekly":
-                confirmMessage = "Reset Weekly leaderboard only?\nDaily and Monthly will NOT be affected.";
+                title = "📆 Reset Weekly Leaderboard";
+                confirmMessage = "All WEEKLY stats (kills, wins, score) will be set to 0 for every player.\n\nDaily and Monthly stats are NOT affected.";
                 break;
             case "monthly":
-                confirmMessage = "Reset Monthly leaderboard only?\nDaily and Weekly will NOT be affected.";
+                title = "🗓️ Reset Monthly Leaderboard";
+                confirmMessage = "All MONTHLY stats (kills, wins, score) will be set to 0 for every player.\n\nDaily and Weekly stats are NOT affected.";
                 break;
-            case "all":
-                confirmMessage = "Reset ALL leaderboards?";
+            default:
+                title = "💣 Reset EVERYTHING";
+                confirmMessage = "⚠️ DANGER ZONE ⚠️\n\nThis resets ALL stats for every player:\n• Total score, kills, wins, damage\n• XP → Level 1\n• Coins → 0\n• Rank → Iron\n• Daily, Weekly & Monthly stats\n\nThis cannot be undone!";
                 break;
         }
 
         new AlertDialog.Builder(this)
-            .setTitle("Confirm Reset")
+            .setTitle(title)
             .setMessage(confirmMessage)
-            .setPositiveButton("Reset", (d, w) -> performReset(type))
+            .setPositiveButton("RESET NOW", (d, w) -> performReset(type))
             .setNegativeButton("Cancel", null)
             .show();
     }
 
     private void performReset(String type) {
         progressBar.setVisibility(View.VISIBLE);
-        
+        Toast.makeText(this, "⏳ Resetting " + type + " leaderboard...", Toast.LENGTH_SHORT).show();
+
         // Get all players (including admins for reset)
         db.collection("players")
             .get()
@@ -150,6 +166,7 @@ public class LeaderboardActivity extends AppCompatActivity {
                     Toast.makeText(this, "No players to reset", Toast.LENGTH_SHORT).show();
                     return;
                 }
+                final int total = totalPlayers;
                 int[] completed = {0};
 
                 for (DocumentSnapshot doc : query.getDocuments()) {
@@ -223,19 +240,20 @@ public class LeaderboardActivity extends AppCompatActivity {
                             break;
                     }
 
+                    final int[] done = completed;
                     db.collection("players").document(playerId).update(resetData)
                         .addOnSuccessListener(v -> {
-                            completed[0]++;
-                            if (completed[0] >= totalPlayers) {
+                            done[0]++;
+                            if (done[0] >= total) {
                                 progressBar.setVisibility(View.GONE);
-                                Toast.makeText(this, "✅ " + type.toUpperCase() + " leaderboard reset!\nReloading...", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this, "✅ " + type.toUpperCase() + " leaderboard reset for " + total + " players!", Toast.LENGTH_LONG).show();
                                 // Delay reload to let Firestore propagate
                                 new android.os.Handler().postDelayed(() -> loadLeaderboard(), 1000);
                             }
                         })
                         .addOnFailureListener(e -> {
-                            completed[0]++;
-                            if (completed[0] >= totalPlayers) {
+                            done[0]++;
+                            if (done[0] >= total) {
                                 progressBar.setVisibility(View.GONE);
                                 Toast.makeText(this, "Reset completed with some errors", Toast.LENGTH_SHORT).show();
                                 loadLeaderboard();
