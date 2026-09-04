@@ -44,7 +44,7 @@ public class VoiceActivity extends AppCompatActivity {
     private View tvAdminPanel;
     private ProgressBar progressBar;
     private MaterialButton btnJoinLeave, btnMute, btnDeafen, btnScreenShare, 
-        btnPushToTalk, btnHandRaise, btnMoreOptions, btnManagePermissions;
+        btnPushToTalk, btnHandRaise, btnMoreOptions, btnManagePermissions, btnCreateChannel;
     private ImageButton btnBack;
     private RecyclerView rvUsers, rvChat;
     private EditText etChatMessage;
@@ -100,6 +100,7 @@ public class VoiceActivity extends AppCompatActivity {
         btnMoreOptions = findViewById(R.id.btnMoreOptions);
         btnBack = findViewById(R.id.btnBack);
         btnManagePermissions = findViewById(R.id.btnManagePermissions);
+        btnCreateChannel = findViewById(R.id.btnCreateChannel);
         rvUsers = findViewById(R.id.rvUsers);
         rvChat = findViewById(R.id.rvChat);
         etChatMessage = findViewById(R.id.etChatMessage);
@@ -138,6 +139,9 @@ public class VoiceActivity extends AppCompatActivity {
 
         // Chat send
         findViewById(R.id.btnSendChat).setOnClickListener(v -> sendChatMessage());
+
+        // Admin: Create Channel
+        btnCreateChannel.setOnClickListener(v -> showCreateChannelDialog());
 
         // Admin: Manage Permissions
         btnManagePermissions.setOnClickListener(v -> showManagePermissionsDialog());
@@ -216,6 +220,40 @@ public class VoiceActivity extends AppCompatActivity {
         }
     }
 
+    private void showCreateChannelDialog() {
+        EditText input = new EditText(this);
+        input.setHint("Channel name (e.g., Squad Alpha)");
+        input.setTextColor(0xFFFFFFFF);
+        input.setPadding(48, 32, 48, 32);
+
+        new AlertDialog.Builder(this)
+            .setTitle("➕ Create Voice Channel")
+            .setView(input)
+            .setPositiveButton("Create", (d, w) -> {
+                String name = input.getText().toString().trim();
+                if (TextUtils.isEmpty(name)) {
+                    Toast.makeText(this, "Channel name required", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                Map<String, Object> channel = new HashMap<>();
+                channel.put("name", name);
+                channel.put("active", true);
+                channel.put("createdAt", System.currentTimeMillis());
+                channel.put("createdBy", userId);
+
+                db.collection("voice_channels").document(name).set(channel)
+                    .addOnSuccessListener(v -> {
+                        Toast.makeText(this, "✅ Channel \"" + name + "\" created!", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+
     private void showManagePermissionsDialog() {
         db.collection("players")
             .whereEqualTo("status", "approved")
@@ -238,18 +276,27 @@ public class VoiceActivity extends AppCompatActivity {
 
                 new AlertDialog.Builder(this)
                     .setTitle("👥 Manage Voice Permissions")
-                    .setMessage("Select players who can join voice chat:")
+                    .setMessage("✅ = Can join voice | ❌ = Denied access")
                     .setMultiChoiceItems(namesArr, checkedArr, (dialog, which, isChecked) -> {
                         checkedArr[which] = isChecked;
                     })
                     .setPositiveButton("Save", (d, w) -> {
+                        int allowedCount = 0;
                         for (int i = 0; i < ids.size(); i++) {
                             db.collection("players").document(ids.get(i))
                                 .update("voiceAllowed", checkedArr[i]);
+                            if (checkedArr[i]) allowedCount++;
                         }
-                        Toast.makeText(this, "Permissions updated!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "✅ Updated! " + allowedCount + "/" + ids.size() + " players allowed", Toast.LENGTH_SHORT).show();
                     })
                     .setNegativeButton("Cancel", null)
+                    .setNeutralButton("Allow All", (d, w) -> {
+                        for (int i = 0; i < ids.size(); i++) {
+                            db.collection("players").document(ids.get(i))
+                                .update("voiceAllowed", true);
+                        }
+                        Toast.makeText(this, "✅ All players allowed", Toast.LENGTH_SHORT).show();
+                    })
                     .show();
             });
     }
