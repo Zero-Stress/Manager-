@@ -83,6 +83,26 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="Wins"
+            android:textColor="#94a3b8"
+            android:textSize="12sp"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/etDailyWins"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_input"
+            android:hint="0"
+            android:inputType="number"
+            android:textColor="#f1f5f9"
+            android:textColorHint="#475569"
+            android:paddingHorizontal="12dp"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="Assists"
             android:textColor="#94a3b8"
             android:textSize="12sp"
