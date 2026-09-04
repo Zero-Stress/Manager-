@@ -3,11 +3,13 @@ package com.zerostress.manager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 public class PlayerDashboardActivity extends AppCompatActivity {
 
@@ -15,6 +17,7 @@ public class PlayerDashboardActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     private FirebaseFirestore db;
     private String uid;
+    private ListenerRegistration notificationListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,12 +59,37 @@ public class PlayerDashboardActivity extends AppCompatActivity {
         });
 
         loadProfile();
+        listenForNotifications();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         loadProfile();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (notificationListener != null) {
+            notificationListener.remove();
+        }
+    }
+
+    private void listenForNotifications() {
+        long lastCheck = System.currentTimeMillis() - (60 * 1000); // Last 1 minute
+        notificationListener = db.collection("notifications")
+            .whereGreaterThan("timestamp", lastCheck)
+            .addSnapshotListener((snapshots, e) -> {
+                if (e != null || snapshots == null) return;
+                for (var doc : snapshots.getDocuments()) {
+                    String title = doc.getString("title");
+                    String message = doc.getString("message");
+                    if (title != null && message != null) {
+                        Toast.makeText(this, "📢 " + title + "\n" + message, Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
     }
 
     private void loadProfile() {

@@ -15,6 +15,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class SendNotificationActivity extends AppCompatActivity {
 
@@ -60,10 +61,14 @@ public class SendNotificationActivity extends AppCompatActivity {
         notification.put("timestamp", System.currentTimeMillis());
         notification.put("sentBy", "Admin");
 
+        // Save to Firestore (players listening in-dashboard will see it)
         db.collection("notifications").add(notification)
-            .addOnSuccessListener(v -> {
+            .addOnSuccessListener(docRef -> {
+                // Also save with ID for tracking
+                docRef.update("id", docRef.getId());
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(this, "Notification sent to all players!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "✅ Notification sent to all players!\n" +
+                    "Players will see it in-app and via push.", Toast.LENGTH_LONG).show();
                 etTitle.setText("");
                 etMessage.setText("");
             })

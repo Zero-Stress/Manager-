@@ -2,7 +2,11 @@ package com.zerostress.manager;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.util.Log;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.AnimationUtils;
@@ -13,11 +17,15 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -44,6 +52,9 @@ public class LoginActivity extends AppCompatActivity {
 
         findViewById(R.id.tvRegister).setOnClickListener(v -> 
             startActivity(new Intent(this, RegisterActivity.class)));
+
+        // Request notification permission on Android 13+
+        requestNotificationPermission();
 
         // Start fancy animations
         startFancyAnimations();
@@ -129,6 +140,8 @@ public class LoginActivity extends AppCompatActivity {
 
                         if (doc.exists()) {
                             String role = doc.getString("role");
+                            // Save FCM token after successful login
+                            saveFcmToken(uid);
                             Intent intent;
                             if ("admin".equals(role)) {
                                 intent = new Intent(LoginActivity.this, AdminDashboardActivity.class);
@@ -149,6 +162,44 @@ public class LoginActivity extends AppCompatActivity {
                 btnLogin.setEnabled(true);
                 Toast.makeText(this, "Login failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
+    }
+
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.POST_NOTIFICATIONS}, 100);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 100 && grantResults.length > 0) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Subscribe to topics
+                FirebaseMessaging.getInstance().subscribeToTopic("all_players");
+            }
+        }
+    }
+
+    private void saveFcmToken(String uid) {
+        FirebaseMessaging.getInstance().getToken()
+            .addOnSuccessListener(token -> {
+                if (token != null) {
+                    FirebaseFirestore.getInstance()
+                        .collection("players").document(uid)
+                        .update("fcmToken", token)
+                        .addOnSuccessListener(v -> Log.d("Login", "FCM token saved"))
+                        .addOnFailureListener(e -> Log.e("Login", "Token save failed"));
+                }
+            });
+        // Also subscribe to topics
+        FirebaseMessaging.getInstance().subscribeToTopic("all_players");
+        FirebaseMessaging.getInstance().subscribeToTopic("match_updates");
+        FirebaseMessaging.getInstance().subscribeToTopic("announcements");
     }
 
     @Override
