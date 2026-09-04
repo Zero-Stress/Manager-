@@ -80,7 +80,9 @@ public class PlayerDashboardActivity extends AppCompatActivity {
                     tvLevel.setText(String.valueOf(level));
                     tvRank.setText(rank);
                     tvCoins.setText(String.valueOf(coins));
-                    tvXp.setText(String.valueOf(xp));
+                    // Show XP progress: current XP / XP needed for next level
+                    long xpForNextLevel = level * 500;
+                    tvXp.setText(xp + "/" + xpForNextLevel);
                 }
             });
     }

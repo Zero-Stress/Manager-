@@ -213,24 +213,28 @@ public class DailyInputActivity extends AppCompatActivity {
         updates.put("monthlyMatches", FieldValue.increment(1));
         updates.put("monthlyScore", FieldValue.increment(score));
 
-        // Update level based on total score
+        // Calculate rank based on total score
         db.collection("players").document(playerId).get()
             .addOnSuccessListener(doc -> {
                 long currentScore = doc.getLong("score") != null ? doc.getLong("score") : 0;
                 long newTotalScore = currentScore + score;
-                // Level up every 500 points
-                int newLevel = (int) (newTotalScore / 500) + 1;
-                updates.put("level", newLevel);
-
-                // Calculate rank based on total score
                 String newRank = calculateRank(newTotalScore);
                 updates.put("rank", newRank);
 
-                // Coins reward: 5 coins per kill, 10 per win
-                int coinsEarned = (kills * 5) + (wins * 10);
-                updates.put("coins", FieldValue.increment(coinsEarned));
+        // XP: 1 XP per point of score
+        updates.put("xp", FieldValue.increment(score));
 
-                db.collection("players").document(playerId).update(updates)
+        // Coins reward: 5 coins per kill, 10 per win
+        int coinsEarned = (kills * 5) + (wins * 10);
+        updates.put("coins", FieldValue.increment(coinsEarned));
+
+        // Level based on total XP (level up every 500 XP)
+        long currentXP = doc.getLong("xp") != null ? doc.getLong("xp") : 0;
+        long newTotalXP = currentXP + score;
+        int newLevel = (int) (newTotalXP / 500) + 1;
+        updates.put("level", newLevel);
+
+        db.collection("players").document(playerId).update(updates)
                     .addOnSuccessListener(v -> {
                         progressBar.setVisibility(View.GONE);
                         Toast.makeText(this,
