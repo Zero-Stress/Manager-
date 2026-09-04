@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -43,7 +44,8 @@ public class VoiceActivity extends AppCompatActivity {
     private View tvAdminPanel;
     private ProgressBar progressBar;
     private MaterialButton btnJoinLeave, btnMute, btnDeafen, btnScreenShare, 
-        btnPushToTalk, btnHandRaise, btnMoreOptions, btnBack;
+        btnPushToTalk, btnHandRaise, btnMoreOptions;
+    private ImageButton btnBack;
     private RecyclerView rvUsers, rvChat;
     private EditText etChatMessage;
     private View chatContainer;
