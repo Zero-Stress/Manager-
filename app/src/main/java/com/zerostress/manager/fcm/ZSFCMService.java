@@ -29,7 +29,7 @@ public class ZSFCMService extends FirebaseMessagingService {
     public void onNewToken(@NonNull String token) {
         super.onNewToken(token);
         Log.d(TAG, "FCM token refreshed: " + token);
-        saveTokenToFirestore(token);
+        saveTokenToFirestore(getApplicationContext());
         subscribeToTopics();
     }
 
@@ -97,10 +97,6 @@ public class ZSFCMService extends FirebaseMessagingService {
             });
     }
 
-    private void saveTokenToFirestore(String token) {
-        saveTokenToFirestore(getApplicationContext());
-    }
-
     private void subscribeToTopics() {
         // Subscribe to broadcast topic for all players
         FirebaseMessaging.getInstance().subscribeToTopic("all_players")
@@ -125,7 +121,7 @@ public class ZSFCMService extends FirebaseMessagingService {
 
         // Choose channel based on type
         String channelId = ZeroStressApp.CHANNEL_ID;
-        if ("chat".equals(type)) {
+        if ("chat".equals(type) || "mention".equals(type)) {
             channelId = ZeroStressApp.CHAT_CHANNEL_ID;
         }
 
@@ -136,6 +132,8 @@ public class ZSFCMService extends FirebaseMessagingService {
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
                 .setContentIntent(pendingIntent);
 
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);

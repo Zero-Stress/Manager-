@@ -1,5 +1,8 @@
 package com.zerostress.manager;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
@@ -18,6 +21,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -29,6 +33,8 @@ import com.google.firebase.firestore.ListenerRegistration;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -108,7 +114,6 @@ public class ChatActivity extends AppCompatActivity {
             .addOnSuccessListener(query -> {
                 players.clear();
                 for (DocumentSnapshot doc : query.getDocuments()) {
-                    // Include ALL approved players for mentions (including admins)
                     players.add(doc);
                 }
             })
@@ -153,29 +158,15 @@ public class ChatActivity extends AppCompatActivity {
     private void loadMessages() {
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
 
-        // Use simple get first to avoid index issues, then set up listener
-        db.collection("chat_messages")
-            .orderBy("timestamp")
-            .limit(100)
+        // Use snapshot listener WITHOUT orderBy to avoid Firestore index requirement
+        // Sort client-side by timestamp
+        chatListener = db.collection("chat_messages")
+            .limit(200)
             .addSnapshotListener((snapshots, e) -> {
                 if (progressBar != null) progressBar.setVisibility(View.GONE);
 
                 if (e != null) {
-                    // Firestore query might need index — try without orderBy
-                    db.collection("chat_messages").limit(100).get()
-                        .addOnSuccessListener(query -> {
-                            messages.clear();
-                            for (DocumentSnapshot doc : query.getDocuments()) {
-                                Boolean deleted = doc.getBoolean("deleted");
-                                if (deleted == null || !deleted) {
-                                    messages.add(doc);
-                                }
-                            }
-                            adapter.notifyDataSetChanged();
-                            if (messages.size() > 0) {
-                                rvMessages.scrollToPosition(messages.size() - 1);
-                            }
-                        });
+                    Toast.makeText(this, "Chat load error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -188,6 +179,19 @@ public class ChatActivity extends AppCompatActivity {
                         }
                     }
                 }
+
+                // Sort by timestamp client-side (avoids needing Firestore composite index)
+                Collections.sort(messages, new Comparator<DocumentSnapshot>() {
+                    @Override
+                    public int compare(DocumentSnapshot a, DocumentSnapshot b) {
+                        Long tsA = a.getLong("timestamp");
+                        Long tsB = b.getLong("timestamp");
+                        if (tsA == null) tsA = 0L;
+                        if (tsB == null) tsB = 0L;
+                        return Long.compare(tsA, tsB);
+                    }
+                });
+
                 adapter.notifyDataSetChanged();
                 if (messages.size() > 0) {
                     rvMessages.scrollToPosition(messages.size() - 1);
@@ -225,10 +229,42 @@ public class ChatActivity extends AppCompatActivity {
                 if (messages.size() > 0) {
                     rvMessages.scrollToPosition(messages.size() - 1);
                 }
+
+                // Send notification for @mentions
+                if (!mentions.isEmpty()) {
+                    sendMentionNotifications(text, mentions);
+                }
+
+                // Send notification for chat message to all players
+                sendChatNotification(text);
             })
             .addOnFailureListener(e -> {
                 Toast.makeText(this, "Send failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
+    }
+
+    private void sendChatNotification(String text) {
+        // Save to notifications collection so Cloud Function triggers FCM push
+        Map<String, Object> notification = new HashMap<>();
+        notification.put("title", "💬 New Chat Message");
+        notification.put("message", (userName != null ? userName : "Unknown") + ": " + text);
+        notification.put("type", "chat");
+        notification.put("timestamp", System.currentTimeMillis());
+        notification.put("sentBy", userName);
+
+        db.collection("notifications").add(notification);
+    }
+
+    private void sendMentionNotifications(String text, List<String> mentionedNames) {
+        String mentionList = String.join(", ", mentionedNames);
+        Map<String, Object> notification = new HashMap<>();
+        notification.put("title", "📢 You were mentioned in chat!");
+        notification.put("message", (userName != null ? userName : "Unknown") + " mentioned " + mentionList + ": " + text);
+        notification.put("type", "mention");
+        notification.put("timestamp", System.currentTimeMillis());
+        notification.put("mentions", mentionedNames);
+
+        db.collection("notifications").add(notification);
     }
 
     class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.VH> {

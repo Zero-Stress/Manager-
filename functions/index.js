@@ -48,6 +48,9 @@ exports.sendPushNotification = onDocumentCreated(
 
     console.log(`Sending push to ${tokens.length} devices`);
 
+    // Choose channel based on type
+    const channelId = type === "chat" || type === "mention" ? "zs_chat" : "zs_notifications";
+
     // Build FCM message
     const message = {
       notification: {
@@ -62,7 +65,7 @@ exports.sendPushNotification = onDocumentCreated(
       android: {
         priority: "high",
         notification: {
-          channelId: type === "chat" ? "zs_chat" : "zs_notifications",
+          channelId: channelId,
           priority: "high",
         },
       },

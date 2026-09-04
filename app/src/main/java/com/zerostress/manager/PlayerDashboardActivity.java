@@ -1,17 +1,33 @@
 package com.zerostress.manager;
 
+import android.Manifest;
+import android.app.NotificationManager;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 public class PlayerDashboardActivity extends AppCompatActivity {
+
+    private static final int NOTIFICATION_PERMISSION_CODE = 1001;
 
     private TextView tvName, tvScore, tvLevel, tvRank, tvCoins, tvXp;
     private FirebaseAuth auth;
@@ -59,6 +75,12 @@ public class PlayerDashboardActivity extends AppCompatActivity {
             finish();
         });
 
+        // Request notification permission on Android 13+
+        requestNotificationPermission();
+
+        // Save FCM token
+        com.zerostress.manager.fcm.ZSFCMService.saveTokenToFirestore(this);
+
         loadProfile();
         listenForNotifications();
     }
@@ -77,13 +99,48 @@ public class PlayerDashboardActivity extends AppCompatActivity {
         }
     }
 
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                    NOTIFICATION_PERMISSION_CODE);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == NOTIFICATION_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, re-save FCM token
+                com.zerostress.manager.fcm.ZSFCMService.saveTokenToFirestore(this);
+            }
+        }
+    }
+
     private void listenForNotifications() {
-        long lastCheck = System.currentTimeMillis() - (60 * 1000);
+        // Use a simple get without orderBy to avoid Firestore index issues
+        // Then set up a periodic refresh
         notificationListener = db.collection("notifications")
-            .orderBy("timestamp")
             .addSnapshotListener((snapshots, e) -> {
                 if (e != null || snapshots == null) return;
-                for (var doc : snapshots.getDocuments()) {
+
+                long lastCheck = System.currentTimeMillis() - (60 * 1000);
+
+                // Collect and sort by timestamp client-side
+                List<DocumentSnapshot> docs = new ArrayList<>(snapshots.getDocuments());
+                Collections.sort(docs, (a, b) -> {
+                    Long tsA = a.getLong("timestamp");
+                    Long tsB = b.getLong("timestamp");
+                    if (tsA == null) tsA = 0L;
+                    if (tsB == null) tsB = 0L;
+                    return Long.compare(tsA, tsB);
+                });
+
+                for (DocumentSnapshot doc : docs) {
                     Long ts = doc.getLong("timestamp");
                     if (ts != null && ts > lastCheck) {
                         String title = doc.getString("title");
@@ -97,21 +154,23 @@ public class PlayerDashboardActivity extends AppCompatActivity {
     }
 
     private void showSystemNotification(String title, String body) {
-        android.app.NotificationManager nm = (android.app.NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (nm == null) return;
 
-        android.content.Intent intent = new android.content.Intent(this, PlayerDashboardActivity.class);
-        intent.setFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP | android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+        Intent intent = new Intent(this, PlayerDashboardActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         android.app.PendingIntent pi = android.app.PendingIntent.getActivity(this, 0, intent,
             android.app.PendingIntent.FLAG_ONE_SHOT | android.app.PendingIntent.FLAG_IMMUTABLE);
 
-        android.app.Notification notification = new androidx.core.app.NotificationCompat.Builder(this, com.zerostress.manager.ZeroStressApp.CHANNEL_ID)
-            .setSmallIcon(com.zerostress.manager.R.drawable.ic_notification)
+        android.app.Notification notification = new NotificationCompat.Builder(this, ZeroStressApp.CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText(body)
-            .setStyle(new androidx.core.app.NotificationCompat.BigTextStyle().bigText(body))
+            .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
             .setAutoCancel(true)
-            .setPriority(android.app.NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setDefaults(android.app.Notification.DEFAULT_ALL)
             .setContentIntent(pi)
             .build();
 
