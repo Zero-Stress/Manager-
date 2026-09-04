@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.zerostress.manager.fcm.ZSFCMService;
 
 public class SplashScreenActivity extends AppCompatActivity {
 
@@ -135,6 +136,8 @@ public class SplashScreenActivity extends AppCompatActivity {
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             if (auth.getCurrentUser() != null) {
                 String userId = auth.getCurrentUser().getUid();
+                // Save FCM token so push notifications work after app restart
+                ZSFCMService.saveTokenToFirestore(SplashScreenActivity.this);
                 
                 db.collection("players").document(userId).get()
                     .addOnSuccessListener(doc -> {

@@ -1,0 +1,156 @@
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { initializeApp } = require("firebase-admin/app");
+const { getFirestore } = require("firebase-admin/firestore");
+const { getMessaging } = require("firebase-admin/messaging");
+
+initializeApp();
+
+/**
+ * Trigger: When a document is added to the "notifications" collection,
+ * this function reads all player FCM tokens and sends a push notification.
+ */
+exports.sendPushNotification = onDocumentCreated(
+  "notifications/{notificationId}",
+  async (event) => {
+    const notificationData = event.data.data();
+    if (!notificationData) {
+      console.log("No notification data found");
+      return;
+    }
+
+    const title = notificationData.title || "ZERO STRESS";
+    const body = notificationData.message || notificationData.body || "";
+    const type = notificationData.type || "general";
+
+    if (!body) {
+      console.log("Notification body is empty, skipping");
+      return;
+    }
+
+    console.log(`New notification: "${title}" - "${body}"`);
+
+    // Get all player FCM tokens
+    const db = getFirestore();
+    const playersSnapshot = await db.collection("players").get();
+
+    const tokens = [];
+    for (const doc of playersSnapshot.docs) {
+      const token = doc.data().fcmToken;
+      if (token && typeof token === "string" && token.length > 0) {
+        tokens.push(token);
+      }
+    }
+
+    if (tokens.length === 0) {
+      console.log("No FCM tokens found, skipping push");
+      return;
+    }
+
+    console.log(`Sending push to ${tokens.length} devices`);
+
+    // Build FCM message
+    const message = {
+      notification: {
+        title: title,
+        body: body,
+      },
+      data: {
+        title: title,
+        body: body,
+        type: type,
+      },
+      android: {
+        priority: "high",
+        notification: {
+          channelId: type === "chat" ? "zs_chat" : "zs_notifications",
+          priority: "high",
+        },
+      },
+      tokens: tokens,
+    };
+
+    // Send in batches of 500 (FCM limit)
+    try {
+      const response = await getMessaging().sendEachForMulticast(message);
+      console.log(`Push sent: ${response.successCount} success, ${response.failureCount} failed`);
+
+      // Clean up invalid tokens
+      if (response.failureCount > 0) {
+        const failedTokens = [];
+        response.responses.forEach((resp, idx) => {
+          if (!resp.success) {
+            failedTokens.push(tokens[idx]);
+          }
+        });
+
+        // Remove invalid tokens from Firestore
+        const batch = db.batch();
+        for (const snapshot of playersSnapshot.docs) {
+          const playerToken = snapshot.data().fcmToken;
+          if (failedTokens.includes(playerToken)) {
+            batch.update(snapshot.ref, { fcmToken: null });
+          }
+        }
+        await batch.commit();
+        console.log(`Cleaned up ${failedTokens.length} invalid tokens`);
+      }
+    } catch (error) {
+      console.error("Error sending push notification:", error);
+    }
+  }
+);
+
+/**
+ * Trigger: When a document is added to the "announcements" collection,
+ * send a push notification for announcements.
+ */
+exports.sendAnnouncementNotification = onDocumentCreated(
+  "announcements/{announcementId}",
+  async (event) => {
+    const data = event.data.data();
+    if (!data) return;
+
+    const text = data.text || "";
+    if (!text) return;
+
+    const db = getFirestore();
+    const playersSnapshot = await db.collection("players").get();
+
+    const tokens = [];
+    for (const doc of playersSnapshot.docs) {
+      const token = doc.data().fcmToken;
+      if (token && typeof token === "string" && token.length > 0) {
+        tokens.push(token);
+      }
+    }
+
+    if (tokens.length === 0) return;
+
+    const message = {
+      notification: {
+        title: "📢 Announcement",
+        body: text,
+      },
+      data: {
+        title: "Announcement",
+        body: text,
+        type: "announcement",
+      },
+      android: {
+        priority: "high",
+        notification: {
+          channelId: "zs_notifications",
+          priority: "high",
+        },
+      },
+      tokens: tokens,
+    };
+
+    try {
+      const response = await getMessaging().sendEachForMulticast(message);
+      console.log(`Announcement push sent: ${response.successCount} success, ${response.failureCount} failed`);
+    } catch (error) {
+      console.error("Error sending announcement push:", error);
+    }
+  }
+);

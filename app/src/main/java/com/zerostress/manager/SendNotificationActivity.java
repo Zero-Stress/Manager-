@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +38,11 @@ public class SendNotificationActivity extends AppCompatActivity {
 
         btnSend.setOnClickListener(v -> sendNotification());
         btnQuickAlert.setOnClickListener(v -> showQuickAlertDialog());
+
+        // Ensure we are subscribed to topics
+        FirebaseMessaging.getInstance().subscribeToTopic("all_players");
+        FirebaseMessaging.getInstance().subscribeToTopic("match_updates");
+        FirebaseMessaging.getInstance().subscribeToTopic("announcements");
     }
 
     private void sendNotification() {
@@ -67,8 +73,10 @@ public class SendNotificationActivity extends AppCompatActivity {
                 // Also save with ID for tracking
                 docRef.update("id", docRef.getId());
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(this, "✅ Notification sent to all players!\n" +
-                    "Players will see it in-app and via push.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "✅ Notification sent!\n\n" +
+                    "• Foreground: instant in-app display\n" +
+                    "• Background/Killed: FCM push via Cloud Function\n" +
+                    "• Players will receive system notification", Toast.LENGTH_LONG).show();
                 etTitle.setText("");
                 etMessage.setText("");
             })

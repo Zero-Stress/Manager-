@@ -60,27 +60,44 @@ public class ZSFCMService extends FirebaseMessagingService {
         }
     }
 
+    public static void saveTokenToFirestore(Context context) {
+        FirebaseMessaging.getInstance().getToken()
+            .addOnCompleteListener(task -> {
+                if (!task.isSuccessful()) {
+                    Log.e(TAG, "FCM token fetch failed", task.getException());
+                    return;
+                }
+                String token = task.getResult();
+                if (token == null) return;
+
+                FirebaseAuth auth = FirebaseAuth.getInstance();
+                String uid = null;
+                if (auth.getCurrentUser() != null) {
+                    uid = auth.getCurrentUser().getUid();
+                } else {
+                    uid = auth.getUid();
+                }
+
+                if (uid != null) {
+                    Map<String, Object> tokenData = new HashMap<>();
+                    tokenData.put("fcmToken", token);
+                    tokenData.put("tokenUpdated", System.currentTimeMillis());
+
+                    FirebaseFirestore.getInstance()
+                        .collection("players").document(uid)
+                        .update(tokenData)
+                        .addOnSuccessListener(v -> Log.d(TAG, "FCM token saved for user: " + uid))
+                        .addOnFailureListener(e -> Log.e(TAG, "Failed to save token: " + e.getMessage()));
+                } else {
+                    Log.w(TAG, "No user logged in, saving token to SharedPreferences for later");
+                    context.getSharedPreferences("zs_fcm", Context.MODE_PRIVATE)
+                        .edit().putString("pending_token", token).apply();
+                }
+            });
+    }
+
     private void saveTokenToFirestore(String token) {
-        String uid = FirebaseAuth.getInstance().getUid();
-        if (uid == null) {
-            // Try to get current user without auth state listener
-            FirebaseAuth auth = FirebaseAuth.getInstance();
-            if (auth.getCurrentUser() != null) {
-                uid = auth.getCurrentUser().getUid();
-            }
-        }
-        
-        if (uid != null) {
-            Map<String, Object> tokenData = new HashMap<>();
-            tokenData.put("fcmToken", token);
-            tokenData.put("tokenUpdated", System.currentTimeMillis());
-            
-            FirebaseFirestore.getInstance()
-                .collection("players").document(uid)
-                .update(tokenData)
-                .addOnSuccessListener(v -> Log.d(TAG, "FCM token saved"))
-                .addOnFailureListener(e -> Log.e(TAG, "Failed to save token: " + e.getMessage()));
-        }
+        saveTokenToFirestore(getApplicationContext());
     }
 
     private void subscribeToTopics() {
