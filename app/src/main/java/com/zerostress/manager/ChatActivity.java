@@ -2,11 +2,11 @@ package com.zerostress.manager;
 
 import android.graphics.Color;
 import android.os.Bundle;
-import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +25,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -44,6 +45,7 @@ public class ChatActivity extends AppCompatActivity {
     private List<DocumentSnapshot> players = new ArrayList<>();
     private FirebaseFirestore db;
     private String userId, userName;
+    private ListenerRegistration chatListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +59,7 @@ public class ChatActivity extends AppCompatActivity {
         rvMessages = findViewById(R.id.rvMessages);
         progressBar = findViewById(R.id.progressBar);
         MaterialButton btnSend = findViewById(R.id.btnSend);
+        TextView btnMention = findViewById(R.id.btnMention);
 
         LinearLayoutManager lm = new LinearLayoutManager(this);
         lm.setStackFromEnd(true);
@@ -64,23 +67,38 @@ public class ChatActivity extends AppCompatActivity {
         adapter = new MessageAdapter();
         rvMessages.setAdapter(adapter);
 
+        // Load user name
         db.collection("players").document(userId).get()
             .addOnSuccessListener(doc -> {
-                userName = doc.getString("name");
-                if (userName == null) userName = "Unknown";
+                if (doc.exists()) {
+                    userName = doc.getString("name");
+                    if (userName == null) userName = "Unknown";
+                }
             });
 
-        // Load players for @mention
+        // Load players for @mention (include ALL players + admins)
         loadPlayers();
 
-        // Add @mention button
+        // @ button in input bar — tap to show mention picker
+        btnMention.setOnClickListener(v -> showMentionDialog());
+
+        // Also support long-press on EditText for mentions
         etMessage.setOnLongClickListener(v -> {
             showMentionDialog();
             return true;
         });
 
+        // Send on button click
         btnSend.setOnClickListener(v -> sendMessage());
+
+        // Load messages
         loadMessages();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (chatListener != null) chatListener.remove();
     }
 
     private void loadPlayers() {
@@ -90,41 +108,77 @@ public class ChatActivity extends AppCompatActivity {
             .addOnSuccessListener(query -> {
                 players.clear();
                 for (DocumentSnapshot doc : query.getDocuments()) {
-                    String role = doc.getString("role");
-                    if (!"admin".equals(role)) {
-                        players.add(doc);
-                    }
+                    // Include ALL approved players for mentions (including admins)
+                    players.add(doc);
                 }
+            })
+            .addOnFailureListener(e -> {
+                // Fallback: try without status filter
+                db.collection("players").get()
+                    .addOnSuccessListener(query -> {
+                        players.clear();
+                        for (DocumentSnapshot doc : query.getDocuments()) {
+                            players.add(doc);
+                        }
+                    });
             });
     }
 
     private void showMentionDialog() {
         if (players.isEmpty()) {
-            Toast.makeText(this, "No players found", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No players found. Try again in a moment.", Toast.LENGTH_SHORT).show();
+            loadPlayers();
             return;
         }
 
         String[] playerNames = new String[players.size()];
         for (int i = 0; i < players.size(); i++) {
-            playerNames[i] = players.get(i).getString("name");
+            String name = players.get(i).getString("name");
+            String role = players.get(i).getString("role");
+            playerNames[i] = (name != null ? name : "Unknown") + ("admin".equals(role) ? " 👑" : "");
         }
 
         new AlertDialog.Builder(this)
             .setTitle("📢 Mention a Player")
             .setItems(playerNames, (dialog, which) -> {
-                String mentionedName = playerNames[which];
+                String cleanName = playerNames[which].replace(" 👑", "");
                 String currentText = etMessage.getText().toString();
-                etMessage.setText(currentText + "@" + mentionedName + " ");
+                etMessage.setText(currentText + "@" + cleanName + " ");
                 etMessage.setSelection(etMessage.getText().length());
             })
+            .setNegativeButton("Cancel", null)
             .show();
     }
 
     private void loadMessages() {
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+
+        // Use simple get first to avoid index issues, then set up listener
         db.collection("chat_messages")
             .orderBy("timestamp")
+            .limit(100)
             .addSnapshotListener((snapshots, e) -> {
-                if (e != null) return;
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
+
+                if (e != null) {
+                    // Firestore query might need index — try without orderBy
+                    db.collection("chat_messages").limit(100).get()
+                        .addOnSuccessListener(query -> {
+                            messages.clear();
+                            for (DocumentSnapshot doc : query.getDocuments()) {
+                                Boolean deleted = doc.getBoolean("deleted");
+                                if (deleted == null || !deleted) {
+                                    messages.add(doc);
+                                }
+                            }
+                            adapter.notifyDataSetChanged();
+                            if (messages.size() > 0) {
+                                rvMessages.scrollToPosition(messages.size() - 1);
+                            }
+                        });
+                    return;
+                }
+
                 messages.clear();
                 if (snapshots != null) {
                     for (DocumentSnapshot doc : snapshots.getDocuments()) {
@@ -145,7 +199,7 @@ public class ChatActivity extends AppCompatActivity {
         String text = etMessage.getText().toString().trim();
         if (TextUtils.isEmpty(text)) return;
 
-        // Check for mentions
+        // Check for @mentions
         List<String> mentions = new ArrayList<>();
         for (DocumentSnapshot player : players) {
             String name = player.getString("name");
@@ -165,8 +219,16 @@ public class ChatActivity extends AppCompatActivity {
         }
 
         db.collection("chat_messages").add(msg)
-            .addOnSuccessListener(v -> etMessage.setText(""))
-            .addOnFailureListener(e -> Toast.makeText(this, "Send failed", Toast.LENGTH_SHORT).show());
+            .addOnSuccessListener(v -> {
+                etMessage.setText("");
+                // Scroll to bottom
+                if (messages.size() > 0) {
+                    rvMessages.scrollToPosition(messages.size() - 1);
+                }
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Send failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
     }
 
     class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.VH> {
@@ -192,10 +254,10 @@ public class ChatActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull VH holder, int position) {
             DocumentSnapshot doc = messages.get(position);
             holder.tvSender.setText(doc.getString("senderName"));
-            
+
             String text = doc.getString("text");
-            
-            // Highlight @mentions
+
+            // Highlight @mentions with bold + color
             if (text != null && text.contains("@")) {
                 SpannableStringBuilder builder = new SpannableStringBuilder(text);
                 for (DocumentSnapshot player : players) {
@@ -205,7 +267,13 @@ public class ChatActivity extends AppCompatActivity {
                         int startIndex = text.indexOf(mention);
                         while (startIndex >= 0) {
                             builder.setSpan(
-                                new ForegroundColorSpan(Color.parseColor("#667eea")),
+                                new ForegroundColorSpan(Color.parseColor("#38bdf8")),
+                                startIndex,
+                                startIndex + mention.length(),
+                                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                            );
+                            builder.setSpan(
+                                new StyleSpan(android.graphics.Typeface.BOLD),
                                 startIndex,
                                 startIndex + mention.length(),
                                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -218,7 +286,7 @@ public class ChatActivity extends AppCompatActivity {
             } else {
                 holder.tvText.setText(text);
             }
-            
+
             Long ts = doc.getLong("timestamp");
             if (ts != null) {
                 SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());

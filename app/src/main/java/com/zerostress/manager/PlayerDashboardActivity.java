@@ -78,19 +78,44 @@ public class PlayerDashboardActivity extends AppCompatActivity {
     }
 
     private void listenForNotifications() {
-        long lastCheck = System.currentTimeMillis() - (60 * 1000); // Last 1 minute
+        long lastCheck = System.currentTimeMillis() - (60 * 1000);
         notificationListener = db.collection("notifications")
-            .whereGreaterThan("timestamp", lastCheck)
+            .orderBy("timestamp")
             .addSnapshotListener((snapshots, e) -> {
                 if (e != null || snapshots == null) return;
                 for (var doc : snapshots.getDocuments()) {
-                    String title = doc.getString("title");
-                    String message = doc.getString("message");
-                    if (title != null && message != null) {
-                        Toast.makeText(this, "📢 " + title + "\n" + message, Toast.LENGTH_LONG).show();
+                    Long ts = doc.getLong("timestamp");
+                    if (ts != null && ts > lastCheck) {
+                        String title = doc.getString("title");
+                        String message = doc.getString("message");
+                        if (title != null && message != null) {
+                            showSystemNotification(title, message);
+                        }
                     }
                 }
             });
+    }
+
+    private void showSystemNotification(String title, String body) {
+        android.app.NotificationManager nm = (android.app.NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        if (nm == null) return;
+
+        android.content.Intent intent = new android.content.Intent(this, PlayerDashboardActivity.class);
+        intent.setFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP | android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+        android.app.PendingIntent pi = android.app.PendingIntent.getActivity(this, 0, intent,
+            android.app.PendingIntent.FLAG_ONE_SHOT | android.app.PendingIntent.FLAG_IMMUTABLE);
+
+        android.app.Notification notification = new androidx.core.app.NotificationCompat.Builder(this, com.zerostress.manager.ZeroStressApp.CHANNEL_ID)
+            .setSmallIcon(com.zerostress.manager.R.drawable.ic_notification)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setStyle(new androidx.core.app.NotificationCompat.BigTextStyle().bigText(body))
+            .setAutoCancel(true)
+            .setPriority(android.app.NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pi)
+            .build();
+
+        nm.notify((int) System.currentTimeMillis(), notification);
     }
 
     private void loadProfile() {
