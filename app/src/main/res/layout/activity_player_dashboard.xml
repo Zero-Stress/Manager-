@@ -254,9 +254,9 @@
         android:orientation="horizontal"
         android:layout_marginBottom="8dp">
 
-        <!-- Submit Match -->
+        <!-- Schedule -->
         <LinearLayout
-            android:id="@+id/btnSubmitMatch"
+            android:id="@+id/btnScheduleTop"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -271,13 +271,13 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📝"
+                android:text="🗓️"
                 android:textSize="28sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="SUBMIT"
+                android:text="SCHEDULE"
                 android:textColor="@color/text_primary"
                 android:textSize="10sp"
                 android:letterSpacing="0.1"

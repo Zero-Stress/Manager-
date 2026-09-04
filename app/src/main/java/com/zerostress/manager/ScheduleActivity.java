@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,6 +30,7 @@ public class ScheduleActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private FirebaseAuth auth;
     private List<DocumentSnapshot> schedules = new ArrayList<>();
+    private boolean isAdmin = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +43,19 @@ public class ScheduleActivity extends AppCompatActivity {
         tvEmpty = findViewById(R.id.tvEmpty);
 
         rvSchedules.setLayoutManager(new LinearLayoutManager(this));
+        checkUserRole();
         loadSchedules();
+    }
+
+    private void checkUserRole() {
+        String uid = auth.getUid();
+        if (uid == null) return;
+        db.collection("players").document(uid).get()
+            .addOnSuccessListener(doc -> {
+                if (doc.exists()) {
+                    isAdmin = "admin".equals(doc.getString("role"));
+                }
+            });
     }
 
     private void loadSchedules() {
@@ -117,7 +131,15 @@ public class ScheduleActivity extends AppCompatActivity {
             String status = doc.getString("status");
             holder.tvStatus.setText(status != null ? status : "Upcoming");
 
-            // Long press to delete (for all users who can access schedule)
+            // Show delete button for admin
+            if (isAdmin) {
+                holder.btnDelete.setVisibility(View.VISIBLE);
+                holder.btnDelete.setOnClickListener(v -> deleteSchedule(doc.getId()));
+            } else {
+                holder.btnDelete.setVisibility(View.GONE);
+            }
+
+            // Long press to delete for anyone
             holder.itemView.setOnLongClickListener(v -> {
                 deleteSchedule(doc.getId());
                 return true;
@@ -129,12 +151,14 @@ public class ScheduleActivity extends AppCompatActivity {
 
         class VH extends RecyclerView.ViewHolder {
             TextView tvTitle, tvDesc, tvTime, tvStatus;
+            ImageButton btnDelete;
             VH(View v) {
                 super(v);
                 tvTitle = v.findViewById(R.id.tvScheduleTitle);
                 tvDesc = v.findViewById(R.id.tvScheduleDesc);
                 tvTime = v.findViewById(R.id.tvScheduleTime);
                 tvStatus = v.findViewById(R.id.tvScheduleStatus);
+                btnDelete = v.findViewById(R.id.btnDeleteSchedule);
             }
         }
     }

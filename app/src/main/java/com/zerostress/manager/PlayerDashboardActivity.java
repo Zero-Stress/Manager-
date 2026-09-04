@@ -52,7 +52,7 @@ public class PlayerDashboardActivity extends AppCompatActivity {
         tvXp = findViewById(R.id.tvXp);
 
         // Navigation buttons
-        findViewById(R.id.btnSubmitMatch).setOnClickListener(v -> startActivity(new Intent(this, SubmitMatchActivity.class)));
+        findViewById(R.id.btnScheduleTop).setOnClickListener(v -> startActivity(new Intent(this, ScheduleActivity.class)));
         findViewById(R.id.btnLeaderboard).setOnClickListener(v -> startActivity(new Intent(this, LeaderboardActivity.class)));
         findViewById(R.id.btnChat).setOnClickListener(v -> startActivity(new Intent(this, ChatActivity.class)));
         findViewById(R.id.btnVoice).setOnClickListener(v -> startActivity(new Intent(this, VoiceActivity.class)));
