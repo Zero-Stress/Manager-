@@ -12,7 +12,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,7 +46,7 @@ public class VoiceActivity extends AppCompatActivity {
         btnPushToTalk, btnHandRaise, btnMoreOptions, btnBack;
     private RecyclerView rvUsers, rvChat;
     private EditText etChatMessage;
-    private ScrollView chatContainer;
+    private View chatContainer;
     private FirebaseFirestore db;
     private String userId, userName, userStatus = "ONLINE";
     private boolean isInVoice = false;
