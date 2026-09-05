@@ -62,9 +62,7 @@ public class NotificationsActivity extends AppCompatActivity {
                 .addSnapshotListener((snap, error) -> {
                     if (error != null) return;
                     List<DocumentSnapshot> notifs = new ArrayList<>();
-                    if (snap != null) {
-                        notifs.addAll(snap.getDocuments());
-                    }
+                    if (snap != null) notifs.addAll(snap.getDocuments());
                     adapter.setNotifs(notifs);
                     tvEmpty.setVisibility(notifs.isEmpty() ? View.VISIBLE : View.GONE);
                 });
@@ -91,7 +89,7 @@ public class NotificationsActivity extends AppCompatActivity {
             holder.tvTitle.setText(doc.getString("title"));
             holder.tvMessage.setText(doc.getString("message"));
             Long ts = doc.getLong("timestamp");
-            holder.tvTime.setText(ts != null ? NotificationActivity.this.formatTime(ts) : "");
+            holder.tvTime.setText(ts != null ? formatTime(ts) : "");
         }
 
         @Override
@@ -109,19 +107,10 @@ public class NotificationsActivity extends AppCompatActivity {
                 tvTime = v.findViewById(R.id.tvNotifTime);
             }
         }
-    }
 
-    static class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.VH> {
-        ...
-    }
-
-    private String formatTime(long ts) {
-        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault());
-        return sdf.format(new Date(ts));
-    }
-
-    private static String formatTimeStatic(long ts) {
-        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault());
-        return sdf.format(new Date(ts));
+        private static String formatTime(long ts) {
+            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault());
+            return sdf.format(new Date(ts));
+        }
     }
 }
