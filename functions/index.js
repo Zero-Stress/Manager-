@@ -21,6 +21,8 @@ exports.sendPushNotification = onDocumentCreated(
     const title = notificationData.title || "ZERO STRESS";
     const body = notificationData.message || notificationData.body || "";
     const type = notificationData.type || "general";
+    // Optional: skip pushing to the author of the notification (e.g. chat sender)
+    const senderId = notificationData.senderId || null;
 
     if (!body) {
       console.log("Notification body is empty, skipping");
@@ -35,6 +37,8 @@ exports.sendPushNotification = onDocumentCreated(
 
     const tokens = [];
     for (const doc of playersSnapshot.docs) {
+      // Don't push back to the sender (e.g. chat author)
+      if (senderId && doc.id === senderId) continue;
       const token = doc.data().fcmToken;
       if (token && typeof token === "string" && token.length > 0) {
         tokens.push(token);
@@ -99,6 +103,62 @@ exports.sendPushNotification = onDocumentCreated(
       }
     } catch (error) {
       console.error("Error sending push notification:", error);
+    }
+  }
+);
+
+/**
+ * Trigger: When the admin adds a new match schedule, push an alert
+ * to every registered player device.
+ */
+exports.sendScheduleNotification = onDocumentCreated(
+  "match_schedules/{scheduleId}",
+  async (event) => {
+    const data = event.data.data();
+    if (!data) return;
+
+    const title = data.title || "New Match";
+    const when = data.dateTime || "TBD";
+    const type = data.type || "Custom";
+
+    const db = getFirestore();
+    const playersSnapshot = await db.collection("players").get();
+
+    const tokens = [];
+    for (const doc of playersSnapshot.docs) {
+      const token = doc.data().fcmToken;
+      if (token && typeof token === "string" && token.length > 0) {
+        tokens.push(token);
+      }
+    }
+
+    if (tokens.length === 0) return;
+
+    const message = {
+      notification: {
+        title: "🗓️ Match Scheduled: " + title,
+        body: type + " match • " + when + "\nOpen the app to view the schedule.",
+      },
+      data: {
+        title: "Match Scheduled",
+        body: title + " • " + when,
+        type: "schedule",
+      },
+      android: {
+        priority: "high",
+        notification: {
+          channelId: "zs_notifications",
+          priority: "high",
+        },
+      },
+      tokens: tokens,
+    };
+
+    try {
+      const response = await getMessaging().sendEachForMulticast(message);
+      console.log(`Schedule push sent: ${response.successCount} success, ${response.failureCount} failed`);
+    } catch (error) {
+      console.error("Error sending schedule push:", error);
     }
   }
 );

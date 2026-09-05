@@ -60,7 +60,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         // Navigation buttons
         findViewById(R.id.btnPlayerManagement).setOnClickListener(v -> showPlayerList());
         findViewById(R.id.btnDailyInput).setOnClickListener(v -> startActivity(new Intent(this, DailyInputActivity.class)));
-        findViewById(R.id.btnAnnouncements).setOnClickListener(v -> showEditScheduleDialog());
+        findViewById(R.id.btnAnnouncements).setOnClickListener(v -> showAnnouncementOrScheduleDialog());
         findViewById(R.id.btnLeaderboard).setOnClickListener(v -> startActivity(new Intent(this, LeaderboardActivity.class)));
         findViewById(R.id.btnChat).setOnClickListener(v -> startActivity(new Intent(this, ChatActivity.class)));
         findViewById(R.id.btnVoice).setOnClickListener(v -> startActivity(new Intent(this, VoiceActivity.class)));
@@ -132,9 +132,27 @@ public class AdminDashboardActivity extends AppCompatActivity {
         }
     }
 
+    private void showAnnouncementOrScheduleDialog() {
+        // Admin picks: Schedule a match OR broadcast an announcement
+        String[] options = {
+            "📋 Create Match Schedule",
+            "📢 Broadcast Announcement"
+        };
+        new AlertDialog.Builder(this)
+            .setTitle("What do you want to do?")
+            .setItems(options, (d, which) -> {
+                if (which == 0) showEditScheduleDialog();
+                else showAnnouncementDialog();
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+
     private void showAnnouncementDialog() {
         EditText input = new EditText(this);
         input.setHint("Type announcement...");
+        input.setTextColor(0xFFFFFFFF);
+        input.setHintTextColor(0xFF718096);
         input.setMinLines(3);
 
         new AlertDialog.Builder(this)
@@ -148,7 +166,10 @@ public class AdminDashboardActivity extends AppCompatActivity {
                     ann.put("author", "Admin");
                     ann.put("timestamp", System.currentTimeMillis());
                     db.collection("announcements").add(ann)
-                        .addOnSuccessListener(v -> Toast.makeText(this, "Announcement sent!", Toast.LENGTH_SHORT).show());
+                        .addOnSuccessListener(v -> {
+                            Toast.makeText(this, "📢 Announcement sent to all players!", Toast.LENGTH_SHORT).show();
+                            // Cloud Function pushes FCM automatically on new announcement
+                        });
                 }
             })
             .setNegativeButton("Cancel", null)

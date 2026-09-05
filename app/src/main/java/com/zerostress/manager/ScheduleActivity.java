@@ -138,12 +138,6 @@ public class ScheduleActivity extends AppCompatActivity {
             } else {
                 holder.btnDelete.setVisibility(View.GONE);
             }
-
-            // Long press to delete for anyone
-            holder.itemView.setOnLongClickListener(v -> {
-                deleteSchedule(doc.getId());
-                return true;
-            });
         }
 
         @Override

@@ -1,29 +1,19 @@
 package com.zerostress.manager;
 
 import android.Manifest;
-import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.ListenerRegistration;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 
 public class PlayerDashboardActivity extends AppCompatActivity {
 
@@ -33,7 +23,6 @@ public class PlayerDashboardActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     private FirebaseFirestore db;
     private String uid;
-    private ListenerRegistration notificationListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,15 +48,16 @@ public class PlayerDashboardActivity extends AppCompatActivity {
         findViewById(R.id.btnProfile).setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
         findViewById(R.id.btnFriends).setOnClickListener(v -> startActivity(new Intent(this, FriendsActivity.class)));
         findViewById(R.id.btnSeasons).setOnClickListener(v -> startActivity(new Intent(this, SeasonActivity.class)));
-        findViewById(R.id.btnSchedule).setOnClickListener(v -> startActivity(new Intent(this, ScheduleActivity.class)));
-        
+        findViewById(R.id.btnAchievements).setOnClickListener(v -> startActivity(new Intent(this, AchievementsActivity.class)));
+        findViewById(R.id.btnNews).setOnClickListener(v -> startActivity(new Intent(this, AnnouncementsActivity.class)));
+
         // New features
         findViewById(R.id.btnDailyRewards).setOnClickListener(v -> startActivity(new Intent(this, DailyLoginRewardsActivity.class)));
         findViewById(R.id.btnChallenges).setOnClickListener(v -> startActivity(new Intent(this, DailyChallengesActivity.class)));
         findViewById(R.id.btnBattlePass).setOnClickListener(v -> startActivity(new Intent(this, BattlePassActivity.class)));
         findViewById(R.id.btnTitles).setOnClickListener(v -> startActivity(new Intent(this, PlayerTitlesActivity.class)));
         findViewById(R.id.btnPerformance).setOnClickListener(v -> startActivity(new Intent(this, PerformanceGraphsActivity.class)));
-        
+
         findViewById(R.id.btnSettings).setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
         findViewById(R.id.btnLogout).setOnClickListener(v -> {
             auth.signOut();
@@ -82,21 +72,12 @@ public class PlayerDashboardActivity extends AppCompatActivity {
         com.zerostress.manager.fcm.ZSFCMService.saveTokenToFirestore(this);
 
         loadProfile();
-        listenForNotifications();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         loadProfile();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (notificationListener != null) {
-            notificationListener.remove();
-        }
     }
 
     private void requestNotificationPermission() {
@@ -119,62 +100,6 @@ public class PlayerDashboardActivity extends AppCompatActivity {
                 com.zerostress.manager.fcm.ZSFCMService.saveTokenToFirestore(this);
             }
         }
-    }
-
-    private void listenForNotifications() {
-        // Use a simple get without orderBy to avoid Firestore index issues
-        // Then set up a periodic refresh
-        notificationListener = db.collection("notifications")
-            .addSnapshotListener((snapshots, e) -> {
-                if (e != null || snapshots == null) return;
-
-                long lastCheck = System.currentTimeMillis() - (60 * 1000);
-
-                // Collect and sort by timestamp client-side
-                List<DocumentSnapshot> docs = new ArrayList<>(snapshots.getDocuments());
-                Collections.sort(docs, (a, b) -> {
-                    Long tsA = a.getLong("timestamp");
-                    Long tsB = b.getLong("timestamp");
-                    if (tsA == null) tsA = 0L;
-                    if (tsB == null) tsB = 0L;
-                    return Long.compare(tsA, tsB);
-                });
-
-                for (DocumentSnapshot doc : docs) {
-                    Long ts = doc.getLong("timestamp");
-                    if (ts != null && ts > lastCheck) {
-                        String title = doc.getString("title");
-                        String message = doc.getString("message");
-                        if (title != null && message != null) {
-                            showSystemNotification(title, message);
-                        }
-                    }
-                }
-            });
-    }
-
-    private void showSystemNotification(String title, String body) {
-        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        if (nm == null) return;
-
-        Intent intent = new Intent(this, PlayerDashboardActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        android.app.PendingIntent pi = android.app.PendingIntent.getActivity(this, 0, intent,
-            android.app.PendingIntent.FLAG_ONE_SHOT | android.app.PendingIntent.FLAG_IMMUTABLE);
-
-        android.app.Notification notification = new NotificationCompat.Builder(this, ZeroStressApp.CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
-            .setAutoCancel(true)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setDefaults(android.app.Notification.DEFAULT_ALL)
-            .setContentIntent(pi)
-            .build();
-
-        nm.notify((int) System.currentTimeMillis(), notification);
     }
 
     private void loadProfile() {

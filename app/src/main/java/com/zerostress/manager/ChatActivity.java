@@ -308,12 +308,14 @@ public class ChatActivity extends AppCompatActivity {
 
     private void sendChatNotification(String text) {
         // Save to notifications collection so Cloud Function triggers FCM push
+        // senderId is used by the Cloud Function to skip pushing to this device
         Map<String, Object> notification = new HashMap<>();
         notification.put("title", "💬 New Chat Message");
         notification.put("message", (userName != null ? userName : "Unknown") + ": " + text);
         notification.put("type", "chat");
         notification.put("timestamp", System.currentTimeMillis());
         notification.put("sentBy", userName);
+        notification.put("senderId", userId);
 
         db.collection("notifications").add(notification);
     }
@@ -326,6 +328,7 @@ public class ChatActivity extends AppCompatActivity {
         notification.put("type", "mention");
         notification.put("timestamp", System.currentTimeMillis());
         notification.put("mentions", mentionedNames);
+        notification.put("senderId", userId);
 
         db.collection("notifications").add(notification);
     }

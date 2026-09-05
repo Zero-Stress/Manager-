@@ -34,10 +34,13 @@
     </LinearLayout>
 
     <TextView
+        android:id="@+id/tvFriendOnline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="🟢 Online"
         android:textColor="#10b981"
-        android:textSize="12sp" />
+        android:textSize="12sp"
+        android:padding="6dp"
+        android:background="?attr/selectableItemBackground" />
 
 </LinearLayout>

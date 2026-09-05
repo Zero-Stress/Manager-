@@ -164,6 +164,11 @@ public class VoiceActivity extends AppCompatActivity {
             .get()
             .addOnSuccessListener(query -> {
                 voiceUsers.clear();
+                if (query.isEmpty()) {
+                    rvUsers.setAdapter(new VoiceUsersAdapter());
+                    if (tvStatus != null) tvStatus.setText("🔇 No channels created yet");
+                    return;
+                }
                 for (DocumentSnapshot doc : query.getDocuments()) {
                     // Load users in each channel
                     loadChannelUsers(doc.getId(), doc.getString("name"));
@@ -177,6 +182,16 @@ public class VoiceActivity extends AppCompatActivity {
             .get()
             .addOnSuccessListener(query -> {
                 for (DocumentSnapshot doc : query.getDocuments()) {
+                    // Skip if already added (channel may appear in multiple loads)
+                    boolean exists = false;
+                    for (VoiceUserInfo existing : voiceUsers) {
+                        if (existing.userId != null && existing.userId.equals(doc.getId())) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                    if (exists) continue;
+
                     VoiceUserInfo user = new VoiceUserInfo();
                     user.userId = doc.getId();
                     user.userName = doc.getString("userName");
@@ -361,10 +376,26 @@ public class VoiceActivity extends AppCompatActivity {
             .addOnSuccessListener(query -> {
                 List<String> channelNames = new ArrayList<>();
                 List<String> channelIds = new ArrayList<>();
-                
+
                 for (DocumentSnapshot doc : query.getDocuments()) {
-                    channelNames.add(doc.getString("name"));
+                    String name = doc.getString("name");
+                    if (name == null || name.isEmpty()) name = doc.getId();
+                    channelNames.add(name);
                     channelIds.add(doc.getId());
+                }
+
+                if (channelIds.isEmpty()) {
+                    if (isAdmin) {
+                        new AlertDialog.Builder(this)
+                            .setTitle("🎙️ No Voice Channels")
+                            .setMessage("There are no voice channels yet.\n\nCreate one from the admin panel (➕ button) first.")
+                            .setPositiveButton("Create Channel", (d, w) -> showCreateChannelDialog())
+                            .setNegativeButton("Cancel", null)
+                            .show();
+                    } else {
+                        Toast.makeText(this, "📢 No voice channels available yet.\nAsk the admin to create one.", Toast.LENGTH_LONG).show();
+                    }
+                    return;
                 }
 
                 String[] namesArray = channelNames.toArray(new String[0]);
@@ -374,7 +405,11 @@ public class VoiceActivity extends AppCompatActivity {
                     .setItems(namesArray, (dialog, which) -> {
                         joinVoiceChannel(channelIds.get(which), channelNames.get(which));
                     })
+                    .setNegativeButton("Cancel", null)
                     .show();
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Failed to load channels: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             });
     }
 
@@ -525,6 +560,10 @@ public class VoiceActivity extends AppCompatActivity {
     }
 
     private void showMoreOptions() {
+        if (currentChannelId == null) {
+            Toast.makeText(this, "Join a voice channel first", Toast.LENGTH_SHORT).show();
+            return;
+        }
         String[] options = {
             "Set Status", "User Profile", "Direct Message", 
             "Invite Friend", "Report User", "Channel Info"
@@ -546,6 +585,7 @@ public class VoiceActivity extends AppCompatActivity {
     }
 
     private void showStatusDialog() {
+        if (currentChannelId == null) return;
         String[] statuses = {"🟢 Online", "🟡 Idle", "🔴 Do Not Disturb"};
         new AlertDialog.Builder(this)
             .setTitle("Set Status")
@@ -553,7 +593,6 @@ public class VoiceActivity extends AppCompatActivity {
                 String[] statusValues = {"ONLINE", "IDLE", "DO_NOT_DISTURB"};
                 userStatus = statusValues[which];
                 tvUserStatus.setText(statuses[which]);
-                updateParticipantField("userStatus", false); // Will update with string
                 db.collection("voice_channels").document(currentChannelId)
                     .collection("participants").document(userId)
                     .update("userStatus", userStatus);
@@ -606,6 +645,7 @@ public class VoiceActivity extends AppCompatActivity {
     }
 
     private void showInviteFriendDialog() {
+        if (currentChannelId == null) return;
         db.collection("players")
             .whereEqualTo("status", "approved")
             .get()
@@ -629,6 +669,7 @@ public class VoiceActivity extends AppCompatActivity {
     }
 
     private void showChannelInfoDialog() {
+        if (currentChannelId == null) return;
         String info = "Channel: " + tvChannelName.getText() + "\n" +
             "Users: " + voiceUsers.size() + "\n" +
             "Duration: " + tvTimer.getText();
@@ -745,7 +786,7 @@ public class VoiceActivity extends AppCompatActivity {
             // Click for admin actions
             if (isAdmin && !user.userId.equals(userId)) {
                 holder.itemView.setOnClickListener(v -> {
-                    String[] options = {"Mute User", "Kick User", "Ban User"};
+                    String[] options = {"Mute User", "Kick User", "🚫 Ban User"};
                     new AlertDialog.Builder(VoiceActivity.this)
                         .setTitle(user.userName)
                         .setItems(options, (dialog, which) -> {
@@ -761,7 +802,16 @@ public class VoiceActivity extends AppCompatActivity {
                                     Toast.makeText(VoiceActivity.this, user.userName + " kicked", Toast.LENGTH_SHORT).show();
                                     break;
                                 case 2:
-                                    Toast.makeText(VoiceActivity.this, user.userName + " banned", Toast.LENGTH_SHORT).show();
+                                    // Ban = kick from channel AND revoke voice permission
+                                    // so they cannot rejoin until admin re-allows them
+                                    db.collection("voice_channels").document(currentChannelId)
+                                        .collection("participants").document(user.userId).delete();
+                                    db.collection("players").document(user.userId)
+                                        .update("voiceAllowed", false)
+                                        .addOnSuccessListener(unused -> Toast.makeText(VoiceActivity.this,
+                                            "🚫 " + user.userName + " banned from voice", Toast.LENGTH_LONG).show())
+                                        .addOnFailureListener(e -> Toast.makeText(VoiceActivity.this,
+                                            "Ban failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
                                     break;
                             }
                         }).show();
