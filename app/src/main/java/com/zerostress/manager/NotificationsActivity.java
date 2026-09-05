@@ -91,7 +91,8 @@ public class NotificationsActivity extends AppCompatActivity {
             holder.tvTitle.setText(doc.getString("title"));
             holder.tvMessage.setText(doc.getString("message"));
             Long ts = doc.getLong("timestamp");
-            holder.tvTime.setText(ts != null ? adapter.formatTime(ts) : "");
+            NotificationAdapter notifAdapter = (NotificationAdapter) adapter;
+            holder.tvTime.setText(ts != null ? notifAdapter.formatTime(ts) : "");
         }
 
         @Override
