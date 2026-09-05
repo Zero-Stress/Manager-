@@ -14,7 +14,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
-import com.zerostress.manager.LoginActivity;
 import com.zerostress.manager.R;
 import com.zerostress.manager.ZeroStressApp;
 
@@ -46,14 +45,12 @@ public class ZSFCMService extends FirebaseMessagingService {
         String body = "";
         String type = "general";
 
-        // Check data payload first (more reliable)
         if (message.getData().size() > 0) {
             title = message.getData().getOrDefault("title", title);
             body = message.getData().getOrDefault("body", body);
             type = message.getData().getOrDefault("type", type);
         }
 
-        // Fall back to notification payload
         if (body.isEmpty() && message.getNotification() != null) {
             title = message.getNotification().getTitle() != null ? message.getNotification().getTitle() : title;
             body = message.getNotification().getBody() != null ? message.getNotification().getBody() : "";
@@ -102,7 +99,6 @@ public class ZSFCMService extends FirebaseMessagingService {
     }
 
     public static void saveTokenToFirestoreWithRetry(Context context) {
-        // Retry mechanism: if token save failed before, try again
         FirebaseMessaging.getInstance().getToken()
             .addOnCompleteListener(task -> {
                 if (!task.isSuccessful()) {
@@ -115,7 +111,6 @@ public class ZSFCMService extends FirebaseMessagingService {
                 FirebaseAuth auth = FirebaseAuth.getInstance();
                 String uid = auth.getUid();
                 if (uid != null) {
-                    // Force set the token (not update) to ensure it's fresh
                     Map<String, Object> tokenData = new HashMap<>();
                     tokenData.put("fcmToken", token);
                     tokenData.put("tokenUpdated", System.currentTimeMillis());
@@ -130,28 +125,24 @@ public class ZSFCMService extends FirebaseMessagingService {
     }
 
     private void subscribeToTopics() {
-        // Subscribe to broadcast topic for all players
         FirebaseMessaging.getInstance().subscribeToTopic("all_players")
             .addOnSuccessListener(v -> Log.d(TAG, "Subscribed to all_players topic"))
             .addOnFailureListener(e -> Log.e(TAG, "Topic subscription failed: " + e.getMessage()));
-        
-        // Subscribe to match updates
+
         FirebaseMessaging.getInstance().subscribeToTopic("match_updates")
             .addOnSuccessListener(v -> Log.d(TAG, "Subscribed to match_updates topic"));
-        
-        // Subscribe to announcements
+
         FirebaseMessaging.getInstance().subscribeToTopic("announcements")
             .addOnSuccessListener(v -> Log.d(TAG, "Subscribed to announcements topic"));
     }
 
     private void showNotification(String title, String body, String type) {
-        Intent intent = new Intent(this, LoginActivity.class);
+        Intent intent = new Intent(this, com.zerostress.manager.LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
                 PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
 
-        // Choose channel based on type
         String channelId = ZeroStressApp.CHANNEL_ID;
         if ("chat".equals(type) || "mention".equals(type)) {
             channelId = ZeroStressApp.CHAT_CHANNEL_ID;
@@ -171,6 +162,7 @@ public class ZSFCMService extends FirebaseMessagingService {
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager != null) {
             manager.notify((int) System.currentTimeMillis(), builder.build());
+            Log.d(TAG, "Notification shown: " + title + " - " + body);
         }
     }
 }

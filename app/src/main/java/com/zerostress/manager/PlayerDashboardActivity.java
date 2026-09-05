@@ -70,7 +70,6 @@ public class PlayerDashboardActivity extends AppCompatActivity {
         requestNotificationPermission();
 
         // Save FCM token (retry on resume to ensure it's always fresh)
-        com.zerostress.manager.fcm.ZSFCMService.saveTokenToFirestore(this);
         com.zerostress.manager.fcm.ZSFCMService.saveTokenToFirestoreWithRetry(this);
 
         loadProfile();
@@ -99,7 +98,7 @@ public class PlayerDashboardActivity extends AppCompatActivity {
         if (requestCode == NOTIFICATION_PERMISSION_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission granted, re-save FCM token
-                com.zerostress.manager.fcm.ZSFCMService.saveTokenToFirestore(this);
+                com.zerostress.manager.fcm.ZSFCMService.saveTokenToFirestoreWithRetry(this);
             }
         }
     }
