@@ -70,11 +70,6 @@ public class NotificationsActivity extends AppCompatActivity {
                 });
     }
 
-    private String formatTime(long ts) {
-        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault());
-        return sdf.format(new Date(ts));
-    }
-
     static class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.VH> {
         private List<DocumentSnapshot> notifs = new ArrayList<>();
 
@@ -96,7 +91,7 @@ public class NotificationsActivity extends AppCompatActivity {
             holder.tvTitle.setText(doc.getString("title"));
             holder.tvMessage.setText(doc.getString("message"));
             Long ts = doc.getLong("timestamp");
-            holder.tvTime.setText(ts != null ? NotificationAdapter.this.formatTime(ts) : "");
+            holder.tvTime.setText(ts != null ? adapter.formatTime(ts) : "");
         }
 
         @Override
@@ -113,6 +108,11 @@ public class NotificationsActivity extends AppCompatActivity {
                 tvMessage = v.findViewById(R.id.tvNotifMessage);
                 tvTime = v.findViewById(R.id.tvNotifTime);
             }
+        }
+
+        private String formatTime(long ts) {
+            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault());
+            return sdf.format(new Date(ts));
         }
     }
 }
