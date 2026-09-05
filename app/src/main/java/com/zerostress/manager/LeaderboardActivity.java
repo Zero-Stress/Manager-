@@ -1,6 +1,7 @@
 package com.zerostress.manager;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,6 +9,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -20,7 +22,6 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -94,15 +95,13 @@ public class LeaderboardActivity extends AppCompatActivity {
     }
 
     private void showResetDialog() {
-        // Radio-button selection: Daily / Weekly / Monthly / All
-        // Default selection = currently viewed tab
         String[] options = {
             "📅 Daily Leaderboard",
             "📆 Weekly Leaderboard",
             "🗓️ Monthly Leaderboard",
             "💣 Everything (All Time)"
         };
-        final int[] selected = {currentTab}; // pre-select current tab
+        final int[] selected = {currentTab};
 
         new AlertDialog.Builder(this)
             .setTitle("⚠️ Reset Leaderboard")
@@ -155,7 +154,6 @@ public class LeaderboardActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         Toast.makeText(this, "⏳ Resetting " + type + " leaderboard...", Toast.LENGTH_SHORT).show();
 
-        // Get all players (including admins for reset)
         db.collection("players")
             .get()
             .addOnSuccessListener(query -> {
@@ -171,10 +169,9 @@ public class LeaderboardActivity extends AppCompatActivity {
                 for (DocumentSnapshot doc : query.getDocuments()) {
                     String playerId = doc.getId();
                     Map<String, Object> resetData = new HashMap<>();
-                    
+
                     switch (type) {
                         case "daily":
-                            // Only reset daily stats
                             resetData.put("dailyKills", 0);
                             resetData.put("dailyWins", 0);
                             resetData.put("dailyAssists", 0);
@@ -184,7 +181,6 @@ public class LeaderboardActivity extends AppCompatActivity {
                             resetData.put("lastDailyReset", System.currentTimeMillis());
                             break;
                         case "weekly":
-                            // Only reset weekly stats
                             resetData.put("weeklyKills", 0);
                             resetData.put("weeklyWins", 0);
                             resetData.put("weeklyAssists", 0);
@@ -194,7 +190,6 @@ public class LeaderboardActivity extends AppCompatActivity {
                             resetData.put("lastWeeklyReset", System.currentTimeMillis());
                             break;
                         case "monthly":
-                            // Only reset monthly stats
                             resetData.put("monthlyKills", 0);
                             resetData.put("monthlyWins", 0);
                             resetData.put("monthlyAssists", 0);
@@ -204,7 +199,6 @@ public class LeaderboardActivity extends AppCompatActivity {
                             resetData.put("lastMonthlyReset", System.currentTimeMillis());
                             break;
                         case "all":
-                            // Reset all stats
                             resetData.put("score", 0);
                             resetData.put("kills", 0);
                             resetData.put("wins", 0);
@@ -246,11 +240,7 @@ public class LeaderboardActivity extends AppCompatActivity {
                             if (done[0] >= total) {
                                 progressBar.setVisibility(View.GONE);
                                 Toast.makeText(this, "✅ " + type.toUpperCase() + " leaderboard reset for " + total + " players!", Toast.LENGTH_LONG).show();
-                                
-                                // Award rewards to top 3 players after reset
                                 awardLeaderboardRewards(type);
-                                
-                                // Delay reload to let Firestore propagate
                                 new android.os.Handler().postDelayed(() -> loadLeaderboard(), 1000);
                             }
                         })
@@ -264,32 +254,27 @@ public class LeaderboardActivity extends AppCompatActivity {
                         });
                 }
             });
-        }
     }
 
     private void awardLeaderboardRewards(String type) {
-        // Award coins and titles to top 3 players in the current leaderboard
-        // For Daily/Weekly/Monthly: award small amounts
-        // For 'all': award larger amounts
-        
         long rewardCoins;
         String rewardTitle;
-        
+
         switch (type) {
             case "daily":
-                rewardCoins = 50;  // 50 coins for daily top 3
+                rewardCoins = 50;
                 rewardTitle = "Daily Champion";
                 break;
             case "weekly":
-                rewardCoins = 200;  // 200 coins for weekly top 3
+                rewardCoins = 200;
                 rewardTitle = "Weekly Champion";
                 break;
             case "monthly":
-                rewardCoins = 500;  // 500 coins for monthly top 3
+                rewardCoins = 500;
                 rewardTitle = "Monthly Champion";
                 break;
             case "all":
-                rewardCoins = 1000;  // 1000 coins for all-time top 3
+                rewardCoins = 1000;
                 rewardTitle = "All-Time Legend";
                 break;
             default:
@@ -297,39 +282,36 @@ public class LeaderboardActivity extends AppCompatActivity {
                 rewardTitle = "Champion";
                 break;
         }
-        
-        // Get top players from current leaderboard view
-        // We need to re-fetch and get the top 3
+
         db.collection("players")
             .whereEqualTo("status", "approved")
             .get()
             .addOnSuccessListener(query -> {
                 List<DocumentSnapshot> playersList = new ArrayList<>();
-                
+
                 for (DocumentSnapshot doc : query.getDocuments()) {
                     String role = doc.getString("role");
                     if (!"admin".equals(role)) {
                         playersList.add(doc);
                     }
                 }
-                
-                // Sort by current tab score
+
                 Collections.sort(playersList, (a, b) -> {
                     long scoreA = getScoreForTab(a);
                     long scoreB = getScoreForTab(b);
                     return Long.compare(scoreB, scoreA);
                 });
-                
-                // Award top 3
+
                 int maxAward = Math.min(3, playersList.size());
                 for (int i = 0; i < maxAward; i++) {
                     DocumentSnapshot player = playersList.get(i);
                     String playerId = player.getId();
                     String playerName = player.getString("name");
-                    
+
                     Map<String, Object> updates = new HashMap<>();
-                    updates.put("coins", player.getLong("coins") != null ? player.getLong("coins").intValue() + rewardCoins : rewardCoins);
-                    
+                    updates.put("coins", player.getLong("coins") != null
+                        ? player.getLong("coins").intValue() + rewardCoins : rewardCoins);
+
                     db.collection("players").document(playerId).update(updates)
                         .addOnSuccessListener(v -> {
                             Log.d("Leaderboard", "Awarded " + rewardCoins + " coins to " + playerName);
@@ -337,49 +319,48 @@ public class LeaderboardActivity extends AppCompatActivity {
                         .addOnFailureListener(e -> {
                             Log.e("Leaderboard", "Failed to award coins to " + playerName, e);
                         });
-                    
-                    // Also add title if not already awarded
+
                     if (player.getLong("level") != null && player.getLong("level") >= 5) {
+                        Map<String, Object> titleData = new HashMap<>();
+                        titleData.put("title", rewardTitle);
+                        titleData.put("awardedAt", System.currentTimeMillis());
+                        titleData.put("awardedFor", type);
+
                         db.collection("player_titles").document(playerId + "_" + rewardTitle)
-                            .set(new HashMap<String, Object>() {{
-                                put("title", rewardTitle);
-                                put("awardedAt", System.currentTimeMillis());
-                                put("awardedFor", type);
-                            }})
+                            .set(titleData)
                             .addOnSuccessListener(v -> {
                                 Log.d("Leaderboard", "Awarded title '" + rewardTitle + "' to " + playerName);
                             });
                     }
                 }
-                
+
                 Toast.makeText(this, "🏆 Rewards distributed to top 3!", Toast.LENGTH_SHORT).show();
             });
     }
 
     private void loadLeaderboard() {
         progressBar.setVisibility(View.VISIBLE);
-        
+
         db.collection("players")
             .whereEqualTo("status", "approved")
             .get()
             .addOnSuccessListener(query -> {
                 progressBar.setVisibility(View.GONE);
                 players.clear();
-                
+
                 for (DocumentSnapshot doc : query.getDocuments()) {
                     String role = doc.getString("role");
                     if (!"admin".equals(role)) {
                         players.add(doc);
                     }
                 }
-                
-                // Sort based on tab
+
                 Collections.sort(players, (a, b) -> {
                     long scoreA = getScoreForTab(a);
                     long scoreB = getScoreForTab(b);
                     return Long.compare(scoreB, scoreA);
                 });
-                
+
                 String[] periods = {"Daily", "Weekly", "Monthly"};
                 tvPeriod.setText(periods[currentTab] + " Leaderboard");
                 adapter.notifyDataSetChanged();
@@ -392,14 +373,10 @@ public class LeaderboardActivity extends AppCompatActivity {
 
     private long getScoreForTab(DocumentSnapshot doc) {
         switch (currentTab) {
-            case 0: // Daily
-                return doc.getLong("dailyScore") != null ? doc.getLong("dailyScore") : 0;
-            case 1: // Weekly
-                return doc.getLong("weeklyScore") != null ? doc.getLong("weeklyScore") : 0;
-            case 2: // Monthly
-                return doc.getLong("monthlyScore") != null ? doc.getLong("monthlyScore") : 0;
-            default:
-                return doc.getLong("score") != null ? doc.getLong("score") : 0;
+            case 0: return doc.getLong("dailyScore") != null ? doc.getLong("dailyScore") : 0;
+            case 1: return doc.getLong("weeklyScore") != null ? doc.getLong("weeklyScore") : 0;
+            case 2: return doc.getLong("monthlyScore") != null ? doc.getLong("monthlyScore") : 0;
+            default: return doc.getLong("score") != null ? doc.getLong("score") : 0;
         }
     }
 
@@ -472,7 +449,7 @@ public class LeaderboardActivity extends AppCompatActivity {
             }
             holder.tvRole.setText(statsText);
             holder.tvScore.setText(score + " pts");
-            
+
             if (medalColor != 0) {
                 holder.tvName.setTextColor(medalColor);
             } else {
