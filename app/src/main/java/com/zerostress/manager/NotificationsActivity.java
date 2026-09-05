@@ -91,8 +91,7 @@ public class NotificationsActivity extends AppCompatActivity {
             holder.tvTitle.setText(doc.getString("title"));
             holder.tvMessage.setText(doc.getString("message"));
             Long ts = doc.getLong("timestamp");
-            NotificationAdapter notifAdapter = (NotificationAdapter) adapter;
-            holder.tvTime.setText(ts != null ? notifAdapter.formatTime(ts) : "");
+            holder.tvTime.setText(ts != null ? formatTime(ts) : "");
         }
 
         @Override
@@ -110,10 +109,10 @@ public class NotificationsActivity extends AppCompatActivity {
                 tvTime = v.findViewById(R.id.tvNotifTime);
             }
         }
+    }
 
-        private String formatTime(long ts) {
-            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault());
-            return sdf.format(new Date(ts));
-        }
+    private String formatTime(long ts) {
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault());
+        return sdf.format(new Date(ts));
     }
 }
