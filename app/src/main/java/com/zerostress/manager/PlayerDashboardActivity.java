@@ -71,6 +71,8 @@ public class PlayerDashboardActivity extends AppCompatActivity {
 
         // Save FCM token (retry on resume to ensure it's always fresh)
         com.zerostress.manager.fcm.ZSFCMService.saveTokenToFirestoreWithRetry(this);
+        // Log FCM config for debugging
+        com.zerostress.manager.fcm.FCMConfig.checkFCMConfiguration(this);
 
         loadProfile();
     }

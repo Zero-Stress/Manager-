@@ -53,6 +53,9 @@ public class LoginActivity extends AppCompatActivity {
 
         findViewById(R.id.tvForgotPassword).setOnClickListener(v -> showForgotPasswordDialog());
 
+        // Log FCM configuration for debugging
+        com.zerostress.manager.fcm.FCMConfig.checkFCMConfiguration(this);
+
         requestNotificationPermission();
 
         startFancyAnimations();

@@ -31,13 +31,13 @@ exports.sendPushNotification = onDocumentCreated(
 
     console.log(`New notification: "${title}" - "${body}"`);
 
-    // Get all player FCM tokens
+    // Try topic-based push first (more reliable — sends to all subscribed devices)
+    // Fall back to per-device token push if topic fails
     const db = getFirestore();
     const playersSnapshot = await db.collection("players").get();
 
     const tokens = [];
     for (const doc of playersSnapshot.docs) {
-      // Don't push back to the sender (e.g. chat author)
       if (senderId && doc.id === senderId) continue;
       const token = doc.data().fcmToken;
       if (token && typeof token === "string" && token.length > 0) {
@@ -46,7 +46,20 @@ exports.sendPushNotification = onDocumentCreated(
     }
 
     if (tokens.length === 0) {
-      console.log("No FCM tokens found, skipping push");
+      console.log("No FCM tokens found, attempting topic-based push...");
+      // Send to topic as fallback (players must be subscribed to all_players)
+      try {
+        const topicMessage = {
+          notification: { title, body },
+          data: { title, body, type },
+          android: { priority: "high", notification: { channelId, priority: "high" } },
+          apns: { payload: { aps: { contentAvailable: true } } },
+        };
+        const topicResponse = await getMessaging().send({ ...topicMessage, topic: "all_players" });
+        console.log("Topic push sent:", topicResponse);
+      } catch (topicError) {
+        console.error("Topic push failed:", topicError);
+      }
       return;
     }
 
@@ -132,7 +145,28 @@ exports.sendScheduleNotification = onDocumentCreated(
       }
     }
 
-    if (tokens.length === 0) return;
+    if (tokens.length === 0) {
+      console.log("No FCM tokens found, attempting topic-based push for schedule...");
+      try {
+        const topicMessage = {
+          notification: {
+            title: "🗓️ Match Scheduled: " + title,
+            body: type + " match • " + when + "\nOpen the app to view the schedule.",
+          },
+          data: {
+            title: "Match Scheduled",
+            body: title + " • " + when,
+            type: "schedule",
+          },
+          android: { priority: "high", notification: { channelId: "zs_notifications", priority: "high" } },
+        };
+        const topicResponse = await getMessaging().send({ ...topicMessage, topic: "match_updates" });
+        console.log("Schedule topic push sent:", topicResponse);
+      } catch (topicError) {
+        console.error("Schedule topic push failed:", topicError);
+      }
+      return;
+    }
 
     const message = {
       notification: {
@@ -185,9 +219,21 @@ exports.sendAnnouncementNotification = onDocumentCreated(
       if (token && typeof token === "string" && token.length > 0) {
         tokens.push(token);
       }
+    }    if (tokens.length === 0) {
+      console.log("No FCM tokens found, attempting topic-based push for announcement...");
+      try {
+        const topicMessage = {
+          notification: { title: "📢 Announcement", body: text },
+          data: { title: "Announcement", body: text, type: "announcement" },
+          android: { priority: "high", notification: { channelId: "zs_notifications", priority: "high" } },
+        };
+        const topicResponse = await getMessaging().send({ ...topicMessage, topic: "announcements" });
+        console.log("Announcement topic push sent:", topicResponse);
+      } catch (topicError) {
+        console.error("Announcement topic push failed:", topicError);
+      }
+      return;
     }
-
-    if (tokens.length === 0) return;
 
     const message = {
       notification: {
@@ -215,5 +261,5 @@ exports.sendAnnouncementNotification = onDocumentCreated(
     } catch (error) {
       console.error("Error sending announcement push:", error);
     }
-  }
+}
 );
