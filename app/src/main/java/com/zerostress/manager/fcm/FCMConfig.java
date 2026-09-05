@@ -34,7 +34,8 @@ public class FCMConfig {
 
         try {
             String token = FirebaseMessaging.getInstance().getToken().getResult();
-            Log.d(TAG, "FCM token: " + (token != null ? "present (" + token.substring(0, Math.min(20, token.length)) + "...)" : "null"));
+            String tokenPreview = token != null ? token.substring(0, Math.min(20, token.length())) : "null";
+            Log.d(TAG, "FCM token: " + (token != null ? "present (" + tokenPreview + "...)" : "null"));
             Log.d(TAG, "FCM token length: " + (token != null ? token.length() : 0));
         } catch (Exception e) {
             Log.e(TAG, "FCM token fetch failed: " + e.getMessage());
