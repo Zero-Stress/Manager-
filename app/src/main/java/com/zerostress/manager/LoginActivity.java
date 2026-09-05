@@ -78,7 +78,7 @@ public class LoginActivity extends AppCompatActivity {
 
         new AlertDialog.Builder(this)
                 .setTitle("Forgot Password")
-                .setText("Enter your phone number so we can send a password reset link")
+                .setMessage("Enter your phone number so we can send a password reset link")
                 .setView(phoneInput)
                 .setPositiveButton("Send Reset Link", (d, w) -> {
                     String phone = phoneInput.getText().toString().trim();
