@@ -64,6 +64,7 @@ public class PlayerDashboardActivity extends AppCompatActivity {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
         });
+        findViewById(R.id.btnNotifications).setOnClickListener(v -> startActivity(new Intent(this, NotificationsActivity.class)));
 
         // Request notification permission on Android 13+
         requestNotificationPermission();

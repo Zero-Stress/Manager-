@@ -63,6 +63,7 @@
         <activity android:name=".ManageSeasonsActivity" android:theme="@style/Theme.ZeroStress" />
         <activity android:name=".ManageVoiceChannelsActivity" android:theme="@style/Theme.ZeroStress" />
         <activity android:name=".ViewAllPlayersStatsActivity" android:theme="@style/Theme.ZeroStress" />
+        <activity android:name=".NotificationsActivity" android:theme="@style/Theme.ZeroStress" />
 
         <service
             android:name=".fcm.ZSFCMService"

@@ -52,6 +52,9 @@ public class ChatActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private String userId, userName;
     private ListenerRegistration chatListener;
+    private TextView tvTypingIndicator;
+    private static final String TYPING_PREFIX = "__typing_";
+    private ListenerRegistration typingListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +69,43 @@ public class ChatActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
         MaterialButton btnSend = findViewById(R.id.btnSend);
         TextView btnMention = findViewById(R.id.btnMention);
+        tvTypingIndicator = findViewById(R.id.tvTypingIndicator);
+
+        // Track typing status
+        etMessage.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                setTyping(true);
+            }
+        });
+        etMessage.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (!s.toString().isEmpty()) {
+                    setTyping(true);
+                }
+            }
+            @Override public void afterTextChanged(android.text.Editable s) {}
+        });
+
+        // Listen for typing indicators
+        typingListener = db.collection("chat_typing").addSnapshotListener((snap, e) -> {
+            if (e != null || snap == null) return;
+            List<String> typers = new ArrayList<>();
+            for (DocumentSnapshot doc : snap.getDocuments()) {
+                String uid = doc.getId().replace(TYPING_PREFIX, "");
+                if (!uid.equals(userId) && System.currentTimeMillis() - doc.getLong("timestamp").longValue() < 5000) {
+                    typers.add(uid);
+                }
+            }
+            if (typers.isEmpty()) {
+                tvTypingIndicator.setVisibility(View.GONE);
+            } else {
+                tvTypingIndicator.setVisibility(View.VISIBLE);
+                tvTypingIndicator.setText("💬 " + typers.size() + " person" + (typers.size() > 1 ? "s" : "") + " typing");
+            }
+        });
+
+        loadMessages();
         TextView btnClearChat = findViewById(R.id.btnClearChat);
 
         LinearLayoutManager lm = new LinearLayoutManager(this);
@@ -110,6 +150,11 @@ public class ChatActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (chatListener != null) chatListener.remove();
+        if (typingListener != null) typingListener.remove();
+        // Clear typing indicator
+        if (userId != null) {
+            db.collection("chat_typing").document(TYPING_PREFIX + userId).delete();
+        }
     }
 
     private boolean isAdmin = false;
@@ -409,6 +454,19 @@ public class ChatActivity extends AppCompatActivity {
                 tvText = v.findViewById(R.id.tvText);
                 tvTime = v.findViewById(R.id.tvTime);
             }
+        }
+    }
+
+    private void setTyping(boolean isTyping) {
+        if (userId == null) return;
+        Map<String, Object> typing = new HashMap<>();
+        typing.put("userId", userId);
+        typing.put("timestamp", System.currentTimeMillis());
+
+        if (isTyping) {
+            db.collection("chat_typing").document(TYPING_PREFIX + userId).set(typing);
+        } else {
+            db.collection("chat_typing").document(TYPING_PREFIX + userId).delete();
         }
     }
 }

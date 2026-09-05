@@ -745,6 +745,7 @@ public class VoiceActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        OnOnlineStatusHelper.updateOnlineStatus(false);
         if (isInVoice) leaveVoice();
         stopTimer();
     }

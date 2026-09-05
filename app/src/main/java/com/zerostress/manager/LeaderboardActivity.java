@@ -8,7 +8,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -247,6 +246,10 @@ public class LeaderboardActivity extends AppCompatActivity {
                             if (done[0] >= total) {
                                 progressBar.setVisibility(View.GONE);
                                 Toast.makeText(this, "✅ " + type.toUpperCase() + " leaderboard reset for " + total + " players!", Toast.LENGTH_LONG).show();
+                                
+                                // Award rewards to top 3 players after reset
+                                awardLeaderboardRewards(type);
+                                
                                 // Delay reload to let Firestore propagate
                                 new android.os.Handler().postDelayed(() -> loadLeaderboard(), 1000);
                             }
@@ -260,6 +263,96 @@ public class LeaderboardActivity extends AppCompatActivity {
                             }
                         });
                 }
+            });
+        }
+    }
+
+    private void awardLeaderboardRewards(String type) {
+        // Award coins and titles to top 3 players in the current leaderboard
+        // For Daily/Weekly/Monthly: award small amounts
+        // For 'all': award larger amounts
+        
+        long rewardCoins;
+        String rewardTitle;
+        
+        switch (type) {
+            case "daily":
+                rewardCoins = 50;  // 50 coins for daily top 3
+                rewardTitle = "Daily Champion";
+                break;
+            case "weekly":
+                rewardCoins = 200;  // 200 coins for weekly top 3
+                rewardTitle = "Weekly Champion";
+                break;
+            case "monthly":
+                rewardCoins = 500;  // 500 coins for monthly top 3
+                rewardTitle = "Monthly Champion";
+                break;
+            case "all":
+                rewardCoins = 1000;  // 1000 coins for all-time top 3
+                rewardTitle = "All-Time Legend";
+                break;
+            default:
+                rewardCoins = 0;
+                rewardTitle = "Champion";
+                break;
+        }
+        
+        // Get top players from current leaderboard view
+        // We need to re-fetch and get the top 3
+        db.collection("players")
+            .whereEqualTo("status", "approved")
+            .get()
+            .addOnSuccessListener(query -> {
+                List<DocumentSnapshot> playersList = new ArrayList<>();
+                
+                for (DocumentSnapshot doc : query.getDocuments()) {
+                    String role = doc.getString("role");
+                    if (!"admin".equals(role)) {
+                        playersList.add(doc);
+                    }
+                }
+                
+                // Sort by current tab score
+                Collections.sort(playersList, (a, b) -> {
+                    long scoreA = getScoreForTab(a);
+                    long scoreB = getScoreForTab(b);
+                    return Long.compare(scoreB, scoreA);
+                });
+                
+                // Award top 3
+                int maxAward = Math.min(3, playersList.size());
+                for (int i = 0; i < maxAward; i++) {
+                    DocumentSnapshot player = playersList.get(i);
+                    String playerId = player.getId();
+                    String playerName = player.getString("name");
+                    
+                    Map<String, Object> updates = new HashMap<>();
+                    updates.put("coins", player.getLong("coins") != null ? player.getLong("coins").intValue() + rewardCoins : rewardCoins);
+                    
+                    db.collection("players").document(playerId).update(updates)
+                        .addOnSuccessListener(v -> {
+                            Log.d("Leaderboard", "Awarded " + rewardCoins + " coins to " + playerName);
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e("Leaderboard", "Failed to award coins to " + playerName, e);
+                        });
+                    
+                    // Also add title if not already awarded
+                    if (player.getLong("level") != null && player.getLong("level") >= 5) {
+                        db.collection("player_titles").document(playerId + "_" + rewardTitle)
+                            .set(new HashMap<String, Object>() {{
+                                put("title", rewardTitle);
+                                put("awardedAt", System.currentTimeMillis());
+                                put("awardedFor", type);
+                            }})
+                            .addOnSuccessListener(v -> {
+                                Log.d("Leaderboard", "Awarded title '" + rewardTitle + "' to " + playerName);
+                            });
+                    }
+                }
+                
+                Toast.makeText(this, "🏆 Rewards distributed to top 3!", Toast.LENGTH_SHORT).show();
             });
     }
 

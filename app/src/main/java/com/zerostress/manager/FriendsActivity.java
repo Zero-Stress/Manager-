@@ -239,10 +239,11 @@ public class FriendsActivity extends AppCompatActivity {
                     return true;
                 });
             } else {
-                // Friend row
+                // Friend row with online status
                 DocumentSnapshot doc = friends.get(position - pendingRequests.size());
                 String friendId = doc.getString("userId1").equals(userId)
                     ? doc.getString("userId2") : doc.getString("userId1");
+                
                 db.collection("players").document(friendId).get()
                     .addOnSuccessListener(playerDoc -> {
                         if (playerDoc.exists()) {
@@ -254,10 +255,20 @@ public class FriendsActivity extends AppCompatActivity {
                                 status = gameRole + " • " + status;
                             }
                             holder.tvStatus.setText(status);
+                            
+                            // Check online status via lastSeen
+                            Long lastSeen = playerDoc.getLong("lastSeen");
+                            if (lastSeen != null && System.currentTimeMillis() - lastSeen < 300000) {
+                                holder.tvOnline.setText("🟢 Online");
+                            } else {
+                                holder.tvOnline.setText("⚫ Offline");
+                                holder.tvOnline.setTextColor(0xFF64748b);
+                            }
                         }
                     });
-                holder.tvOnline.setText("🟢 Online");
-                holder.tvOnline.setTextColor(0xFF10b981);
+                
+                holder.tvOnline.setText("⚫ Offline");
+                holder.tvOnline.setTextColor(0xFF64748b);
                 holder.tvOnline.setOnClickListener(null);
                 holder.itemView.setOnLongClickListener(null);
             }
