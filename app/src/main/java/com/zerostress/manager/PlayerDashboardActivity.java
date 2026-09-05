@@ -69,8 +69,9 @@ public class PlayerDashboardActivity extends AppCompatActivity {
         // Request notification permission on Android 13+
         requestNotificationPermission();
 
-        // Save FCM token
+        // Save FCM token (retry on resume to ensure it's always fresh)
         com.zerostress.manager.fcm.ZSFCMService.saveTokenToFirestore(this);
+        com.zerostress.manager.fcm.ZSFCMService.saveTokenToFirestoreWithRetry(this);
 
         loadProfile();
     }

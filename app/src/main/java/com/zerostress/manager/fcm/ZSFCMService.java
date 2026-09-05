@@ -36,7 +36,11 @@ public class ZSFCMService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(@NonNull RemoteMessage message) {
         super.onMessageReceived(message);
-        Log.d(TAG, "Notification received: " + message.getData());
+        Log.d(TAG, "FCM message received: " + message.getData());
+        Log.d(TAG, "From: " + message.getFrom());
+        if (message.getNotification() != null) {
+            Log.d(TAG, "Notification payload: " + message.getNotification().getTitle() + " - " + message.getNotification().getBody());
+        }
 
         String title = "ZERO STRESS";
         String body = "";
@@ -93,6 +97,34 @@ public class ZSFCMService extends FirebaseMessagingService {
                     Log.w(TAG, "No user logged in, saving token to SharedPreferences for later");
                     context.getSharedPreferences("zs_fcm", Context.MODE_PRIVATE)
                         .edit().putString("pending_token", token).apply();
+                }
+            });
+    }
+
+    public static void saveTokenToFirestoreWithRetry(Context context) {
+        // Retry mechanism: if token save failed before, try again
+        FirebaseMessaging.getInstance().getToken()
+            .addOnCompleteListener(task -> {
+                if (!task.isSuccessful()) {
+                    Log.e(TAG, "FCM token fetch retry failed", task.getException());
+                    return;
+                }
+                String token = task.getResult();
+                if (token == null) return;
+
+                FirebaseAuth auth = FirebaseAuth.getInstance();
+                String uid = auth.getUid();
+                if (uid != null) {
+                    // Force set the token (not update) to ensure it's fresh
+                    Map<String, Object> tokenData = new HashMap<>();
+                    tokenData.put("fcmToken", token);
+                    tokenData.put("tokenUpdated", System.currentTimeMillis());
+
+                    FirebaseFirestore.getInstance()
+                        .collection("players").document(uid)
+                        .set(tokenData, com.google.firebase.firestore.SetOptions.merge())
+                        .addOnSuccessListener(v -> Log.d(TAG, "FCM token re-saved for user: " + uid))
+                        .addOnFailureListener(e -> Log.e(TAG, "Failed to re-save token: " + e.getMessage()));
                 }
             });
     }
