@@ -52,8 +52,7 @@ exports.sendPushNotification = onDocumentCreated(
         const topicMessage = {
           notification: { title, body },
           data: { title, body, type },
-          android: { priority: "high", notification: { channelId, priority: "high" } },
-          apns: { payload: { aps: { contentAvailable: true } } },
+          android: { priority: "high", notification: { channelId: "zs_notifications", priority: "high" } },
         };
         const topicResponse = await getMessaging().send({ ...topicMessage, topic: "all_players" });
         console.log("Topic push sent:", topicResponse);
