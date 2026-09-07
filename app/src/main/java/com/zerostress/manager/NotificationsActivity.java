@@ -55,6 +55,8 @@ public class NotificationsActivity extends AppCompatActivity {
         if (listener != null) listener.remove();
     }
 
+    private static final long EXPIRY_MS = 24 * 60 * 60 * 1000;
+
     private void loadNotifications() {
         listener = db.collection("notifications")
                 .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
@@ -62,7 +64,15 @@ public class NotificationsActivity extends AppCompatActivity {
                 .addSnapshotListener((snap, error) -> {
                     if (error != null) return;
                     List<DocumentSnapshot> notifs = new ArrayList<>();
-                    if (snap != null) notifs.addAll(snap.getDocuments());
+                    if (snap != null) {
+                        long cutoff = System.currentTimeMillis() - EXPIRY_MS;
+                        for (DocumentSnapshot doc : snap.getDocuments()) {
+                            Long ts = doc.getLong("timestamp");
+                            if (ts != null && ts >= cutoff) {
+                                notifs.add(doc);
+                            }
+                        }
+                    }
                     adapter.setNotifs(notifs);
                     tvEmpty.setVisibility(notifs.isEmpty() ? View.VISIBLE : View.GONE);
                 });
