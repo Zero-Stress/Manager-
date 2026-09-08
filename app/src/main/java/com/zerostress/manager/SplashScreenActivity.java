@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -19,7 +20,8 @@ import com.zerostress.manager.fcm.ZSFCMService;
 
 public class SplashScreenActivity extends AppCompatActivity {
 
-    private TextView tvLogo, tvTitle, tvSubtitle, tvLoadingStatus;
+    private ImageView ivLogo;
+    private TextView tvTitle, tvSubtitle, tvLoadingStatus;
     private View loadingBar;
     private LinearLayout loadingContainer;
     private FirebaseFirestore db;
@@ -47,7 +49,7 @@ public class SplashScreenActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        tvLogo = findViewById(R.id.tvLogo);
+        ivLogo = findViewById(R.id.ivLogo);
         tvTitle = findViewById(R.id.tvTitle);
         tvSubtitle = findViewById(R.id.tvSubtitle);
         tvLoadingStatus = findViewById(R.id.tvLoadingStatus);
@@ -58,19 +60,21 @@ public class SplashScreenActivity extends AppCompatActivity {
 
     private void startLoadingAnimation() {
         // Animate logo
-        ObjectAnimator logoFadeIn = ObjectAnimator.ofFloat(tvLogo, "alpha", 0f, 1f);
-        logoFadeIn.setDuration(500);
+        if (ivLogo != null) {
+            ObjectAnimator logoFadeIn = ObjectAnimator.ofFloat(ivLogo, "alpha", 0f, 1f);
+            logoFadeIn.setDuration(500);
 
-        ObjectAnimator logoScaleX = ObjectAnimator.ofFloat(tvLogo, "scaleX", 0.5f, 1f);
-        logoScaleX.setDuration(500);
+            ObjectAnimator logoScaleX = ObjectAnimator.ofFloat(ivLogo, "scaleX", 0.5f, 1f);
+            logoScaleX.setDuration(500);
 
-        ObjectAnimator logoScaleY = ObjectAnimator.ofFloat(tvLogo, "scaleY", 0.5f, 1f);
-        logoScaleY.setDuration(500);
+            ObjectAnimator logoScaleY = ObjectAnimator.ofFloat(ivLogo, "scaleY", 0.5f, 1f);
+            logoScaleY.setDuration(500);
 
-        AnimatorSet logoSet = new AnimatorSet();
-        logoSet.playTogether(logoFadeIn, logoScaleX, logoScaleY);
-        logoSet.setInterpolator(new AccelerateDecelerateInterpolator());
-        logoSet.start();
+            AnimatorSet logoSet = new AnimatorSet();
+            logoSet.playTogether(logoFadeIn, logoScaleX, logoScaleY);
+            logoSet.setInterpolator(new AccelerateDecelerateInterpolator());
+            logoSet.start();
+        }
 
         // Animate title after logo
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
