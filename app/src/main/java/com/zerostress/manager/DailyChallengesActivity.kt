@@ -26,12 +26,13 @@ class DailyChallengesActivity : ComponentActivity() {
     }
 }
 
+private data class ChallengeDef(val id: String, val title: String, val desc: String, val reward: String, val emoji: String)
+
 @Composable
 fun DailyChallengesScreen() {
     val uid = FirebaseAuth.getInstance().uid
     var completedCount by remember { mutableIntStateOf(0) }
 
-    data class ChallengeDef(val id: String, val title: String, val desc: String, val reward: String, val emoji: String)
     val challenges = listOf(
         ChallengeDef("play_3", "Play 3 Matches", "Complete 3 matches today", "100 XP", "🎮"),
         ChallengeDef("win_1", "Get a Win", "Win at least 1 match", "150 XP", "🏆"),

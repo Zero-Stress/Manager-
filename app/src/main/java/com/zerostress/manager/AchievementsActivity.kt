@@ -26,12 +26,13 @@ class AchievementsActivity : ComponentActivity() {
     }
 }
 
+private data class AchievementDef(val id: String, val title: String, val desc: String, val xp: String, val coins: String, val emoji: String)
+
 @Composable
 fun AchievementsScreen() {
     val userId = FirebaseAuth.getInstance().uid
     var unlockedIds by remember { mutableStateOf(listOf<String>()) }
 
-    data class AchievementDef(val id: String, val title: String, val desc: String, val xp: String, val coins: String, val emoji: String)
     val achievements = listOf(
         AchievementDef("first_blood", "First Blood", "Get your first kill", "10", "50", "🔫"),
         AchievementDef("kill_100", "Century Killer", "Get 100 total kills", "50", "200", "💀"),

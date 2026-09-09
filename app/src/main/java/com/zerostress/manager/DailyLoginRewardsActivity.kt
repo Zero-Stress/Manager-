@@ -28,13 +28,15 @@ class DailyLoginRewardsActivity : ComponentActivity() {
     }
 }
 
+private data class RewardDay(val day: Int, val reward: String, val amount: String, val emoji: String)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DailyLoginRewardsScreen() {
     val uid = FirebaseAuth.getInstance().uid
     var streak by remember { mutableIntStateOf(0) }
     var claimedToday by remember { mutableStateOf(false) }
 
-    data class RewardDay(val day: Int, val reward: String, val amount: String, val emoji: String)
     val rewards = listOf(
         RewardDay(1, "Coins", "50", "🪙"), RewardDay(2, "XP", "100", "⭐"),
         RewardDay(3, "Coins", "100", "🪙"), RewardDay(4, "XP", "200", "⭐"),

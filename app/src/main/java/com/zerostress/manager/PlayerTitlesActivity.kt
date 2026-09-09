@@ -29,12 +29,14 @@ class PlayerTitlesActivity : ComponentActivity() {
     }
 }
 
+private data class TitleDef(val id: String, val title: String, val emoji: String, val requirement: String)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerTitlesScreen() {
     val uid = FirebaseAuth.getInstance().uid
     var currentTitle by remember { mutableStateOf("") }
 
-    data class TitleDef(val id: String, val title: String, val emoji: String, val requirement: String)
     val titles = listOf(
         TitleDef("iron", "Iron Warrior", "⚔️", "Default"),
         TitleDef("bronze", "Bronze Fighter", "🛡️", "Play 10 matches"),

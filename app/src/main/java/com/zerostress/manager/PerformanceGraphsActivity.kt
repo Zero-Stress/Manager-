@@ -8,7 +8,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -28,13 +31,13 @@ class PerformanceGraphsActivity : ComponentActivity() {
 @Composable
 fun PerformanceGraphsScreen() {
     val userId = FirebaseAuth.getInstance().uid
-    var kills by remember { mutableLongStateOf(0L) }
-    var deaths by remember { mutableLongStateOf(0L) }
-    var wins by remember { mutableLongStateOf(0L) }
-    var matches by remember { mutableLongStateOf(0L) }
-    var damage by remember { mutableLongStateOf(0L) }
-    var xp by remember { mutableLongStateOf(0L) }
-    var level by remember { mutableLongStateOf(1L) }
+    var kills by remember { mutableStateOf(0L) }
+    var deaths by remember { mutableStateOf(0L) }
+    var wins by remember { mutableStateOf(0L) }
+    var matches by remember { mutableStateOf(0L) }
+    var damage by remember { mutableStateOf(0L) }
+    var xp by remember { mutableStateOf(0L) }
+    var level by remember { mutableStateOf(1L) }
 
     LaunchedEffect(userId) {
         if (userId == null) return@LaunchedEffect

@@ -32,9 +32,9 @@ class PerformanceActivity : ComponentActivity() {
 fun PerformanceScreen() {
     val userId = FirebaseAuth.getInstance().uid
     var logs by remember { mutableStateOf(listOf<DocumentSnapshot>()) }
-    var totalKills by remember { mutableLongStateOf(0L) }
-    var totalDeaths by remember { mutableLongStateOf(0L) }
-    var totalDamage by remember { mutableLongStateOf(0L) }
+    var totalKills by remember { mutableStateOf(0L) }
+    var totalDeaths by remember { mutableStateOf(0L) }
+    var totalDamage by remember { mutableStateOf(0L) }
 
     LaunchedEffect(userId) {
         if (userId == null) return@LaunchedEffect

@@ -26,18 +26,19 @@ class BattlePassActivity : ComponentActivity() {
     }
 }
 
+private data class BattlePassTier(val level: Int, val freeReward: String, val premiumReward: String, val emoji: String)
+
 @Composable
 fun BattlePassScreen() {
     val uid = FirebaseAuth.getInstance().uid
     var currentLevel by remember { mutableIntStateOf(1) }
     var currentXP by remember { mutableIntStateOf(0) }
 
-    data class Tier(val level: Int, val freeReward: String, val premiumReward: String, val emoji: String)
     val tiers = (1..20).map { i ->
         when {
-            i % 5 == 0 -> Tier(i, "200 XP", "Rare Skin 🎨", "⭐")
-            i % 3 == 0 -> Tier(i, "100 Coins", "500 Coins", "💰")
-            else -> Tier(i, "50 XP", "100 XP", "🎁")
+            i % 5 == 0 -> BattlePassTier(i, "200 XP", "Rare Skin 🎨", "⭐")
+            i % 3 == 0 -> BattlePassTier(i, "100 Coins", "500 Coins", "💰")
+            else -> BattlePassTier(i, "50 XP", "100 XP", "🎁")
         }
     }
 

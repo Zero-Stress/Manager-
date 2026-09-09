@@ -32,6 +32,8 @@ fun SettingsScreen() {
     var scheduleNotifs by remember { mutableStateOf(true) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
+    var showAboutDialog by remember { mutableStateOf(false) }
+
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -78,13 +80,7 @@ fun SettingsScreen() {
             Column(modifier = Modifier.padding(16.dp)) {
                 Button(onClick = { /* clear cache */ }, modifier = Modifier.fillMaxWidth()) { Text("Clear Cache") }
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(onClick = {
-                    androidx.appcompat.app.AlertDialog.Builder(context)
-                        .setTitle("ZERO STRESS")
-                        .setMessage("Version 4.0\n\nPerformance & Leaderboard Manager\n\nBuilt with Firebase + Kotlin + Jetpack Compose")
-                        .setPositiveButton("OK", null)
-                        .show()
-                }, modifier = Modifier.fillMaxWidth()) { Text("About") }
+                OutlinedButton(onClick = { showAboutDialog = true }, modifier = Modifier.fillMaxWidth()) { Text("About") }
             }
         }
 
@@ -107,5 +103,17 @@ fun SettingsScreen() {
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = ZSDanger)
         ) { Text("Delete Account") }
+    }
+
+    if (showAboutDialog) {
+        AlertDialog(
+            onDismissRequest = { showAboutDialog = false },
+            title = { Text("ZERO STRESS", color = Color.White) },
+            text = { Text("Version 4.0\n\nPerformance & Leaderboard Manager\n\nBuilt with Firebase + Kotlin + Jetpack Compose", color = Color.White) },
+            containerColor = ZSCard,
+            confirmButton = {
+                TextButton(onClick = { showAboutDialog = false }) { Text("OK", color = ZSPrimary) }
+            }
+        )
     }
 }

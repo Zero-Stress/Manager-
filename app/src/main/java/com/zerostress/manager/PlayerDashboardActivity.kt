@@ -89,13 +89,13 @@ fun PlayerDashboardScreen() {
         Triple("Profile", Icons.Default.Person, ProfileActivity::class.java),
         Triple("Friends", Icons.Default.Group, FriendsActivity::class.java),
         Triple("Seasons", Icons.Default.Event, SeasonActivity::class.java),
-        Triple("Achievements", Icons.Default.MilitaryTech, AchievementsActivity::class.java),
-        Triple("News", Icons.Default.Newspaper, AnnouncementsActivity::class.java),
+        Triple("Achievements", Icons.Default.EmojiEvents, AchievementsActivity::class.java),
+        Triple("News", Icons.Default.Info, AnnouncementsActivity::class.java),
         Triple("Daily Rewards", Icons.Default.CardGiftcard, DailyLoginRewardsActivity::class.java),
         Triple("Challenges", Icons.Default.EmojiEvents, DailyChallengesActivity::class.java),
         Triple("Battle Pass", Icons.Default.Stars, BattlePassActivity::class.java),
-        Triple("Titles", Icons.Default.EmojiSymbols, PlayerTitlesActivity::class.java),
-        Triple("Performance", Icons.Default.Analytics, PerformanceGraphsActivity::class.java),
+        Triple("Titles", Icons.Default.Label, PlayerTitlesActivity::class.java),
+        Triple("Performance", Icons.Default.Stats, PerformanceGraphsActivity::class.java),
     )
 
     Column(
