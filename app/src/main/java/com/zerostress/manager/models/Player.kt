@@ -51,7 +51,7 @@ data class Player(
     companion object {
         @JvmStatic
         fun calculateScore(kills: Int, damage: Long, wins: Int): Long =
-            (kills * 10 + damage / 100 + wins * 50).toLong()
+            (kills * 10L + damage / 100 + wins * 50L).toLong()
 
         @JvmStatic
         fun getRankTier(score: Long): String = when {

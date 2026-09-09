@@ -16,7 +16,7 @@ data class MatchLog(
     var date: Long = 0L
 ) {
     val score: Long
-        get() = (kills * 10 + damage / 100 + (if (win) 200 else 0)).toLong()
+        get() = (kills * 10L + damage / 100 + (if (win) 200L else 0L))
 
     companion object {
         fun create(

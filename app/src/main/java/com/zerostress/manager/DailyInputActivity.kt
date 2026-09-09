@@ -85,7 +85,7 @@ fun DailyInputScreen() {
                             val a = assists.toLongOrNull() ?: 0
                             val d = damage.toLongOrNull() ?: 0
                             val w = wins.toIntOrNull() ?: 0
-                            val score = k * 10 + a * 5 + (d / 100) + w * 25
+                            val score = k * 10L + a * 5L + (d / 100) + w * 25L
 
                             val updates = hashMapOf<String, Any>(
                                 "kills" to com.google.firebase.firestore.FieldValue.increment(k),
