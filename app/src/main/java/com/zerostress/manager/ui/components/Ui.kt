@@ -2,6 +2,8 @@ package com.zerostress.manager.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +48,14 @@ import com.zerostress.manager.ui.theme.Primary
 import com.zerostress.manager.ui.theme.PrimaryDark
 import com.zerostress.manager.ui.theme.TextMuted
 import com.zerostress.manager.ui.theme.TextSecondary
+
+/** Click without ripple effect. */
+fun Modifier.clickableNoRipple(onClick: () -> Unit): Modifier =
+    this.clickable(
+        interactionSource = remember { MutableInteractionSource() },
+        indication = null,
+        onClick = onClick
+    )
 
 val GradientPrimary = Brush.linearGradient(listOf(Primary, PrimaryDark))
 val GradientAccent = Brush.linearGradient(listOf(Color(0xFF11998E), Accent))

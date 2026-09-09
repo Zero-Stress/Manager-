@@ -30,6 +30,18 @@ val ZSWarning      = Color(0xFFF7971E)
 val ZSGold         = Color(0xFFFFD200)
 val ZSPurple       = Color(0xFFA855F7)
 
+// Short aliases used by Ui.kt and activity screens
+val Accent        = ZSAccent
+val BgMain        = ZSBackground
+val BgCard        = ZSCard
+val BgCardElevated = ZSCardElevated
+val Primary       = ZSPrimary
+val PrimaryDark   = ZSPrimaryDark
+val Cyan          = ZSCyan
+val Gold          = ZSGold
+val TextMuted     = ZSTextMuted
+val TextSecondary = ZSTextSecondary
+
 private val ZeroStressColorScheme = darkColorScheme(
     primary = ZSPrimary,
     onPrimary = Color.White,

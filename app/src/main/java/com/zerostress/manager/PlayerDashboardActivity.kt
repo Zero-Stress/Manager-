@@ -88,7 +88,7 @@ fun PlayerDashboardScreen() {
         Triple("Voice", Icons.Default.RecordVoiceOver, VoiceActivity::class.java),
         Triple("Profile", Icons.Default.Person, ProfileActivity::class.java),
         Triple("Friends", Icons.Default.Group, FriendsActivity::class.java),
-        Triple("Seasons", Icons.Default.Season, SeasonActivity::class.java),
+        Triple("Seasons", Icons.Default.Event, SeasonActivity::class.java),
         Triple("Achievements", Icons.Default.MilitaryTech, AchievementsActivity::class.java),
         Triple("News", Icons.Default.Newspaper, AnnouncementsActivity::class.java),
         Triple("Daily Rewards", Icons.Default.CardGiftcard, DailyLoginRewardsActivity::class.java),

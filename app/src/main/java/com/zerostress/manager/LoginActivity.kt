@@ -68,6 +68,7 @@ import com.zerostress.manager.ui.theme.Primary
 import com.zerostress.manager.ui.theme.TextMuted
 import com.zerostress.manager.ui.theme.TextSecondary
 import com.zerostress.manager.ui.theme.ZeroStressTheme
+import com.zerostress.manager.ui.components.clickableNoRipple
 
 class LoginActivity : ComponentActivity() {
 
