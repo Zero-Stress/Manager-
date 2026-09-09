@@ -12,6 +12,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,7 +47,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -61,7 +64,6 @@ import com.zerostress.manager.ui.theme.Accent
 import com.zerostress.manager.ui.theme.BgMain
 import com.zerostress.manager.ui.theme.BgCard
 import com.zerostress.manager.ui.theme.Cyan
-import com.zerostress.manager.ui.theme.GradientPrimary
 import com.zerostress.manager.ui.theme.Primary
 import com.zerostress.manager.ui.theme.TextMuted
 import com.zerostress.manager.ui.theme.TextSecondary
@@ -147,15 +149,16 @@ fun LoginScreen(onLoggedIn: (String) -> Unit, onGoRegister: () -> Unit) {
                 enter = fadeIn(tween(800)) + slideInVertically(tween(800)) { it / 2 }
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(
-                        Modifier
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                        contentDescription = "Zero Stress logo",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
                             .size(92.dp)
                             .clip(CircleShape)
-                            .background(GradientPrimary),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("ZS", color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Black)
-                    }
+                            .background(Primary)
+                            .padding(14.dp)
+                    )
                     Spacer(Modifier.height(16.dp))
                     Text(
                         "ZERO STRESS",
