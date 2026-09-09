@@ -22,6 +22,7 @@ class DailyInputActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DailyInputScreen() {
     var playerNames by remember { mutableStateOf(listOf<String>()) }

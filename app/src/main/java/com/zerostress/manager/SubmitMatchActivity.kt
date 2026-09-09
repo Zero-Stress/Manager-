@@ -23,6 +23,7 @@ class SubmitMatchActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubmitMatchScreen() {
     var kills by remember { mutableStateOf("") }

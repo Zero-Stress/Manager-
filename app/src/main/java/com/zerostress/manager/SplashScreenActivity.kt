@@ -39,6 +39,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.zerostress.manager.fcm.ZSFCMService
 import com.zerostress.manager.ui.theme.Accent
+import com.zerostress.manager.ui.theme.BgCard
 import com.zerostress.manager.ui.theme.BgMain
 import com.zerostress.manager.ui.theme.Cyan
 import com.zerostress.manager.ui.theme.Primary
