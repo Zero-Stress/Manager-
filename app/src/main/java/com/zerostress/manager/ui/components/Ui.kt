@@ -49,7 +49,7 @@ import com.zerostress.manager.ui.theme.PrimaryDark
 import com.zerostress.manager.ui.theme.TextMuted
 import com.zerostress.manager.ui.theme.TextSecondary
 
-/** Click without ripple effect. */
+@Composable
 fun Modifier.clickableNoRipple(onClick: () -> Unit): Modifier =
     this.clickable(
         interactionSource = remember { MutableInteractionSource() },

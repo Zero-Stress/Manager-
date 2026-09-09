@@ -95,7 +95,7 @@ fun PlayerDashboardScreen() {
         Triple("Challenges", Icons.Default.EmojiEvents, DailyChallengesActivity::class.java),
         Triple("Battle Pass", Icons.Default.Stars, BattlePassActivity::class.java),
         Triple("Titles", Icons.Default.Label, PlayerTitlesActivity::class.java),
-        Triple("Performance", Icons.Default.Stats, PerformanceGraphsActivity::class.java),
+        Triple("Performance", Icons.Default.TrendingUp, PerformanceGraphsActivity::class.java),
     )
 
     Column(
