@@ -1,8 +1,5 @@
 package com.zerostress.manager
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,13 +15,6 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.zerostress.manager.ui.theme.*
-
-class BattlePassActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent { ZeroStressTheme { BattlePassScreen() } }
-    }
-}
 
 private data class BattlePassTier(val level: Int, val freeReward: String, val premiumReward: String, val emoji: String)
 

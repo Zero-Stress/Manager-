@@ -24,46 +24,18 @@
         android:theme="@style/Theme.ZeroStress"
         android:usesCleartextTraffic="true">
 
+        <!-- Single-Activity architecture: all screens are Compose routes -->
         <activity
-            android:name=".SplashScreenActivity"
+            android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.ZeroStress"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".LoginActivity" android:theme="@style/Theme.ZeroStress" />
-
-        <activity android:name=".RegisterActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".AdminDashboardActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".PlayerDashboardActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".LeaderboardActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".ChatActivity" android:theme="@style/Theme.ZeroStress"
-            android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".VoiceActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".ProfileActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".ScheduleActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".FriendsActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".AchievementsActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".SeasonActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".SubmitMatchActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".AnnouncementsActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".DailyInputActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".PerformanceActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".SettingsActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".PlayerTitlesActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".DailyChallengesActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".BattlePassActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".PerformanceGraphsActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".DailyLoginRewardsActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".SendNotificationActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".ManageSeasonsActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".ManageVoiceChannelsActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".ViewAllPlayersStatsActivity" android:theme="@style/Theme.ZeroStress" />
-        <activity android:name=".NotificationsActivity" android:theme="@style/Theme.ZeroStress" />
 
         <service
             android:name=".fcm.ZSFCMService"

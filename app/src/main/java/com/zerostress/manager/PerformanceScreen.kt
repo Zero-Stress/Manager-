@@ -1,8 +1,5 @@
 package com.zerostress.manager
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,13 +17,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.zerostress.manager.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
-
-class PerformanceActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent { ZeroStressTheme { PerformanceScreen() } }
-    }
-}
 
 @Composable
 fun PerformanceScreen() {

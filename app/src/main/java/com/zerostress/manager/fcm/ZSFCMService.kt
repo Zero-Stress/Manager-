@@ -12,7 +12,7 @@ import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import com.zerostress.manager.LoginActivity
+import com.zerostress.manager.MainActivity
 import com.zerostress.manager.R
 import com.zerostress.manager.ZeroStressApp
 
@@ -68,7 +68,7 @@ class ZSFCMService : FirebaseMessagingService() {
     }
 
     private fun showNotification(title: String, body: String, type: String) {
-        val intent = Intent(this, LoginActivity::class.java).apply {
+        val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
         }
 

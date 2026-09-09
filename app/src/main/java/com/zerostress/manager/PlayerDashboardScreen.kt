@@ -1,11 +1,5 @@
 package com.zerostress.manager
 
-import android.content.Intent
-import android.os.Build
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,7 +12,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -30,34 +23,8 @@ import com.zerostress.manager.fcm.FCMConfig
 import com.zerostress.manager.fcm.ZSFCMService
 import com.zerostress.manager.ui.theme.*
 
-class PlayerDashboardActivity : ComponentActivity() {
-
-    private val permLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) ZSFCMService.saveTokenToFirestoreWithRetry(this)
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val ctx = this
-            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                permLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
-        ZSFCMService.saveTokenToFirestoreWithRetry(this)
-        FCMConfig.checkFCMConfiguration(this)
-
-        setContent { ZeroStressTheme { PlayerDashboardScreen() } }
-    }
-
-    override fun onResume() {
-        super.onResume()
-    }
-}
-
 @Composable
-fun PlayerDashboardScreen() {
-    val context = androidx.compose.ui.platform.LocalContext.current
+fun PlayerDashboardScreen(onNavigate: (String) -> Unit) {
     val uid = FirebaseAuth.getInstance().uid
     var playerName by remember { mutableStateOf("Player") }
     var score by remember { mutableStateOf(0L) }
@@ -82,20 +49,20 @@ fun PlayerDashboardScreen() {
     }
 
     val navItems = listOf(
-        Triple("Schedule", Icons.Default.CalendarMonth, ScheduleActivity::class.java),
-        Triple("Leaderboard", Icons.Default.EmojiEvents, LeaderboardActivity::class.java),
-        Triple("Chat", Icons.Default.Chat, ChatActivity::class.java),
-        Triple("Voice", Icons.Default.RecordVoiceOver, VoiceActivity::class.java),
-        Triple("Profile", Icons.Default.Person, ProfileActivity::class.java),
-        Triple("Friends", Icons.Default.Group, FriendsActivity::class.java),
-        Triple("Seasons", Icons.Default.Event, SeasonActivity::class.java),
-        Triple("Achievements", Icons.Default.EmojiEvents, AchievementsActivity::class.java),
-        Triple("News", Icons.Default.Info, AnnouncementsActivity::class.java),
-        Triple("Daily Rewards", Icons.Default.CardGiftcard, DailyLoginRewardsActivity::class.java),
-        Triple("Challenges", Icons.Default.EmojiEvents, DailyChallengesActivity::class.java),
-        Triple("Battle Pass", Icons.Default.Stars, BattlePassActivity::class.java),
-        Triple("Titles", Icons.Default.Label, PlayerTitlesActivity::class.java),
-        Triple("Performance", Icons.Default.TrendingUp, PerformanceGraphsActivity::class.java),
+        Triple("Schedule", Icons.Default.CalendarMonth, Routes.SCHEDULE),
+        Triple("Leaderboard", Icons.Default.EmojiEvents, Routes.LEADERBOARD),
+        Triple("Chat", Icons.Default.Chat, Routes.CHAT),
+        Triple("Voice", Icons.Default.RecordVoiceOver, Routes.VOICE),
+        Triple("Profile", Icons.Default.Person, Routes.PROFILE),
+        Triple("Friends", Icons.Default.Group, Routes.FRIENDS),
+        Triple("Seasons", Icons.Default.Event, Routes.SEASONS),
+        Triple("Achievements", Icons.Default.EmojiEvents, Routes.ACHIEVEMENTS),
+        Triple("News", Icons.Default.Info, Routes.ANNOUNCEMENTS),
+        Triple("Daily Rewards", Icons.Default.CardGiftcard, Routes.DAILY_LOGIN_REWARDS),
+        Triple("Challenges", Icons.Default.EmojiEvents, Routes.DAILY_CHALLENGES),
+        Triple("Battle Pass", Icons.Default.Stars, Routes.BATTLE_PASS),
+        Triple("Titles", Icons.Default.Label, Routes.PLAYER_TITLES),
+        Triple("Performance", Icons.Default.TrendingUp, Routes.PERFORMANCE_GRAPHS),
     )
 
     Column(
@@ -132,11 +99,11 @@ fun PlayerDashboardScreen() {
         // Navigation grid
         navItems.chunked(2).forEach { row ->
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                row.forEach { (label, icon, activityClass) ->
+                row.forEach { (label, icon, route) ->
                     Card(
                         modifier = Modifier
                             .weight(1f)
-                            .clickable { context.startActivity(Intent(context, activityClass)) },
+                            .clickable { onNavigate(route) },
                         shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(containerColor = ZSCard)
                     ) {
@@ -159,11 +126,11 @@ fun PlayerDashboardScreen() {
         // Settings + Notifications + Logout
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             OutlinedButton(
-                onClick = { context.startActivity(Intent(context, SettingsActivity::class.java)) },
+                onClick = { onNavigate(Routes.SETTINGS) },
                 modifier = Modifier.weight(1f)
             ) { Icon(Icons.Default.Settings, null); Spacer(Modifier.width(4.dp)); Text("Settings") }
             OutlinedButton(
-                onClick = { context.startActivity(Intent(context, NotificationsActivity::class.java)) },
+                onClick = { onNavigate(Routes.NOTIFICATIONS) },
                 modifier = Modifier.weight(1f)
             ) { Icon(Icons.Default.Notifications, null); Spacer(Modifier.width(4.dp)); Text("Alerts") }
         }
@@ -172,8 +139,7 @@ fun PlayerDashboardScreen() {
         Button(
             onClick = {
                 FirebaseAuth.getInstance().signOut()
-                context.startActivity(Intent(context, LoginActivity::class.java))
-                (context as? ComponentActivity)?.finish()
+                onNavigate(Routes.LOGIN)
             },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = ZSDanger)

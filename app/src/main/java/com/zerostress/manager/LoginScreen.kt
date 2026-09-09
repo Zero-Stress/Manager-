@@ -1,13 +1,5 @@
 package com.zerostress.manager
 
-import android.Manifest
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -48,73 +40,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
-import com.zerostress.manager.fcm.FCMConfig
 import com.zerostress.manager.ui.theme.Accent
-import com.zerostress.manager.ui.theme.BgMain
 import com.zerostress.manager.ui.theme.BgCard
+import com.zerostress.manager.ui.theme.BgMain
 import com.zerostress.manager.ui.theme.Cyan
 import com.zerostress.manager.ui.theme.Primary
 import com.zerostress.manager.ui.theme.TextMuted
 import com.zerostress.manager.ui.theme.TextSecondary
-import com.zerostress.manager.ui.theme.ZeroStressTheme
 import com.zerostress.manager.ui.components.clickableNoRipple
-
-class LoginActivity : ComponentActivity() {
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        FCMConfig.checkFCMConfiguration(this)
-        requestNotificationPermission()
-        setContent {
-            ZeroStressTheme {
-                LoginScreen(
-                    onLoggedIn = { role ->
-                        val target = if (role == "admin") AdminDashboardActivity::class.java
-                        else PlayerDashboardActivity::class.java
-                        startActivity(
-                            Intent(this, target).setFlags(
-                                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            )
-                        )
-                        finish()
-                    },
-                    onGoRegister = { startActivity(Intent(this, RegisterActivity::class.java)) }
-                )
-            }
-        }
-    }
-
-    private val notifPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (granted) {
-                FirebaseMessaging.getInstance().subscribeToTopic("all_players")
-            }
-        }
-
-    private fun requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            notifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
-    }
-}
 
 @Composable
 fun LoginScreen(onLoggedIn: (String) -> Unit, onGoRegister: () -> Unit) {
-    val context = LocalContext.current
     val auth = remember { FirebaseAuth.getInstance() }
     val db = remember { FirebaseFirestore.getInstance() }
 

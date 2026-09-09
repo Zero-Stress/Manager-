@@ -1,8 +1,5 @@
 package com.zerostress.manager
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -20,13 +17,6 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.zerostress.manager.ui.theme.*
-
-class DailyLoginRewardsActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent { ZeroStressTheme { DailyLoginRewardsScreen() } }
-    }
-}
 
 private data class RewardDay(val day: Int, val reward: String, val amount: String, val emoji: String)
 

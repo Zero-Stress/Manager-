@@ -1,9 +1,5 @@
 package com.zerostress.manager
 
-import android.content.Intent
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -17,16 +13,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.zerostress.manager.ui.theme.*
 
-class SettingsActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent { ZeroStressTheme { SettingsScreen() } }
-    }
-}
-
 @Composable
-fun SettingsScreen() {
-    val context = androidx.compose.ui.platform.LocalContext.current
+fun SettingsScreen(onLoggedOut: () -> Unit) {
     var notifications by remember { mutableStateOf(true) }
     var chatNotifs by remember { mutableStateOf(true) }
     var scheduleNotifs by remember { mutableStateOf(true) }
@@ -46,8 +34,7 @@ fun SettingsScreen() {
                         FirebaseFirestore.getInstance().collection("players").document(uid).delete()
                         FirebaseAuth.getInstance().currentUser?.delete()
                         FirebaseAuth.getInstance().signOut()
-                        context.startActivity(Intent(context, LoginActivity::class.java))
-                        (context as? ComponentActivity)?.finish()
+                        onLoggedOut()
                     }
                     showDeleteDialog = false
                 }) { Text("Delete Everything", color = Color.Red) }
@@ -89,8 +76,7 @@ fun SettingsScreen() {
         Button(
             onClick = {
                 FirebaseAuth.getInstance().signOut()
-                context.startActivity(Intent(context, LoginActivity::class.java))
-                (context as? ComponentActivity)?.finish()
+                onLoggedOut()
             },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = ZSWarning)

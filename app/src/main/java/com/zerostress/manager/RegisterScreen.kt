@@ -1,9 +1,5 @@
 package com.zerostress.manager
 
-import android.content.Intent
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,26 +16,6 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.zerostress.manager.ui.theme.*
-
-class RegisterActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            ZeroStressTheme {
-                RegisterScreen(
-                    onRegisterSuccess = {
-                        startActivity(Intent(this, LoginActivity::class.java))
-                        finish()
-                    },
-                    onLoginClick = {
-                        startActivity(Intent(this, LoginActivity::class.java))
-                        finish()
-                    }
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun RegisterScreen(onRegisterSuccess: () -> Unit, onLoginClick: () -> Unit) {

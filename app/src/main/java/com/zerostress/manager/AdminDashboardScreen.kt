@@ -1,9 +1,6 @@
 package com.zerostress.manager
 
 import android.content.Intent
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,17 +23,9 @@ import com.zerostress.manager.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-class AdminDashboardActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent { ZeroStressTheme { AdminDashboardScreen() } }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminDashboardScreen() {
-    val context = androidx.compose.ui.platform.LocalContext.current
+fun AdminDashboardScreen(onNavigate: (String) -> Unit) {
     val uid = FirebaseAuth.getInstance().uid
     var adminName by remember { mutableStateOf("Admin") }
     var totalPlayers by remember { mutableIntStateOf(0) }
@@ -97,15 +86,15 @@ fun AdminDashboardScreen() {
 
         val adminNav = listOf(
             "📋 Player Management" to { showPlayerList = !showPlayerList },
-            "📝 Daily Input" to { context.startActivity(Intent(context, DailyInputActivity::class.java)) },
+            "📝 Daily Input" to { onNavigate(Routes.DAILY_INPUT) },
             "📢 Announcements" to { showAnnouncementDialog = true },
-            "🏆 Leaderboard" to { context.startActivity(Intent(context, LeaderboardActivity::class.java)) },
-            "💬 Chat" to { context.startActivity(Intent(context, ChatActivity::class.java)) },
-            "🎙 Voice" to { context.startActivity(Intent(context, VoiceActivity::class.java)) },
-            "📅 Manage Seasons" to { context.startActivity(Intent(context, ManageSeasonsActivity::class.java)) },
-            "📊 Player Stats" to { context.startActivity(Intent(context, ViewAllPlayersStatsActivity::class.java)) },
-            "🔔 Send Notification" to { context.startActivity(Intent(context, SendNotificationActivity::class.java)) },
-            "⚙ Settings" to { context.startActivity(Intent(context, SettingsActivity::class.java)) },
+            "🏆 Leaderboard" to { onNavigate(Routes.LEADERBOARD) },
+            "💬 Chat" to { onNavigate(Routes.CHAT) },
+            "🎙 Voice" to { onNavigate(Routes.VOICE) },
+            "📅 Manage Seasons" to { onNavigate(Routes.MANAGE_SEASONS) },
+            "📊 Player Stats" to { onNavigate(Routes.VIEW_ALL_PLAYERS_STATS) },
+            "🔔 Send Notification" to { onNavigate(Routes.SEND_NOTIFICATION) },
+            "⚙ Settings" to { onNavigate(Routes.SETTINGS) },
         )
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -122,8 +111,7 @@ fun AdminDashboardScreen() {
                 Button(
                     onClick = {
                         FirebaseAuth.getInstance().signOut()
-                        context.startActivity(Intent(context, LoginActivity::class.java))
-                        (context as? ComponentActivity)?.finish()
+                        onNavigate(Routes.LOGIN)
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = ZSDanger)

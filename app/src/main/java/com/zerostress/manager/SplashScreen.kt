@@ -1,8 +1,5 @@
 package com.zerostress.manager
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -13,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,6 +29,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -44,71 +43,25 @@ import com.zerostress.manager.ui.theme.BgMain
 import com.zerostress.manager.ui.theme.Cyan
 import com.zerostress.manager.ui.theme.Primary
 import com.zerostress.manager.ui.theme.TextMuted
-import com.zerostress.manager.ui.theme.ZeroStressTheme
-import kotlinx.coroutines.delay
 
-class SplashScreenActivity : ComponentActivity() {
+private val SPLASH_MESSAGES = arrayOf(
+    "Initializing system...",
+    "Loading player data...",
+    "Syncing leaderboards...",
+    "Connecting to voice servers...",
+    "Preparing battle arena...",
+    "Almost ready..."
+)
 
-    private val loadingMessages = arrayOf(
-        "Initializing system...",
-        "Loading player data...",
-        "Syncing leaderboards...",
-        "Connecting to voice servers...",
-        "Preparing battle arena...",
-        "Almost ready..."
-    )
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            ZeroStressTheme {
-                SplashContent(
-                    loadingMessages = loadingMessages,
-                    onFinish = { navigateToMain() }
-                )
-            }
-        }
-    }
-
-    private fun navigateToMain() {
-        val auth = FirebaseAuth.getInstance()
-        if (auth.currentUser != null) {
-            val userId = auth.currentUser!!.uid
-            // Save FCM token so push notifications work after app restart
-            ZSFCMService.saveTokenToFirestore(this)
-
-            FirebaseFirestore.getInstance().collection("players").document(userId).get()
-                .addOnSuccessListener { doc ->
-                    val intent = when {
-                        doc.exists() && doc.getString("role") == "admin" ->
-                            intentTo(AdminDashboardActivity::class.java)
-                        doc.exists() -> intentTo(PlayerDashboardActivity::class.java)
-                        else -> intentTo(LoginActivity::class.java)
-                    }
-                    startActivity(intent)
-                    finish()
-                }
-                .addOnFailureListener {
-                    startActivity(intentTo(LoginActivity::class.java))
-                    finish()
-                }
-        } else {
-            startActivity(intentTo(LoginActivity::class.java))
-            finish()
-        }
-    }
-
-    private fun intentTo(cls: Class<*>) =
-        android.content.Intent(this, cls).setFlags(
-            android.content.Intent.FLAG_ACTIVITY_NEW_TASK or
-                    android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
-        )
-}
-
+/**
+ * Splash screen as a Compose route. Determines start destination based on auth + role.
+ */
 @Composable
-private fun SplashContent(loadingMessages: Array<String>, onFinish: () -> Unit) {
+fun SplashScreen(onFinish: (String) -> Unit) {
     var progress by remember { mutableFloatStateOf(0f) }
     var messageIndex by remember { mutableIntStateOf(0) }
+    var navigated by remember { mutableStateOf(false) }
+
     val logoAlpha by animateFloatAsState(
         targetValue = if (progress > 0f) 1f else 0f,
         animationSpec = tween(500), label = "logoAlpha"
@@ -128,12 +81,15 @@ private fun SplashContent(loadingMessages: Array<String>, onFinish: () -> Unit) 
 
     LaunchedEffect(Unit) {
         while (progress < 1f) {
-            delay(100)
+            kotlinx.coroutines.delay(100)
             progress = (progress + 0.05f).coerceAtMost(1f)
             messageIndex = ((progress * 100).toInt() / 20)
-                .coerceAtMost(loadingMessages.size - 1)
+                .coerceAtMost(SPLASH_MESSAGES.size - 1)
         }
-        onFinish()
+        if (!navigated) {
+            navigated = true
+            resolveStartDestination(LocalContext.current) { role -> onFinish(role) }
+        }
     }
 
     Box(
@@ -182,7 +138,7 @@ private fun SplashContent(loadingMessages: Array<String>, onFinish: () -> Unit) 
                     .alpha(loadingAlpha)
             ) {
                 Text(
-                    loadingMessages[messageIndex],
+                    SPLASH_MESSAGES[messageIndex],
                     color = TextMuted,
                     fontSize = 13.sp
                 )
@@ -198,4 +154,26 @@ private fun SplashContent(loadingMessages: Array<String>, onFinish: () -> Unit) 
             }
         }
     }
+}
+
+private fun resolveStartDestination(context: android.content.Context, onResult: (String) -> Unit) {
+    val auth = FirebaseAuth.getInstance()
+    val user = auth.currentUser
+    if (user == null) {
+        onResult("logged_out")
+        return
+    }
+    // Save FCM token so push notifications keep working across restarts
+    ZSFCMService.saveTokenToFirestore(context)
+    FirebaseFirestore.getInstance().collection("players").document(user.uid).get()
+        .addOnSuccessListener { doc ->
+            onResult(
+                when {
+                    doc.exists() && doc.getString("role") == "admin" -> "admin"
+                    doc.exists() -> "player"
+                    else -> "logged_out"
+                }
+            )
+        }
+        .addOnFailureListener { onResult("logged_out") }
 }
